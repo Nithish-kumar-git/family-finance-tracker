@@ -1,0 +1,13 @@
+.env
+.env.local
+__pycache__/
+*.pyc
+*.pyo
+node_modules/
+dist/
+*.db
+.DS_Store
+.env.local
+*.egg-info/
+.vercel/
+KEYS.txt
