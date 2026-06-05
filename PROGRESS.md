@@ -6,7 +6,7 @@
 
 | Conv | Description | Status | Verified |
 |------|-------------|--------|----------|
-| 0 | Python FastAPI backend — 17 files | NOT STARTED | No |
+| 0 | Python FastAPI backend — 17 files | COMPLETE | No — run seed.py to verify |
 | 1 | React shell + Zustand + api.js | NOT STARTED | No |
 | 2 | Dashboard + Ask Amma AI | NOT STARTED | No |
 | 3 | Expenses + AI SMS parser | NOT STARTED | No |
@@ -19,15 +19,31 @@
 | 10 | Settings + reset | NOT STARTED | No |
 
 ## LOCKED FILES — DO NOT MODIFY
-[Empty — no conversations complete yet]
+backend/database.py
+backend/models.py
+backend/schemas.py
+backend/main.py
+backend/seed.py
+backend/vercel.json
+backend/requirements.txt
+backend/routers/expenses.py
+backend/routers/assets.py
+backend/routers/milestones.py
+backend/routers/employment.py
+backend/routers/reports.py
+backend/routers/ai.py
+backend/routers/reset.py
+backend/services/ai_service.py
+backend/services/analytics_service.py
 
 ## WHAT EXISTS NOW
 Folders: backend/ backend/routers/ backend/services/ familyfinancetracker/
 Files: README.md .gitignore RULES.md SPEC_SUMMARY.md PROGRESS.md SUPER_MASTER_PROMPT_V2.md backend/.env
-NOT YET BUILT: all code files in backend/ and familyfinancetracker/src/
+BUILT (Conv 0): All 17 backend files — database.py, models.py, schemas.py, main.py, seed.py, vercel.json, requirements.txt, 7 routers, 2 services
+NOT YET BUILT: all frontend files in familyfinancetracker/
 
 ## ISSUES LOG
-[None yet]
+[None]
 
 ## GIT LOG
-[None yet]
+Conv 0 — feat: add Python FastAPI backend with Supabase PostgreSQL (commit e60cbdb) ✅ pushed
