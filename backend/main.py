@@ -40,10 +40,22 @@ app.include_router(reset.router, prefix="/api")
 
 
 # ── Health check ──────────────────────────────────────────────────────────────
-@app.get("/health")
+"""@app.get("/health")
 def health_check(db: Session = Depends(get_db)):
     try:
         db.execute(text("SELECT 1"))
         return {"status": "ok", "database": "connected"}
     except Exception:
-        return {"status": "ok", "database": "error"}
+        return {"status": "ok", "database": "error"}"""
+
+@app.get("/health")
+def health_check(db: Session = Depends(get_db)):
+    try:
+        db.execute(text("SELECT 1"))
+        return {"status": "ok", "database": "connected"}
+    except Exception as e:
+        return {
+            "status": "ok",
+            "database": "error",
+            "error": str(e)
+        }

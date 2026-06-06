@@ -5,6 +5,12 @@ import BottomNav from './components/layout/BottomNav.jsx'
 import PageWrapper from './components/layout/PageWrapper.jsx'
 import Auth from './pages/Auth.jsx'
 import Dashboard from './pages/Dashboard.jsx'
+import Expenses from './pages/Expenses.jsx'
+import Budgets from './pages/Budgets.jsx'
+import Assets from './pages/Assets.jsx'
+import Milestones from './pages/Milestones.jsx'
+import Employment from './pages/Employment.jsx'
+import Report from './pages/Report.jsx'
 
 // Placeholder for pages not yet built (Conversations 2–10)
 const PlaceholderPage = ({ name }) => (
@@ -46,7 +52,7 @@ export default function App() {
           path="/expenses"
           element={
             <ProtectedLayout>
-              <PlaceholderPage name="Expenses" />
+              <Expenses />
             </ProtectedLayout>
           }
         />
@@ -54,7 +60,7 @@ export default function App() {
           path="/assets"
           element={
             <ProtectedLayout>
-              <PlaceholderPage name="Assets" />
+              <Assets />
             </ProtectedLayout>
           }
         />
@@ -62,7 +68,7 @@ export default function App() {
           path="/milestones"
           element={
             <ProtectedLayout>
-              <PlaceholderPage name="Milestones" />
+              <Milestones />
             </ProtectedLayout>
           }
         />
@@ -70,7 +76,7 @@ export default function App() {
           path="/report"
           element={
             <ProtectedLayout>
-              <PlaceholderPage name="Report" />
+              <Report />
             </ProtectedLayout>
           }
         />
@@ -78,7 +84,7 @@ export default function App() {
           path="/employment"
           element={
             <ProtectedLayout>
-              <PlaceholderPage name="Employment" />
+              <Employment />
             </ProtectedLayout>
           }
         />
@@ -87,6 +93,15 @@ export default function App() {
           element={
             <ProtectedLayout>
               <PlaceholderPage name="Settings" />
+            </ProtectedLayout>
+          }
+        />
+
+        <Route
+          path="/budgets"
+          element={
+            <ProtectedLayout>
+              <Budgets />
             </ProtectedLayout>
           }
         />
