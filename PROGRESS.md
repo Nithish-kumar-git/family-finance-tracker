@@ -16,7 +16,7 @@
 | 7 | Employment tracker | COMPLETE | No — run npm run dev, navigate /employment |
 | 8 | Monthly report + AI insights | COMPLETE | No — run npm run dev, navigate /report |
 | 9 | PWA + deployment | COMPLETE | No — run npm run build, check dist/ exists |
-| 10 | Settings + reset | NOT STARTED | No |
+| 10 | Settings + reset | COMPLETE | No — run npm run dev, navigate /settings |
 
 ## LOCKED FILES — DO NOT MODIFY
 backend/database.py
@@ -69,6 +69,8 @@ familyfinancetracker/src/hooks/useReport.js
 familyfinancetracker/src/pages/Report.jsx
 familyfinancetracker/src/hooks/usePWAInstall.js
 familyfinancetracker/src/components/ui/PWAInstallButton.jsx
+familyfinancetracker/src/pages/Settings.jsx
+backend/routers/settings.py
 
 ## WHAT EXISTS NOW
 Folders: backend/ backend/routers/ backend/services/ familyfinancetracker/
@@ -97,6 +99,10 @@ BUILT (Conv 9): PWAInstallButton.jsx — self-contained install button, renders 
 MODIFIED (Conv 9): Header.jsx — 2 surgical changes: PWAInstallButton import + wrapper div with gap-2
 CREATED (Conv 9): DEPLOYMENT_GUIDE.md — 10-step guide for Nithish (Supabase, Vercel, Netlify, PWA)
 CREATED (Conv 9): README.md — project overview, tech stack, local dev, structure tree, arch decisions
+BUILT (Conv 10): Settings.jsx — 6-section settings page: income edit, PIN change, emergency fund, bulk delete, full reset, app info
+BUILT (Conv 10): backend/routers/settings.py — PATCH /api/settings/income endpoint
+MODIFIED (Conv 10): App.jsx — added Settings import, swapped /settings placeholder for real component (2-line surgical edit)
+MODIFIED (Conv 10): backend/main.py — registered settings router (2-line surgical edit)
 
 ## ISSUES LOG
 - Conv 4 BUG: `import EXPENSE_CATEGORIES from '../data/seedData'` used default import but EXPENSE_CATEGORIES is a named export. Caused blank screen (undefined crashes Object.entries). Fixed to `import { EXPENSE_CATEGORIES } from '../data/seedData'`.
@@ -112,3 +118,12 @@ Conv 6 — feat: add Milestone Tracker with urgent/upcoming/completed/skipped se
 Conv 7 — feat: add Employment Tracker with status cycle, impact calc, weekly chart, application list (commit pending)
 Conv 8 — feat: add Monthly Report page with AI insights, Copy for Claude, 5-card preview, alerts (commit pending)
 Conv 9 — feat: add PWA manifest, icons, service worker, install button, README, deployment guide (commit pending)
+Conv 10 — feat: add Settings page with data reset and income management (Conv 10) (commit 5fe949e) ✅ pushed
+
+## WHAT STILL NEEDS TO BE DONE
+All 10 conversations are complete.
+Remaining steps:
+- Run npm run build to verify production bundle
+- Confirm Vercel redeploys successfully after git push
+- Test /settings page on deployed Netlify URL
+- Install PWA on all three family phones
