@@ -11,6 +11,7 @@ load_dotenv()
 
 from database import get_db
 from routers import expenses, assets, milestones, employment, reports, ai, reset
+from routers.settings import router as settings_router
 
 app = FastAPI(title="FamilyFinanceTracker API", version="1.0.0")
 
@@ -37,6 +38,7 @@ app.include_router(employment.router, prefix="/api")
 app.include_router(reports.router, prefix="/api")
 app.include_router(ai.router, prefix="/api")
 app.include_router(reset.router, prefix="/api")
+app.include_router(settings_router, prefix="/api")
 
 
 # ── Health check ──────────────────────────────────────────────────────────────

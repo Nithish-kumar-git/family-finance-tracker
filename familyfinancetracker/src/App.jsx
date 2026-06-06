@@ -11,6 +11,7 @@ import Assets from './pages/Assets.jsx'
 import Milestones from './pages/Milestones.jsx'
 import Employment from './pages/Employment.jsx'
 import Report from './pages/Report.jsx'
+import Settings from './pages/Settings.jsx'
 
 // Placeholder for pages not yet built (Conversations 2–10)
 const PlaceholderPage = ({ name }) => (
@@ -92,7 +93,7 @@ export default function App() {
           path="/settings"
           element={
             <ProtectedLayout>
-              <PlaceholderPage name="Settings" />
+              <Settings />
             </ProtectedLayout>
           }
         />
