@@ -7,7 +7,7 @@
 | Conv | Description | Status | Verified |
 |------|-------------|--------|----------|
 | 0 | Python FastAPI backend — 17 files | COMPLETE | No — run seed.py to verify |
-| 1 | React shell + Zustand + api.js | NOT STARTED | No |
+| 1 | React shell + Zustand + api.js | COMPLETE | No — run npm run dev to verify |
 | 2 | Dashboard + Ask Amma AI | NOT STARTED | No |
 | 3 | Expenses + AI SMS parser | NOT STARTED | No |
 | 4 | Budget management | NOT STARTED | No |
@@ -35,6 +35,27 @@ backend/routers/ai.py
 backend/routers/reset.py
 backend/services/ai_service.py
 backend/services/analytics_service.py
+familyfinancetracker/package.json
+familyfinancetracker/vite.config.js
+familyfinancetracker/tailwind.config.js
+familyfinancetracker/postcss.config.js
+familyfinancetracker/index.html
+familyfinancetracker/src/main.jsx
+familyfinancetracker/src/index.css
+familyfinancetracker/src/App.jsx
+familyfinancetracker/src/store/useStore.js
+familyfinancetracker/src/data/seedData.js
+familyfinancetracker/src/utils/api.js
+familyfinancetracker/src/utils/formatters.js
+familyfinancetracker/src/utils/calculations.js
+familyfinancetracker/src/components/layout/BottomNav.jsx
+familyfinancetracker/src/components/layout/Header.jsx
+familyfinancetracker/src/components/layout/PageWrapper.jsx
+familyfinancetracker/src/components/ui/Card.jsx
+familyfinancetracker/src/components/ui/Button.jsx
+familyfinancetracker/src/components/ui/Badge.jsx
+familyfinancetracker/src/components/ui/Input.jsx
+familyfinancetracker/src/pages/Auth.jsx
 
 ## WHAT EXISTS NOW
 Folders: backend/ backend/routers/ backend/services/ familyfinancetracker/
@@ -47,3 +68,4 @@ NOT YET BUILT: all frontend files in familyfinancetracker/
 
 ## GIT LOG
 Conv 0 — feat: add Python FastAPI backend with Supabase PostgreSQL (commit e60cbdb) ✅ pushed
+Conv 1 — feat: add React frontend foundation — shell, store, api.js, components (commit fcd4643) ✅ pushed
