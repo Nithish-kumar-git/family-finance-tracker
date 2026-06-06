@@ -8,7 +8,7 @@
 |------|-------------|--------|----------|
 | 0 | Python FastAPI backend — 17 files | COMPLETE | No — run seed.py to verify |
 | 1 | React shell + Zustand + api.js | COMPLETE | No — run npm run dev to verify |
-| 2 | Dashboard + Ask Amma AI | NOT STARTED | No |
+| 2 | Dashboard + Ask Amma AI | COMPLETE | No — run npm run dev to verify |
 | 3 | Expenses + AI SMS parser | NOT STARTED | No |
 | 4 | Budget management | NOT STARTED | No |
 | 5 | Asset tracker | NOT STARTED | No |
@@ -56,6 +56,8 @@ familyfinancetracker/src/components/ui/Button.jsx
 familyfinancetracker/src/components/ui/Badge.jsx
 familyfinancetracker/src/components/ui/Input.jsx
 familyfinancetracker/src/pages/Auth.jsx
+familyfinancetracker/src/pages/Dashboard.jsx
+familyfinancetracker/src/components/charts/SparkLine.jsx
 
 ## WHAT EXISTS NOW
 Folders: backend/ backend/routers/ backend/services/ familyfinancetracker/
@@ -69,3 +71,4 @@ NOT YET BUILT: all frontend files in familyfinancetracker/
 ## GIT LOG
 Conv 0 — feat: add Python FastAPI backend with Supabase PostgreSQL (commit e60cbdb) ✅ pushed
 Conv 1 — feat: add React frontend foundation — shell, store, api.js, components (commit fcd4643) ✅ pushed
+Conv 2 — feat: add Dashboard page with Ask Amma AI chatbot (commit 7ca9a55) ✅ pushed
