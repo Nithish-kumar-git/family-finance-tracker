@@ -4,6 +4,7 @@ import Header from './components/layout/Header.jsx'
 import BottomNav from './components/layout/BottomNav.jsx'
 import PageWrapper from './components/layout/PageWrapper.jsx'
 import Auth from './pages/Auth.jsx'
+import Dashboard from './pages/Dashboard.jsx'
 
 // Placeholder for pages not yet built (Conversations 2–10)
 const PlaceholderPage = ({ name }) => (
@@ -37,7 +38,7 @@ export default function App() {
           path="/dashboard"
           element={
             <ProtectedLayout>
-              <PlaceholderPage name="Dashboard" />
+              <Dashboard />
             </ProtectedLayout>
           }
         />
