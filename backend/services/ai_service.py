@@ -46,7 +46,10 @@ def parse_transaction(raw_text: str) -> dict:
             lines = text.split("\n")
             text = "\n".join(lines[1:-1]) if len(lines) > 2 else text
         return json.loads(text)
-    except Exception:
+    except Exception as e:
+        err = str(e).lower()
+        if "429" in err or "quota" in err or "too many" in err:
+            return {"amount": 0, "category": "other", "description": "Rate limit — retry in 60s", "confidence": 0.0}
         return {"amount": 0, "category": "other", "description": "", "confidence": 0.0}
 
 
@@ -75,7 +78,16 @@ def get_monthly_insights(report_json: dict) -> list:
             lines = text.split("\n")
             text = "\n".join(lines[1:-1]) if len(lines) > 2 else text
         return json.loads(text.strip())
-    except Exception:
+    except Exception as e:
+        err = str(e).lower()
+        if "429" in err or "quota" in err or "too many" in err:
+            return [
+                "Rate limit reached — please wait 60 seconds and try again.",
+                "Your financial data is saved and accurate.",
+                "Review the report cards above for current month summary.",
+                "Use the Copy for Claude Analysis button to get detailed feedback.",
+                "Gemini free tier allows ~15 requests per minute.",
+            ]
         return [
             "Unable to generate AI insights at this time.",
             "Please check your internet connection and try again.",
@@ -113,5 +125,8 @@ def chat(question: str, context: dict, history: list) -> str:
             ),
         )
         return response.text.strip()
-    except Exception:
+    except Exception as e:
+        err = str(e).lower()
+        if "429" in err or "quota" in err or "too many" in err:
+            return "Rate limit reached — please wait 60 seconds and try again."
         return "I'm unable to answer right now. Please try again in a moment."
