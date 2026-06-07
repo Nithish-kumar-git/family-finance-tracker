@@ -1,28 +1,19 @@
-"""Gemini API integration for transaction parsing, insights, and chat."""
+"""Gemini API integration using the google-genai SDK (replaces deprecated google-generativeai)."""
 
 import json
 import os
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from dotenv import load_dotenv
 
 load_dotenv()
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+# Single client instance — new SDK uses Client object, not module-level configure()
+_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-parser_model = genai.GenerativeModel(
-    model_name="gemini-2.0-flash",
-    generation_config=genai.types.GenerationConfig(temperature=0.0),
-)
-
-insights_model = genai.GenerativeModel(
-    model_name="gemini-2.0-flash",
-    generation_config=genai.types.GenerationConfig(temperature=0.3),
-)
-
-chat_model = genai.GenerativeModel(
-    model_name="gemini-2.0-flash",
-    generation_config=genai.types.GenerationConfig(temperature=0.3),
-)
+_PARSER_MODEL  = "gemini-2.0-flash"
+_INSIGHT_MODEL = "gemini-2.0-flash"
+_CHAT_MODEL    = "gemini-2.0-flash"
 
 
 def parse_transaction(raw_text: str) -> dict:
@@ -45,9 +36,12 @@ def parse_transaction(raw_text: str) -> dict:
         f"Input: {raw_text}"
     )
     try:
-        response = parser_model.generate_content(prompt)
+        response = _client.models.generate_content(
+            model=_PARSER_MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(temperature=0.0),
+        )
         text = response.text.strip()
-        # Strip markdown fences if present
         if text.startswith("```"):
             lines = text.split("\n")
             text = "\n".join(lines[1:-1]) if len(lines) > 2 else text
@@ -71,7 +65,11 @@ def get_monthly_insights(report_json: dict) -> list:
         f"Report data: {json.dumps(report_json)}"
     )
     try:
-        response = insights_model.generate_content(prompt)
+        response = _client.models.generate_content(
+            model=_INSIGHT_MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(temperature=0.3),
+        )
         text = response.text.strip()
         if text.startswith("```"):
             lines = text.split("\n")
@@ -89,7 +87,7 @@ def get_monthly_insights(report_json: dict) -> list:
 
 def chat(question: str, context: dict, history: list) -> str:
     """Answer a natural language finance question using live family context."""
-    system_block = (
+    system_instruction = (
         "You are a helpful family finance assistant for a Chennai household.\n"
         "Answer in 2 to 3 sentences maximum. Use the rupee symbol for rupee amounts. "
         "Be specific and practical.\n"
@@ -98,15 +96,22 @@ def chat(question: str, context: dict, history: list) -> str:
         f"Current financial context: {json.dumps(context)}"
     )
 
-    history_text = ""
+    # Build conversation contents list for new SDK multi-turn format
+    contents = []
     for h in history[-6:]:
-        role_label = "User" if h.get("role") == "user" else "Assistant"
-        history_text += f"\n{role_label}: {h.get('content', '')}"
-
-    full_prompt = f"{system_block}{history_text}\nUser: {question}\nAssistant:"
+        role = "user" if h.get("role") == "user" else "model"
+        contents.append(types.Content(role=role, parts=[types.Part(text=h.get("content", ""))]))
+    contents.append(types.Content(role="user", parts=[types.Part(text=question)]))
 
     try:
-        response = chat_model.generate_content(full_prompt)
+        response = _client.models.generate_content(
+            model=_CHAT_MODEL,
+            contents=contents,
+            config=types.GenerateContentConfig(
+                system_instruction=system_instruction,
+                temperature=0.3,
+            ),
+        )
         return response.text.strip()
     except Exception:
         return "I'm unable to answer right now. Please try again in a moment."
