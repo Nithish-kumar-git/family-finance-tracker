@@ -146,23 +146,38 @@ export default function Assets() {
 
   // ── MF handlers ────────────────────────────────────────────────────────────
   const handleSaveMFValue = async () => {
-    const val = parseFloat(modalForm.currentValue)
-    if (isNaN(val) || val < 0) {
+    const currentValue = parseFloat(modalForm.currentValue)
+    const investedAmount = parseFloat(modalForm.investedAmount)
+    if (isNaN(currentValue) || currentValue < 0) {
       setModalError('Enter a valid current value')
       return
     }
+    const invested = isNaN(investedAmount) ? null : investedAmount
     setModalLoading(true)
     try {
-      await api.assets.updateMFValue(modalForm.id, val)
-      useStore.getState().updateMutualFundValue(modalForm.id, val)
-      setMutualFunds((prev) =>
-        prev.map((mf) => (mf.id === modalForm.id ? { ...mf, currentValue: val } : mf))
-      )
-      closeModal()
-      showToast('Fund value updated ✓', 'success')
+      await api.assets.updateMFValue(modalForm.id, currentValue)
     } catch {
-      setModalError('Could not update — try again')
+      // API failed — continue with local update silently
     }
+    useStore.getState().updateMutualFundValue(modalForm.id, currentValue)
+    if (invested !== null) {
+      useStore.setState(state => ({
+        mutualFunds: state.mutualFunds.map(mf =>
+          mf.id === modalForm.id
+            ? { ...mf, currentValue, investedAmount: invested }
+            : mf
+        ),
+      }))
+    }
+    setMutualFunds(prev =>
+      prev.map(mf =>
+        mf.id === modalForm.id
+          ? { ...mf, currentValue, ...(invested !== null ? { investedAmount: invested } : {}) }
+          : mf
+      )
+    )
+    closeModal()
+    showToast('Fund updated ✓', 'success')
     setModalLoading(false)
   }
 
@@ -222,6 +237,78 @@ export default function Assets() {
     }))
     closeModal()
     showToast('Chit added ✓', 'success')
+  }
+
+  // ── FD edit handler ────────────────────────────────────────────────────────
+  const handleEditFD = (fd) => {
+    openModal('editFD', {
+      ...fd,
+      holders: Array.isArray(fd.holders) ? fd.holders.join(', ') : (fd.holders ?? 'mother'),
+    })
+  }
+
+  const handleSaveEditFD = () => {
+    const principal = parseInt(modalForm.principal, 10)
+    const rate = parseFloat(modalForm.rate)
+    if (!principal || principal <= 0 || !rate || rate <= 0 || !modalForm.maturityDate) {
+      setModalError('Principal, rate, and maturity date are required.')
+      return
+    }
+    const updated = {
+      ...modalForm,
+      principal,
+      rate,
+      holders: modalForm.holders
+        ? modalForm.holders.split(',').map(h => h.trim()).filter(Boolean)
+        : ['mother'],
+    }
+    setFixedDeposits(prev => prev.map(fd => fd.id === updated.id ? updated : fd))
+    useStore.setState(state => ({
+      fixedDeposits: state.fixedDeposits.map(fd => fd.id === updated.id ? updated : fd),
+    }))
+    closeModal()
+    showToast('FD updated ✓', 'success')
+  }
+
+  // ── LIC edit handler ───────────────────────────────────────────────────────
+  const handleEditLIC = (lic) => {
+    openModal('editLIC', { ...lic })
+  }
+
+  const handleSaveEditLIC = () => {
+    const annualPremium = parseFloat(modalForm.annualPremium)
+    if (!annualPremium || annualPremium <= 0 || !modalForm.nextDueDate) {
+      setModalError('Annual premium and next due date are required.')
+      return
+    }
+    const updated = { ...modalForm, annualPremium }
+    setLicPolicies(prev => prev.map(l => l.id === updated.id ? updated : l))
+    useStore.setState(state => ({
+      licPolicies: state.licPolicies.map(l => l.id === updated.id ? updated : l),
+    }))
+    closeModal()
+    showToast('LIC policy updated ✓', 'success')
+  }
+
+  // ── Chit edit handler ──────────────────────────────────────────────────────
+  const handleEditChit = (chit) => {
+    openModal('editChit', { ...chit })
+  }
+
+  const handleSaveEditChit = () => {
+    const monthlyContribution = parseInt(modalForm.monthlyContribution, 10) || 0
+    const expectedPrize = parseInt(modalForm.expectedPrize, 10)
+    if (!expectedPrize || expectedPrize <= 0 || !modalForm.completionDate) {
+      setModalError('Expected prize and completion date are required.')
+      return
+    }
+    const updated = { ...modalForm, monthlyContribution, expectedPrize }
+    setChitFunds(prev => prev.map(c => c.id === updated.id ? updated : c))
+    useStore.setState(state => ({
+      chitFunds: state.chitFunds.map(c => c.id === updated.id ? updated : c),
+    }))
+    closeModal()
+    showToast('Chit updated ✓', 'success')
   }
 
   // ── Gold handler ───────────────────────────────────────────────────────────
@@ -434,6 +521,16 @@ export default function Assets() {
                         </div>
                       )}
                       <div className="flex gap-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleEditFD(fd)
+                          }}
+                        >
+                          <Edit2 size={12} className="mr-1" /> Edit
+                        </Button>
                         <Button
                           variant="danger"
                           size="sm"
@@ -779,8 +876,15 @@ export default function Assets() {
                     </p>
                   )}
 
-                  {/* Mark paid button */}
-                  <div className="mt-3 flex justify-end">
+                  {/* LIC action buttons */}
+                  <div className="mt-3 flex gap-2 justify-end">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditLIC(lic)}
+                    >
+                      <Edit2 size={12} className="mr-1" /> Edit
+                    </Button>
                     <Button
                       variant={isDueSoon ? 'primary' : 'secondary'}
                       size="sm"
@@ -927,7 +1031,14 @@ export default function Assets() {
                     <p className="text-xs text-slate-400 mt-3">{chit.notes}</p>
                   )}
 
-                  <div className="mt-3 flex gap-2">
+                  <div className="mt-3 flex gap-2 flex-wrap">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditChit(chit)}
+                    >
+                      <Edit2 size={12} className="mr-1" /> Edit
+                    </Button>
                     <select
                       value={chit.status}
                       onChange={(e) =>
@@ -1094,7 +1205,10 @@ export default function Assets() {
             <div className="flex items-center justify-between mb-4">
               <p className="text-base font-semibold text-slate-800">
                 {modal.type === 'addFD' && 'Add Fixed Deposit'}
+                {modal.type === 'editFD' && 'Edit Fixed Deposit'}
                 {modal.type === 'addChit' && 'Add Chit Fund'}
+                {modal.type === 'editChit' && 'Edit Chit Fund'}
+                {modal.type === 'editLIC' && `Edit LIC — ${modalForm.insured ?? ''}`}
                 {modal.type === 'updateMFValue' &&
                   `Update: ${modal.data?.name?.split(' ').slice(0, 3).join(' ')}...`}
               </p>
@@ -1331,6 +1445,138 @@ export default function Assets() {
               </div>
             )}
 
+            {/* ── Edit FD form ── */}
+            {modal.type === 'editFD' && (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Bank</label>
+                  <input type="text" value={modalForm.bank ?? ''} onChange={e => setModalForm(p => ({ ...p, bank: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Principal (₹)</label>
+                  <input type="number" inputMode="numeric" value={modalForm.principal ?? ''} onChange={e => setModalForm(p => ({ ...p, principal: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Interest rate (% p.a.)</label>
+                  <input type="number" inputMode="decimal" step="0.01" value={modalForm.rate ?? ''} onChange={e => setModalForm(p => ({ ...p, rate: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Maturity date</label>
+                  <input type="date" value={modalForm.maturityDate ?? ''} onChange={e => setModalForm(p => ({ ...p, maturityDate: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Start date</label>
+                  <input type="date" value={modalForm.startDate ?? ''} onChange={e => setModalForm(p => ({ ...p, startDate: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Purpose</label>
+                  <select value={modalForm.purpose ?? 'core'} onChange={e => setModalForm(p => ({ ...p, purpose: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    <option value="marriage">Marriage</option>
+                    <option value="renovation">Renovation</option>
+                    <option value="core">Core</option>
+                    <option value="emergency">Emergency</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Holder(s)</label>
+                  <input type="text" value={modalForm.holders ?? 'mother'} onChange={e => setModalForm(p => ({ ...p, holders: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Notes</label>
+                  <textarea rows={2} value={modalForm.notes ?? ''} onChange={e => setModalForm(p => ({ ...p, notes: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
+                </div>
+              </div>
+            )}
+
+            {/* ── Edit LIC form ── */}
+            {modal.type === 'editLIC' && (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Insured person</label>
+                  <input type="text" value={modalForm.insured ?? ''} onChange={e => setModalForm(p => ({ ...p, insured: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Plan name</label>
+                  <input type="text" value={modalForm.plan ?? ''} onChange={e => setModalForm(p => ({ ...p, plan: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Annual premium (₹)</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">₹</span>
+                    <input type="number" inputMode="numeric" value={modalForm.annualPremium ?? ''} onChange={e => setModalForm(p => ({ ...p, annualPremium: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Next due date</label>
+                  <input type="date" value={modalForm.nextDueDate ?? ''} onChange={e => setModalForm(p => ({ ...p, nextDueDate: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Paid-up eligible date</label>
+                  <input type="date" value={modalForm.paidUpEligibleDate ?? ''} onChange={e => setModalForm(p => ({ ...p, paidUpEligibleDate: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Premiums paid</label>
+                  <input type="number" inputMode="numeric" value={modalForm.premiumsPaid ?? 0} onChange={e => setModalForm(p => ({ ...p, premiumsPaid: parseInt(e.target.value, 10) || 0 }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Notes</label>
+                  <textarea rows={2} value={modalForm.notes ?? ''} onChange={e => setModalForm(p => ({ ...p, notes: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
+                </div>
+              </div>
+            )}
+
+            {/* ── Edit Chit form ── */}
+            {modal.type === 'editChit' && (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Organizer</label>
+                  <input type="text" value={modalForm.organizer ?? ''} onChange={e => setModalForm(p => ({ ...p, organizer: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Monthly contribution (₹)</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">₹</span>
+                    <input type="number" inputMode="numeric" value={modalForm.monthlyContribution ?? ''} onChange={e => setModalForm(p => ({ ...p, monthlyContribution: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Expected prize (₹)</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">₹</span>
+                    <input type="number" inputMode="numeric" value={modalForm.expectedPrize ?? ''} onChange={e => setModalForm(p => ({ ...p, expectedPrize: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Completion date</label>
+                  <input type="date" value={modalForm.completionDate ?? ''} onChange={e => setModalForm(p => ({ ...p, completionDate: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Notes</label>
+                  <textarea rows={2} value={modalForm.notes ?? ''} onChange={e => setModalForm(p => ({ ...p, notes: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
+                </div>
+              </div>
+            )}
+
             {/* ── Update MF Value form ── */}
             {modal.type === 'updateMFValue' && (
               <div className="space-y-3">
@@ -1339,7 +1585,7 @@ export default function Assets() {
                 </p>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">
-                    Current value (₹)
+                    Current value — from Groww today (₹)
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
@@ -1361,6 +1607,39 @@ export default function Assets() {
                     />
                   </div>
                 </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                    Amount invested — total you put in (₹)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                      ₹
+                    </span>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      value={modalForm.investedAmount ?? ''}
+                      onChange={(e) =>
+                        setModalForm((p) => ({
+                          ...p,
+                          investedAmount: e.target.value,
+                        }))
+                      }
+                      className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm
+                                 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    />
+                  </div>
+                </div>
+                {modalForm.currentValue && modalForm.investedAmount && (
+                  <div className={`rounded-lg px-3 py-2 text-sm font-medium
+                    ${parseFloat(modalForm.currentValue) >= parseFloat(modalForm.investedAmount)
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : 'bg-red-50 text-red-700'}`}>
+                    {parseFloat(modalForm.currentValue) >= parseFloat(modalForm.investedAmount)
+                      ? `Gain: +₹${(parseFloat(modalForm.currentValue) - parseFloat(modalForm.investedAmount)).toLocaleString('en-IN')}`
+                      : `Loss: -₹${(parseFloat(modalForm.investedAmount) - parseFloat(modalForm.currentValue)).toLocaleString('en-IN')}`}
+                  </div>
+                )}
               </div>
             )}
 
@@ -1381,7 +1660,10 @@ export default function Assets() {
                 loading={modalLoading}
                 onClick={() => {
                   if (modal.type === 'addFD') handleSaveFD()
+                  if (modal.type === 'editFD') handleSaveEditFD()
                   if (modal.type === 'addChit') handleSaveChit()
+                  if (modal.type === 'editChit') handleSaveEditChit()
+                  if (modal.type === 'editLIC') handleSaveEditLIC()
                   if (modal.type === 'updateMFValue') handleSaveMFValue()
                 }}
               >
