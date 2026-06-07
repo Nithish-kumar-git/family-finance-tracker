@@ -110,10 +110,12 @@ export default function Assets() {
 
   // ── FD handlers ────────────────────────────────────────────────────────────
   const handleDeleteFD = (id) => {
-    // LOCAL STATE ONLY — backend persistence requires extending api.js
     setFixedDeposits((prev) => prev.filter((fd) => fd.id !== id))
+    useStore.setState(state => ({
+      fixedDeposits: state.fixedDeposits.filter(fd => fd.id !== id),
+    }))
     setExpandedId(null)
-    showToast('FD removed (session only)', 'success')
+    showToast('FD removed ✓', 'success')
   }
 
   const handleSaveFD = () => {
@@ -123,7 +125,6 @@ export default function Assets() {
       setModalError('Principal, rate, and maturity date are required.')
       return
     }
-    // LOCAL STATE ONLY — backend persistence requires extending api.js
     const newFD = {
       id: Date.now().toString(36),
       bank: modalForm.bank || 'Canara Bank',
@@ -136,8 +137,11 @@ export default function Assets() {
       holders: [modalForm.holders || 'mother'],
     }
     setFixedDeposits((prev) => [...prev, newFD])
+    useStore.setState(state => ({
+      fixedDeposits: [...state.fixedDeposits, newFD],
+    }))
     closeModal()
-    showToast('FD added (session only)', 'success')
+    showToast('FD added ✓', 'success')
   }
 
   // ── MF handlers ────────────────────────────────────────────────────────────
@@ -179,16 +183,22 @@ export default function Assets() {
 
   // ── Chit handlers ──────────────────────────────────────────────────────────
   const handleUpdateChitStatus = (id, newStatus) => {
-    // LOCAL STATE ONLY — backend persistence requires extending api.js
     setChitFunds((prev) =>
       prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c))
     )
+    useStore.setState(state => ({
+      chitFunds: state.chitFunds.map(c =>
+        c.id === id ? { ...c, status: newStatus } : c
+      ),
+    }))
   }
 
   const handleDeleteChit = (id) => {
-    // LOCAL STATE ONLY — backend persistence requires extending api.js
     setChitFunds((prev) => prev.filter((c) => c.id !== id))
-    showToast('Chit removed (session only)', 'success')
+    useStore.setState(state => ({
+      chitFunds: state.chitFunds.filter(c => c.id !== id),
+    }))
+    showToast('Chit removed ✓', 'success')
   }
 
   const handleSaveChit = () => {
@@ -197,7 +207,6 @@ export default function Assets() {
       setModalError('Expected prize and completion date are required.')
       return
     }
-    // LOCAL STATE ONLY — backend persistence requires extending api.js
     const newChit = {
       id: Date.now().toString(36),
       organizer: modalForm.organizer || 'Nadar Sangam',
@@ -208,8 +217,11 @@ export default function Assets() {
       notes: modalForm.notes || '',
     }
     setChitFunds((prev) => [...prev, newChit])
+    useStore.setState(state => ({
+      chitFunds: [...state.chitFunds, newChit],
+    }))
     closeModal()
-    showToast('Chit added (session only)', 'success')
+    showToast('Chit added ✓', 'success')
   }
 
   // ── Gold handler ───────────────────────────────────────────────────────────

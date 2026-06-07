@@ -10,17 +10,17 @@ load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 parser_model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
+    model_name="gemini-2.0-flash",
     generation_config=genai.types.GenerationConfig(temperature=0.0),
 )
 
 insights_model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
+    model_name="gemini-2.0-flash",
     generation_config=genai.types.GenerationConfig(temperature=0.3),
 )
 
 chat_model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
+    model_name="gemini-2.0-flash",
     generation_config=genai.types.GenerationConfig(temperature=0.3),
 )
 
