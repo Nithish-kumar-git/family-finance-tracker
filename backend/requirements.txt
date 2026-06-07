@@ -3,7 +3,7 @@ uvicorn[standard]
 sqlalchemy
 psycopg2-binary
 pydantic
-google-genai
+google-genai==1.16.0
 pandas
 python-dotenv
 python-multipart
