@@ -424,6 +424,32 @@ export default function Settings() {
             </div>
           </div>
 
+          <div className="w-full">
+            <label htmlFor="ef-cash"
+              className="block text-sm font-medium text-slate-700 mb-1">
+              Canara Bank Savings Balance
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm select-none">₹</span>
+              <input
+                id="ef-cash"
+                type="text"
+                inputMode="numeric"
+                value={String(emergencyFund.cashInBank ?? 0)}
+                onChange={e => {
+                  const val = parseFloat(e.target.value) || 0
+                  useStore.setState(state => ({
+                    emergencyFund: { ...state.emergencyFund, cashInBank: val }
+                  }))
+                }}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 pl-7 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+              />
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              Update this whenever you check your Canara Bank passbook.
+            </p>
+          </div>
+
           <label className="flex items-center justify-between bg-white rounded-xl border border-slate-100 shadow-sm px-4 py-3 cursor-pointer select-none">
             <span className="text-sm font-medium text-slate-700">Fund is isolated</span>
             <input

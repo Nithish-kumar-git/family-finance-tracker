@@ -111,6 +111,8 @@ export default function Dashboard() {
   const fdTotal = getFDTotal(state)
   const mfTotal = getMFTotal(state)
   const goldTotal = getGoldTotal(state)
+  const savingsBalance = state.emergencyFund?.cashInBank ?? 0
+  const totalCorpusWithSavings = totalCorpus + savingsBalance
   const efBalance = emergencyFund.liquidFundBalance + emergencyFund.cashInBank
   const efTarget = emergencyFund.target
   const efPct = Math.min((efBalance / efTarget) * 100, 100)
@@ -268,22 +270,22 @@ export default function Dashboard() {
           <ChevronRight size={16} className="text-slate-400" />
         </div>
         <p className="text-2xl font-bold text-slate-800 mb-4">
-          {formatCurrency(totalCorpus, true)}
+          {formatCurrency(totalCorpusWithSavings, true)}
         </p>
 
-        <div className="grid grid-cols-3 gap-2 mb-4">
+        <div className="grid grid-cols-2 gap-2 mb-4">
           <button
-            className="text-center rounded-lg py-1 hover:bg-slate-50 active:bg-slate-100 transition-colors"
+            className="text-center rounded-lg py-2 hover:bg-slate-50 active:bg-slate-100 transition-colors"
             onClick={() => navigate('/assets')}
           >
-            <p className="text-xs text-slate-400">FDs</p>
+            <p className="text-xs text-slate-400">Fixed Deposits</p>
             <p className="text-sm font-semibold text-slate-700">
               {formatCurrency(fdTotal, true)}
             </p>
             <p className="text-xs text-violet-500 mt-0.5">Edit →</p>
           </button>
           <button
-            className="text-center rounded-lg py-1 hover:bg-slate-50 active:bg-slate-100 transition-colors"
+            className="text-center rounded-lg py-2 hover:bg-slate-50 active:bg-slate-100 transition-colors"
             onClick={() => navigate('/assets')}
           >
             <p className="text-xs text-slate-400">Mutual Funds</p>
@@ -293,12 +295,22 @@ export default function Dashboard() {
             <p className="text-xs text-violet-500 mt-0.5">Edit →</p>
           </button>
           <button
-            className="text-center rounded-lg py-1 hover:bg-slate-50 active:bg-slate-100 transition-colors"
+            className="text-center rounded-lg py-2 hover:bg-slate-50 active:bg-slate-100 transition-colors"
             onClick={() => navigate('/assets')}
           >
             <p className="text-xs text-slate-400">Gold</p>
             <p className="text-sm font-semibold text-slate-700">
               {formatCurrency(goldTotal, true)}
+            </p>
+            <p className="text-xs text-violet-500 mt-0.5">Edit →</p>
+          </button>
+          <button
+            className="text-center rounded-lg py-2 hover:bg-slate-50 active:bg-slate-100 transition-colors"
+            onClick={() => navigate('/settings')}
+          >
+            <p className="text-xs text-slate-400">Bank Savings</p>
+            <p className="text-sm font-semibold text-slate-700">
+              {formatCurrency(savingsBalance, true)}
             </p>
             <p className="text-xs text-violet-500 mt-0.5">Edit →</p>
           </button>
