@@ -13,47 +13,46 @@ export const useAssets = () => {
    * Falls back to store data if the API is unreachable.
    */
   const loadAssets = useCallback(async () => {
-    // PRIORITY: use Zustand store (localStorage) if it has data.
-    // Only fetch from API if store is completely empty.
-    // This preserves user edits across page refreshes.
-    const storeState = useStore.getState()
-    
-    const storeHasData =
-      (storeState.fixedDeposits?.length ?? 0) > 0 ||
-      (storeState.mutualFunds?.length ?? 0) > 0 ||
-      (storeState.licPolicies?.length ?? 0) > 0 ||
-      (storeState.chitFunds?.length ?? 0) > 0
-
-    if (storeHasData) {
-      // Return store data directly — no API call needed
-      return {
-        fixedDeposits: storeState.fixedDeposits ?? [],
-        mutualFunds:   storeState.mutualFunds ?? [],
-        licPolicies:   storeState.licPolicies ?? [],
-        chitFunds:     storeState.chitFunds ?? [],
-      }
+    const fromApi = (obj) => {
+      if (!obj || typeof obj !== 'object') return obj
+      if (Array.isArray(obj)) return obj.map(fromApi)
+      return Object.fromEntries(
+        Object.entries(obj).map(([k, v]) => [
+          k.replace(/_([a-z])/g, (_, c) => c.toUpperCase()),
+          Array.isArray(v) ? v.map(i =>
+            typeof i === 'object' ? fromApi(i) : i) : v,
+        ])
+      )
     }
 
-    // Store is empty — first time load, fetch from API
+    const BASE_URL = typeof import.meta !== 'undefined'
+      ? (import.meta.env?.VITE_API_URL ?? 'http://localhost:8000')
+      : 'http://localhost:8000'
+
     try {
-      const data = await api.assets.getAll()
-      
-      const fixedDeposits = data.fixedDeposits ?? []
-      const mutualFunds = data.mutualFunds ?? []
-      const licPolicies = data.licPolicies ?? []
-      const chitFunds = data.chitFunds ?? []
-      
-      // Save API response to store so future loads use store
-      useStore.setState({ fixedDeposits, mutualFunds, licPolicies, chitFunds })
-      
-      return { fixedDeposits, mutualFunds, licPolicies, chitFunds }
+      const [fds, mfs, lics, chits] = await Promise.all([
+        fetch(`${BASE_URL}/api/assets/fixeddeposits`).then(r => r.json()),
+        fetch(`${BASE_URL}/api/assets/mutualfunds`).then(r => r.json()),
+        fetch(`${BASE_URL}/api/assets/lic`).then(r => r.json()),
+        fetch(`${BASE_URL}/api/assets/chitfunds`).then(r => r.json()),
+      ])
+      const result = {
+        fixedDeposits: fromApi(fds),
+        mutualFunds: fromApi(mfs),
+        licPolicies: fromApi(lics),
+        chitFunds: fromApi(chits),
+      }
+      // Save to store so localStorage is always in sync with server
+      useStore.setState(result)
+      return result
     } catch {
-      // API also failed — return seed data from store as final fallback
+      // API unreachable — use localStorage data
+      const s = useStore.getState()
       return {
-        fixedDeposits: storeState.fixedDeposits ?? [],
-        mutualFunds:   storeState.mutualFunds ?? [],
-        licPolicies:   storeState.licPolicies ?? [],
-        chitFunds:     storeState.chitFunds ?? [],
+        fixedDeposits: s.fixedDeposits ?? [],
+        mutualFunds: s.mutualFunds ?? [],
+        licPolicies: s.licPolicies ?? [],
+        chitFunds: s.chitFunds ?? [],
       }
     }
   }, [])

@@ -25,6 +25,31 @@ import {
 
 // ─── Tab config ──────────────────────────────────────────────────────────────
 
+// Convert camelCase object keys to snake_case for API requests
+const toSnake = (obj) =>
+  Object.fromEntries(
+    Object.entries(obj).map(([k, v]) => [
+      k.replace(/[A-Z]/g, c => '_' + c.toLowerCase()),
+      v,
+    ])
+  )
+
+// Convert snake_case object keys to camelCase for API responses
+const toCamel = (obj) => {
+  if (!obj || typeof obj !== 'object') return obj
+  if (Array.isArray(obj)) return obj.map(toCamel)
+  return Object.fromEntries(
+    Object.entries(obj).map(([k, v]) => [
+      k.replace(/_([a-z])/g, (_, c) => c.toUpperCase()),
+      Array.isArray(v) ? v.map(item =>
+        typeof item === 'object' ? toCamel(item) : item
+      ) : v,
+    ])
+  )
+}
+
+const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+
 const TABS = [
   { key: 'fd', label: 'FDs' },
   { key: 'mf', label: 'Funds' },
@@ -146,37 +171,37 @@ export default function Assets() {
 
   // ── MF handlers ────────────────────────────────────────────────────────────
   const handleSaveMFValue = async () => {
-    const currentValue = parseFloat(modalForm.currentValue)
-    const investedAmount = parseFloat(modalForm.investedAmount)
-    if (isNaN(currentValue) || currentValue < 0) {
+    const currentVal = parseFloat(modalForm.currentValue)
+    const investedVal = parseFloat(modalForm.investedAmount)
+    if (isNaN(currentVal) || currentVal < 0) {
       setModalError('Enter a valid current value')
       return
     }
-    const invested = isNaN(investedAmount) ? null : investedAmount
     setModalLoading(true)
+    const patch = { currentValue: currentVal }
+    if (!isNaN(investedVal) && investedVal >= 0) patch.investedAmount = investedVal
     try {
-      await api.assets.updateMFValue(modalForm.id, currentValue)
-    } catch {
-      // API failed — continue with local update silently
-    }
-    useStore.getState().updateMutualFundValue(modalForm.id, currentValue)
+      const res = await fetch(
+        `${BASE}/api/assets/mutualfunds/${modalForm.id}/update-value`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ current_value: currentVal }),
+        }
+      )
+      if (!res.ok) throw new Error('API error')
+    } catch { /* offline — continue with local update */ }
+    // Always update store and local state regardless of API result
+    const fullPatch = { ...patch }
+    setMutualFunds(prev => prev.map(mf =>
+      mf.id === modalForm.id ? { ...mf, ...fullPatch } : mf))
     useStore.setState(state => ({
       mutualFunds: state.mutualFunds.map(mf =>
-        mf.id === modalForm.id
-          ? { ...mf, currentValue, ...(invested !== null ? { investedAmount: invested } : {}) }
-          : mf
-      ),
+        mf.id === modalForm.id ? { ...mf, ...fullPatch } : mf)
     }))
-    setMutualFunds(prev =>
-      prev.map(mf =>
-        mf.id === modalForm.id
-          ? { ...mf, currentValue, ...(invested !== null ? { investedAmount: invested } : {}) }
-          : mf
-      )
-    )
+    setModalLoading(false)
     closeModal()
     showToast('Fund updated ✓', 'success')
-    setModalLoading(false)
   }
 
   // ── LIC handlers ──────────────────────────────────────────────────────────
@@ -245,25 +270,43 @@ export default function Assets() {
     })
   }
 
-  const handleSaveEditFD = () => {
+  const handleSaveEditFD = async () => {
     const principal = parseInt(modalForm.principal, 10)
     const rate = parseFloat(modalForm.rate)
     if (!principal || principal <= 0 || !rate || rate <= 0 || !modalForm.maturityDate) {
-      setModalError('Principal, rate, and maturity date are required.')
+      setModalError('Principal, rate, and maturity date required.')
       return
     }
+    setModalLoading(true)
     const updated = {
       ...modalForm,
       principal,
       rate,
-      holders: modalForm.holders
+      holders: typeof modalForm.holders === 'string'
         ? modalForm.holders.split(',').map(h => h.trim()).filter(Boolean)
-        : ['mother'],
+        : (modalForm.holders ?? ['mother']),
     }
-    setFixedDeposits(prev => prev.map(fd => fd.id === updated.id ? updated : fd))
-    useStore.setState(state => ({
-      fixedDeposits: state.fixedDeposits.map(fd => fd.id === updated.id ? updated : fd),
-    }))
+    try {
+      const res = await fetch(`${BASE}/api/assets/fixeddeposits/${updated.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(toSnake(updated)),
+      })
+      if (res.ok) {
+        const saved = toCamel(await res.json())
+        setFixedDeposits(prev => prev.map(fd => fd.id === saved.id ? saved : fd))
+        useStore.setState(state => ({
+          fixedDeposits: state.fixedDeposits.map(fd => fd.id === saved.id ? saved : fd)
+        }))
+      } else { throw new Error('API error') }
+    } catch {
+      // Offline fallback — save locally only
+      setFixedDeposits(prev => prev.map(fd => fd.id === updated.id ? updated : fd))
+      useStore.setState(state => ({
+        fixedDeposits: state.fixedDeposits.map(fd => fd.id === updated.id ? updated : fd)
+      }))
+    }
+    setModalLoading(false)
     closeModal()
     showToast('FD updated ✓', 'success')
   }
@@ -273,19 +316,36 @@ export default function Assets() {
     openModal('editLIC', { ...lic })
   }
 
-  const handleSaveEditLIC = () => {
+  const handleSaveEditLIC = async () => {
     const annualPremium = parseFloat(modalForm.annualPremium)
     if (!annualPremium || annualPremium <= 0 || !modalForm.nextDueDate) {
-      setModalError('Annual premium and next due date are required.')
+      setModalError('Annual premium and next due date required.')
       return
     }
+    setModalLoading(true)
     const updated = { ...modalForm, annualPremium }
-    setLicPolicies(prev => prev.map(l => l.id === updated.id ? updated : l))
-    useStore.setState(state => ({
-      licPolicies: state.licPolicies.map(l => l.id === updated.id ? updated : l),
-    }))
+    try {
+      const res = await fetch(`${BASE}/api/assets/lic/${updated.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(toSnake(updated)),
+      })
+      if (res.ok) {
+        const saved = toCamel(await res.json())
+        setLicPolicies(prev => prev.map(l => l.id === saved.id ? saved : l))
+        useStore.setState(state => ({
+          licPolicies: state.licPolicies.map(l => l.id === saved.id ? saved : l)
+        }))
+      } else { throw new Error('API error') }
+    } catch {
+      setLicPolicies(prev => prev.map(l => l.id === updated.id ? updated : l))
+      useStore.setState(state => ({
+        licPolicies: state.licPolicies.map(l => l.id === updated.id ? updated : l)
+      }))
+    }
+    setModalLoading(false)
     closeModal()
-    showToast('LIC policy updated ✓', 'success')
+    showToast('LIC updated ✓', 'success')
   }
 
   // ── Chit edit handler ──────────────────────────────────────────────────────
@@ -293,18 +353,35 @@ export default function Assets() {
     openModal('editChit', { ...chit })
   }
 
-  const handleSaveEditChit = () => {
+  const handleSaveEditChit = async () => {
     const monthlyContribution = parseInt(modalForm.monthlyContribution, 10) || 0
     const expectedPrize = parseInt(modalForm.expectedPrize, 10)
-    if (!expectedPrize || expectedPrize <= 0 || !modalForm.completionDate) {
-      setModalError('Expected prize and completion date are required.')
+    if (!expectedPrize || !modalForm.completionDate) {
+      setModalError('Expected prize and completion date required.')
       return
     }
+    setModalLoading(true)
     const updated = { ...modalForm, monthlyContribution, expectedPrize }
-    setChitFunds(prev => prev.map(c => c.id === updated.id ? updated : c))
-    useStore.setState(state => ({
-      chitFunds: state.chitFunds.map(c => c.id === updated.id ? updated : c),
-    }))
+    try {
+      const res = await fetch(`${BASE}/api/assets/chitfunds/${updated.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(toSnake(updated)),
+      })
+      if (res.ok) {
+        const saved = toCamel(await res.json())
+        setChitFunds(prev => prev.map(c => c.id === saved.id ? saved : c))
+        useStore.setState(state => ({
+          chitFunds: state.chitFunds.map(c => c.id === saved.id ? saved : c)
+        }))
+      } else { throw new Error('API error') }
+    } catch {
+      setChitFunds(prev => prev.map(c => c.id === updated.id ? updated : c))
+      useStore.setState(state => ({
+        chitFunds: state.chitFunds.map(c => c.id === updated.id ? updated : c)
+      }))
+    }
+    setModalLoading(false)
     closeModal()
     showToast('Chit updated ✓', 'success')
   }
@@ -321,13 +398,14 @@ export default function Assets() {
     const today = new Date().toISOString().split('T')[0]
     const goldData = { weightGrams: weight, currentValuePerGram: price, lastUpdated: today }
     try {
-      await api.assets.updateGold(goldData)
-      useStore.getState().updateGold(goldData)
-      showToast('Gold price updated ✓', 'success')
-    } catch {
-      showToast('Could not save — data stored locally', 'success')
-      useStore.getState().updateGold(goldData)
-    }
+      await fetch(`${BASE}/api/assets/gold`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(toSnake(goldData)),
+      })
+    } catch { /* offline fallback */ }
+    useStore.getState().updateGold(goldData)
+    showToast('Gold updated ✓', 'success')
     setGoldSaving(false)
   }
 
