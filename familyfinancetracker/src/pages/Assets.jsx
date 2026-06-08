@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import useStore from '../store/useStore'
-import { useAssets, toCamel, toSnake } from '../hooks/useAssets'
+import { useAssets } from '../hooks/useAssets'
 import { api } from '../utils/api'
 import { formatCurrency, formatDate, daysUntil } from '../utils/formatters'
 import Card from '../components/ui/Card'
@@ -109,7 +109,13 @@ export default function Assets() {
   }
 
   // ── FD handlers ────────────────────────────────────────────────────────────
-  const handleDeleteFD = (id) => {
+  const handleDeleteFD = async (id) => {
+    try {
+      await api.assets.deleteFD(id)
+    } catch {
+      showToast('Save failed. Changes were NOT saved to server.', 'error')
+      return
+    }
     setFixedDeposits((prev) => prev.filter((fd) => fd.id !== id))
     useStore.setState(state => ({
       fixedDeposits: state.fixedDeposits.filter(fd => fd.id !== id),
@@ -118,28 +124,39 @@ export default function Assets() {
     showToast('FD removed ✓', 'success')
   }
 
-  const handleSaveFD = () => {
+  const handleSaveFD = async () => {
     const principal = parseInt(modalForm.principal, 10)
     const rate = parseFloat(modalForm.rate)
     if (!principal || principal <= 0 || !rate || rate <= 0 || !modalForm.maturityDate) {
       setModalError('Principal, rate, and maturity date are required.')
       return
     }
-    const newFD = {
-      id: Date.now().toString(36),
+    setModalLoading(true)
+    const body = {
       bank: modalForm.bank || 'Canara Bank',
       principal,
       rate,
-      startDate: modalForm.startDate || '',
+      startDate: modalForm.startDate || null,
       maturityDate: modalForm.maturityDate,
       purpose: modalForm.purpose || 'core',
-      notes: modalForm.notes || '',
-      holders: [modalForm.holders || 'mother'],
+      notes: modalForm.notes || null,
+      holders: typeof modalForm.holders === 'string'
+        ? modalForm.holders.split(',').map(h => h.trim()).filter(Boolean)
+        : [modalForm.holders || 'mother'],
     }
-    setFixedDeposits((prev) => [...prev, newFD])
+    let saved
+    try {
+      saved = await api.assets.createFD(body)
+    } catch {
+      showToast('Save failed. Changes were NOT saved to server.', 'error')
+      setModalLoading(false)
+      return
+    }
+    setFixedDeposits((prev) => [...prev, saved])
     useStore.setState(state => ({
-      fixedDeposits: [...state.fixedDeposits, newFD],
+      fixedDeposits: [...state.fixedDeposits, saved],
     }))
+    setModalLoading(false)
     closeModal()
     showToast('FD added ✓', 'success')
   }
@@ -153,29 +170,18 @@ export default function Assets() {
       return
     }
     setModalLoading(true)
-    const patch = { currentValue: currentVal }
-    if (!isNaN(investedVal) && investedVal >= 0) patch.investedAmount = investedVal
+    const investedArg = (!isNaN(investedVal) && investedVal >= 0) ? investedVal : undefined
+    let saved
     try {
-      const res = await fetch(
-        `${BASE}/api/assets/mutualfunds/${modalForm.id}/update-value`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ current_value: currentVal }),
-        }
-      )
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      saved = await api.assets.updateMutualFundValue(modalForm.id, currentVal, investedArg)
     } catch {
-      // Offline — local update still runs below
+      showToast('Save failed. Changes were NOT saved to server.', 'error')
+      setModalLoading(false)
+      return
     }
-    // Always update store and local state
-    setMutualFunds(prev => prev.map(mf =>
-      mf.id === modalForm.id ? { ...mf, ...patch } : mf
-    ))
+    setMutualFunds(prev => prev.map(mf => mf.id === saved.id ? saved : mf))
     useStore.setState(state => ({
-      mutualFunds: state.mutualFunds.map(mf =>
-        mf.id === modalForm.id ? { ...mf, ...patch } : mf
-      )
+      mutualFunds: state.mutualFunds.map(mf => mf.id === saved.id ? saved : mf)
     }))
     setModalLoading(false)
     closeModal()
@@ -198,7 +204,13 @@ export default function Assets() {
   }
 
   // ── Chit handlers ──────────────────────────────────────────────────────────
-  const handleUpdateChitStatus = (id, newStatus) => {
+  const handleUpdateChitStatus = async (id, newStatus) => {
+    try {
+      await api.assets.updateChitStatus(id, newStatus)
+    } catch {
+      showToast('Save failed. Changes were NOT saved to server.', 'error')
+      return
+    }
     setChitFunds((prev) =>
       prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c))
     )
@@ -209,7 +221,13 @@ export default function Assets() {
     }))
   }
 
-  const handleDeleteChit = (id) => {
+  const handleDeleteChit = async (id) => {
+    try {
+      await api.assets.deleteChit(id)
+    } catch {
+      showToast('Save failed. Changes were NOT saved to server.', 'error')
+      return
+    }
     setChitFunds((prev) => prev.filter((c) => c.id !== id))
     useStore.setState(state => ({
       chitFunds: state.chitFunds.filter(c => c.id !== id),
@@ -217,25 +235,34 @@ export default function Assets() {
     showToast('Chit removed ✓', 'success')
   }
 
-  const handleSaveChit = () => {
+  const handleSaveChit = async () => {
     const expectedPrize = parseInt(modalForm.expectedPrize, 10)
     if (!expectedPrize || expectedPrize <= 0 || !modalForm.completionDate) {
       setModalError('Expected prize and completion date are required.')
       return
     }
-    const newChit = {
-      id: Date.now().toString(36),
+    setModalLoading(true)
+    const body = {
       organizer: modalForm.organizer || 'Nadar Sangam',
       monthlyContribution: parseInt(modalForm.monthlyContribution, 10) || 0,
       expectedPrize,
       completionDate: modalForm.completionDate,
       status: 'active',
-      notes: modalForm.notes || '',
+      notes: modalForm.notes || null,
     }
-    setChitFunds((prev) => [...prev, newChit])
+    let saved
+    try {
+      saved = await api.assets.createChit(body)
+    } catch {
+      showToast('Save failed. Changes were NOT saved to server.', 'error')
+      setModalLoading(false)
+      return
+    }
+    setChitFunds((prev) => [...prev, saved])
     useStore.setState(state => ({
-      chitFunds: [...state.chitFunds, newChit],
+      chitFunds: [...state.chitFunds, saved],
     }))
+    setModalLoading(false)
     closeModal()
     showToast('Chit added ✓', 'success')
   }
@@ -256,40 +283,30 @@ export default function Assets() {
       return
     }
     setModalLoading(true)
-    const updated = {
-      ...modalForm,
+    const body = {
+      bank: modalForm.bank,
       principal,
       rate,
+      startDate: modalForm.startDate || null,
+      maturityDate: modalForm.maturityDate,
+      purpose: modalForm.purpose,
+      notes: modalForm.notes || null,
       holders: typeof modalForm.holders === 'string'
         ? modalForm.holders.split(',').map(h => h.trim()).filter(Boolean)
         : (modalForm.holders ?? ['mother']),
     }
+    let saved
     try {
-      const res = await fetch(`${BASE}/api/assets/fixeddeposits/${updated.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(toSnake(updated)),
-      })
-      if (res.ok) {
-        const saved = toCamel(await res.json())
-        setFixedDeposits(prev => prev.map(fd => fd.id === saved.id ? saved : fd))
-        useStore.setState(state => ({
-          fixedDeposits: state.fixedDeposits.map(fd => fd.id === saved.id ? saved : fd)
-        }))
-      } else {
-        throw new Error(`HTTP ${res.status}`)
-      }
-    } catch (e) {
-      // Offline or API error — save locally and show warning
-      setFixedDeposits(prev => prev.map(fd => fd.id === updated.id ? updated : fd))
-      useStore.setState(state => ({
-        fixedDeposits: state.fixedDeposits.map(fd => fd.id === updated.id ? updated : fd)
-      }))
-      showToast('Saved locally — will sync when online', 'success')
+      saved = await api.assets.updateFD(modalForm.id, body)
+    } catch {
+      showToast('Save failed. Changes were NOT saved to server.', 'error')
       setModalLoading(false)
-      closeModal()
       return
     }
+    setFixedDeposits(prev => prev.map(fd => fd.id === saved.id ? saved : fd))
+    useStore.setState(state => ({
+      fixedDeposits: state.fixedDeposits.map(fd => fd.id === saved.id ? saved : fd)
+    }))
     setModalLoading(false)
     closeModal()
     showToast('FD updated ✓', 'success')
@@ -307,32 +324,27 @@ export default function Assets() {
       return
     }
     setModalLoading(true)
-    const updated = { ...modalForm, annualPremium }
+    const body = {
+      insured: modalForm.insured,
+      plan: modalForm.plan,
+      annualPremium,
+      nextDueDate: modalForm.nextDueDate,
+      premiumsPaid: modalForm.premiumsPaid ?? 0,
+      paidUpEligibleDate: modalForm.paidUpEligibleDate || null,
+      notes: modalForm.notes || null,
+    }
+    let saved
     try {
-      const res = await fetch(`${BASE}/api/assets/lic/${updated.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(toSnake(updated)),
-      })
-      if (res.ok) {
-        const saved = toCamel(await res.json())
-        setLicPolicies(prev => prev.map(l => l.id === saved.id ? saved : l))
-        useStore.setState(state => ({
-          licPolicies: state.licPolicies.map(l => l.id === saved.id ? saved : l)
-        }))
-      } else {
-        throw new Error(`HTTP ${res.status}`)
-      }
+      saved = await api.assets.updateLIC(modalForm.id, body)
     } catch {
-      setLicPolicies(prev => prev.map(l => l.id === updated.id ? updated : l))
-      useStore.setState(state => ({
-        licPolicies: state.licPolicies.map(l => l.id === updated.id ? updated : l)
-      }))
-      showToast('Saved locally — will sync when online', 'success')
+      showToast('Save failed. Changes were NOT saved to server.', 'error')
       setModalLoading(false)
-      closeModal()
       return
     }
+    setLicPolicies(prev => prev.map(l => l.id === saved.id ? saved : l))
+    useStore.setState(state => ({
+      licPolicies: state.licPolicies.map(l => l.id === saved.id ? saved : l)
+    }))
     setModalLoading(false)
     closeModal()
     showToast('LIC updated ✓', 'success')
@@ -351,32 +363,26 @@ export default function Assets() {
       return
     }
     setModalLoading(true)
-    const updated = { ...modalForm, monthlyContribution, expectedPrize }
+    const body = {
+      organizer: modalForm.organizer,
+      monthlyContribution,
+      expectedPrize,
+      completionDate: modalForm.completionDate,
+      status: modalForm.status,
+      notes: modalForm.notes || null,
+    }
+    let saved
     try {
-      const res = await fetch(`${BASE}/api/assets/chitfunds/${updated.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(toSnake(updated)),
-      })
-      if (res.ok) {
-        const saved = toCamel(await res.json())
-        setChitFunds(prev => prev.map(c => c.id === saved.id ? saved : c))
-        useStore.setState(state => ({
-          chitFunds: state.chitFunds.map(c => c.id === saved.id ? saved : c)
-        }))
-      } else {
-        throw new Error(`HTTP ${res.status}`)
-      }
+      saved = await api.assets.updateChit(modalForm.id, body)
     } catch {
-      setChitFunds(prev => prev.map(c => c.id === updated.id ? updated : c))
-      useStore.setState(state => ({
-        chitFunds: state.chitFunds.map(c => c.id === updated.id ? updated : c)
-      }))
-      showToast('Saved locally — will sync when online', 'success')
+      showToast('Save failed. Changes were NOT saved to server.', 'error')
       setModalLoading(false)
-      closeModal()
       return
     }
+    setChitFunds(prev => prev.map(c => c.id === saved.id ? saved : c))
+    useStore.setState(state => ({
+      chitFunds: state.chitFunds.map(c => c.id === saved.id ? saved : c)
+    }))
     setModalLoading(false)
     closeModal()
     showToast('Chit updated ✓', 'success')
@@ -394,12 +400,12 @@ export default function Assets() {
     const today = new Date().toISOString().split('T')[0]
     const goldData = { weightGrams: weight, currentValuePerGram: price, lastUpdated: today }
     try {
-      await fetch(`${BASE}/api/assets/gold`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(toSnake(goldData)),
-      })
-    } catch { /* offline fallback */ }
+      await api.assets.updateGold(goldData)
+    } catch {
+      showToast('Save failed. Changes were NOT saved to server.', 'error')
+      setGoldSaving(false)
+      return
+    }
     useStore.getState().updateGold(goldData)
     showToast('Gold updated ✓', 'success')
     setGoldSaving(false)
@@ -464,18 +470,17 @@ export default function Assets() {
           <button
             onClick={async () => {
               try {
-                const [fixedDeposits, mutualFunds, licPolicies, chitFunds] =
-                  await Promise.all([
-                    fetch(`${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}/api/assets/fixeddeposits`).then(r => r.json()),
-                    fetch(`${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}/api/assets/mutualfunds`).then(r => r.json()),
-                    fetch(`${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}/api/assets/lic`).then(r => r.json()),
-                    fetch(`${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}/api/assets/chitfunds`).then(r => r.json()),
-                  ])
-                useStore.setState({ fixedDeposits, mutualFunds, licPolicies, chitFunds })
-                setFixedDeposits(fixedDeposits)
-                setMutualFunds(mutualFunds)
-                setLicPolicies(licPolicies)
-                setChitFunds(chitFunds)
+                const data = await api.assets.getAll()
+                useStore.setState({
+                  fixedDeposits: data.fixedDeposits,
+                  mutualFunds: data.mutualFunds,
+                  licPolicies: data.licPolicies,
+                  chitFunds: data.chitFunds,
+                })
+                setFixedDeposits(data.fixedDeposits)
+                setMutualFunds(data.mutualFunds)
+                setLicPolicies(data.licPolicies)
+                setChitFunds(data.chitFunds)
                 showToast('Refreshed from server ✓', 'success')
               } catch {
                 showToast('Could not reach server — showing local data', 'error')

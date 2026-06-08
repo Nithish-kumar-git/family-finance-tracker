@@ -89,6 +89,9 @@ export const api = {
   // ── Assets ───────────────────────────────────────────────────────────
 
   assets: {
+
+    // ── Read ──────────────────────────────────────────────────────────
+
     async getSummary() {
       try {
         return await apiFetch('/api/assets/summary')
@@ -122,41 +125,97 @@ export const api = {
       }
     },
 
-    async updateGold(goldData) {
-      try {
-        return await apiFetch('/api/assets/gold', {
-          method: 'PATCH',
-          body: JSON.stringify(goldData),
+    // ── Fixed Deposits — throws on failure, caller shows error toast ───
+
+    async createFD(body) {
+      return await apiFetch('/api/assets/fixeddeposits', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      })
+    },
+
+    async updateFD(id, body) {
+      return await apiFetch(`/api/assets/fixeddeposits/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      })
+    },
+
+    async deleteFD(id) {
+      return await apiFetch(`/api/assets/fixeddeposits/${id}`, { method: 'DELETE' })
+    },
+
+    // ── Mutual Funds ──────────────────────────────────────────────────
+
+    /**
+     * If investedAmount is also changed, uses PUT (full field update).
+     * Otherwise uses PATCH /update-value (currentValue only).
+     * Throws on failure — caller shows error toast.
+     */
+    async updateMutualFundValue(id, currentValue, investedAmount) {
+      if (investedAmount !== undefined && investedAmount !== null) {
+        return await apiFetch(`/api/assets/mutualfunds/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify({ currentValue, investedAmount }),
         })
-      } catch {
-        useStore.getState().updateGold(goldData)
-        return goldData
       }
+      return await apiFetch(`/api/assets/mutualfunds/${id}/update-value`, {
+        method: 'PATCH',
+        body: JSON.stringify({ currentValue }),
+      })
+    },
+
+    // ── LIC ───────────────────────────────────────────────────────────
+
+    async updateLIC(id, body) {
+      return await apiFetch(`/api/assets/lic/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      })
     },
 
     async markLICPaid(id) {
-      try {
-        return await apiFetch(`/api/assets/lic/${id}/mark-paid`, {
-          method: 'PATCH',
-        })
-      } catch {
-        useStore.getState().markLICPaid(id)
-        return useStore.getState().licPolicies.find(l => l.id === id)
-      }
+      return await apiFetch(`/api/assets/lic/${id}/mark-paid`, { method: 'PATCH' })
     },
 
-    async updateMFValue(id, currentValue) {
-      try {
-        return await apiFetch(`/api/assets/mutualfunds/${id}/update-value`, {
-          method: 'PATCH',
-          body: JSON.stringify({ currentValue }),
-        })
-      } catch {
-        useStore.getState().updateMutualFundValue(id, currentValue)
-        return useStore.getState().mutualFunds.find(m => m.id === id)
-      }
+    // ── Chit Funds ────────────────────────────────────────────────────
+
+    async createChit(body) {
+      return await apiFetch('/api/assets/chitfunds', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      })
+    },
+
+    async updateChit(id, body) {
+      return await apiFetch(`/api/assets/chitfunds/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      })
+    },
+
+    /** Status-only update — uses PUT with just the status field. */
+    async updateChitStatus(id, status) {
+      return await apiFetch(`/api/assets/chitfunds/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status }),
+      })
+    },
+
+    async deleteChit(id) {
+      return await apiFetch(`/api/assets/chitfunds/${id}`, { method: 'DELETE' })
+    },
+
+    // ── Gold ──────────────────────────────────────────────────────────
+
+    async updateGold(goldData) {
+      return await apiFetch('/api/assets/gold', {
+        method: 'PATCH',
+        body: JSON.stringify(goldData),
+      })
     },
   },
+
 
   // ── Milestones ────────────────────────────────────────────────────────
 
