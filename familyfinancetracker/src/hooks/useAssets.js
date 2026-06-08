@@ -1,13 +1,13 @@
 /**
- * useAssets — loads asset data from backend, falls back to Zustand store.
- * Always fetches from Supabase on mount so all devices stay in sync.
+ * useAssets — store-first asset loading.
+ * Uses localStorage data if available so user edits survive refresh.
+ * Only fetches from API if store is empty (first load or after reset).
  */
 import { useCallback } from 'react'
 import useStore from '../store/useStore'
 
 const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
-// Convert snake_case API response keys → camelCase for JS components
 export const toCamel = (obj) => {
   if (obj === null || obj === undefined) return obj
   if (Array.isArray(obj)) return obj.map(toCamel)
@@ -20,7 +20,6 @@ export const toCamel = (obj) => {
   )
 }
 
-// Convert camelCase JS object keys → snake_case for API request bodies
 export const toSnake = (obj) => {
   if (obj === null || obj === undefined) return obj
   if (Array.isArray(obj)) return obj.map(toSnake)
@@ -36,6 +35,26 @@ export const toSnake = (obj) => {
 export function useAssets() {
 
   const loadAssets = useCallback(async () => {
+    const s = useStore.getState()
+
+    // If store already has data from localStorage, use it.
+    // Never overwrite user-edited data with server seed data.
+    const storeHasData =
+      (s.fixedDeposits?.length ?? 0) > 0 ||
+      (s.mutualFunds?.length ?? 0) > 0 ||
+      (s.licPolicies?.length ?? 0) > 0 ||
+      (s.chitFunds?.length ?? 0) > 0
+
+    if (storeHasData) {
+      return {
+        fixedDeposits: s.fixedDeposits ?? [],
+        mutualFunds:   s.mutualFunds   ?? [],
+        licPolicies:   s.licPolicies   ?? [],
+        chitFunds:     s.chitFunds     ?? [],
+      }
+    }
+
+    // Store is empty — first time load. Fetch from Supabase.
     try {
       const [fds, mfs, lics, chits] = await Promise.all([
         fetch(`${BASE}/api/assets/fixeddeposits`).then(r => r.json()),
@@ -44,22 +63,19 @@ export function useAssets() {
         fetch(`${BASE}/api/assets/chitfunds`).then(r => r.json()),
       ])
       const result = {
-        fixedDeposits: toCamel(Array.isArray(fds) ? fds : []),
-        mutualFunds:   toCamel(Array.isArray(mfs) ? mfs : []),
-        licPolicies:   toCamel(Array.isArray(lics) ? lics : []),
+        fixedDeposits: toCamel(Array.isArray(fds)   ? fds   : []),
+        mutualFunds:   toCamel(Array.isArray(mfs)   ? mfs   : []),
+        licPolicies:   toCamel(Array.isArray(lics)  ? lics  : []),
         chitFunds:     toCamel(Array.isArray(chits) ? chits : []),
       }
-      // Persist normalised server data to Zustand so localStorage stays in sync
       useStore.setState(result)
       return result
     } catch {
-      // Backend unreachable — serve from localStorage
-      const s = useStore.getState()
       return {
-        fixedDeposits: s.fixedDeposits ?? [],
-        mutualFunds:   s.mutualFunds   ?? [],
-        licPolicies:   s.licPolicies   ?? [],
-        chitFunds:     s.chitFunds     ?? [],
+        fixedDeposits: [],
+        mutualFunds:   [],
+        licPolicies:   [],
+        chitFunds:     [],
       }
     }
   }, [])
