@@ -11,9 +11,9 @@ load_dotenv()
 # Single client instance — new SDK uses Client object, not module-level configure()
 _client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-_PARSER_MODEL  = "gemini-2.0-flash"
-_INSIGHT_MODEL = "gemini-2.0-flash"
-_CHAT_MODEL    = "gemini-2.0-flash"
+_PARSER_MODEL  = "gemini-2.5-flash-lite"
+_INSIGHT_MODEL = "gemini-2.5-flash-lite"
+_CHAT_MODEL    = "gemini-2.5-flash-lite"
 
 
 def parse_transaction(raw_text: str) -> dict:

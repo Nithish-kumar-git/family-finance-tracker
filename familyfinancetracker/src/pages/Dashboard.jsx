@@ -272,18 +272,36 @@ export default function Dashboard() {
         </p>
 
         <div className="grid grid-cols-3 gap-2 mb-4">
-          <div className="text-center">
+          <button
+            className="text-center rounded-lg py-1 hover:bg-slate-50 active:bg-slate-100 transition-colors"
+            onClick={() => navigate('/assets')}
+          >
             <p className="text-xs text-slate-400">FDs</p>
-            <p className="text-sm font-semibold text-slate-700">{formatCurrency(fdTotal, true)}</p>
-          </div>
-          <div className="text-center">
+            <p className="text-sm font-semibold text-slate-700">
+              {formatCurrency(fdTotal, true)}
+            </p>
+            <p className="text-xs text-violet-500 mt-0.5">Edit →</p>
+          </button>
+          <button
+            className="text-center rounded-lg py-1 hover:bg-slate-50 active:bg-slate-100 transition-colors"
+            onClick={() => navigate('/assets')}
+          >
             <p className="text-xs text-slate-400">Mutual Funds</p>
-            <p className="text-sm font-semibold text-slate-700">{formatCurrency(mfTotal, true)}</p>
-          </div>
-          <div className="text-center">
+            <p className="text-sm font-semibold text-slate-700">
+              {formatCurrency(mfTotal, true)}
+            </p>
+            <p className="text-xs text-violet-500 mt-0.5">Edit →</p>
+          </button>
+          <button
+            className="text-center rounded-lg py-1 hover:bg-slate-50 active:bg-slate-100 transition-colors"
+            onClick={() => navigate('/assets')}
+          >
             <p className="text-xs text-slate-400">Gold</p>
-            <p className="text-sm font-semibold text-slate-700">{formatCurrency(goldTotal, true)}</p>
-          </div>
+            <p className="text-sm font-semibold text-slate-700">
+              {formatCurrency(goldTotal, true)}
+            </p>
+            <p className="text-xs text-violet-500 mt-0.5">Edit →</p>
+          </button>
         </div>
 
         <div className={`rounded-lg p-3 ${efIntact ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
@@ -292,9 +310,17 @@ export default function Dashboard() {
               <Lock size={14} className={efIntact ? 'text-green-600' : 'text-red-500'} />
               <p className="text-xs font-medium text-slate-700">Emergency Fund</p>
             </div>
-            <p className="text-xs text-slate-500">
-              {formatCurrency(efBalance, true)} / {formatCurrency(efTarget, true)}
-            </p>
+            <div className="flex items-center gap-1">
+              <p className="text-xs text-slate-500">
+                {formatCurrency(efBalance, true)} / {formatCurrency(efTarget, true)}
+              </p>
+              <button
+                onClick={() => navigate('/settings')}
+                className="text-xs text-violet-500 underline"
+              >
+                Edit
+              </button>
+            </div>
           </div>
           <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
             <div
@@ -312,6 +338,9 @@ export default function Dashboard() {
           )}
         </div>
       </Card>
+      <p className="text-xs text-slate-400 text-center -mt-2 mb-4">
+        Tap FDs · Funds · Gold above to update values
+      </p>
 
       {/* ── Section 4: Upcoming milestones ───────────────────────────── */}
       <div className="mb-4">
