@@ -1,106 +1,91 @@
-// Hook for loading and computing asset data.
-// Primary data source: api.assets.getAll()
-// Fallback (offline): Zustand store fields.
+/**
+ * useAssets — loads asset data from backend, falls back to Zustand store.
+ * Always fetches from Supabase on mount so all devices stay in sync.
+ */
 import { useCallback } from 'react'
-
-import { api } from '../utils/api'
-import { daysUntil } from '../utils/formatters'
 import useStore from '../store/useStore'
 
-export const useAssets = () => {
-  /**
-   * loadAssets — fetch all 4 asset types from the backend.
-   * Falls back to store data if the API is unreachable.
-   */
+const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+
+// Convert snake_case API response keys → camelCase for JS components
+export const toCamel = (obj) => {
+  if (obj === null || obj === undefined) return obj
+  if (Array.isArray(obj)) return obj.map(toCamel)
+  if (typeof obj !== 'object') return obj
+  return Object.fromEntries(
+    Object.entries(obj).map(([k, v]) => [
+      k.replace(/_([a-z])/g, (_, c) => c.toUpperCase()),
+      toCamel(v),
+    ])
+  )
+}
+
+// Convert camelCase JS object keys → snake_case for API request bodies
+export const toSnake = (obj) => {
+  if (obj === null || obj === undefined) return obj
+  if (Array.isArray(obj)) return obj.map(toSnake)
+  if (typeof obj !== 'object') return obj
+  return Object.fromEntries(
+    Object.entries(obj).map(([k, v]) => [
+      k.replace(/[A-Z]/g, c => '_' + c.toLowerCase()),
+      toSnake(v),
+    ])
+  )
+}
+
+export function useAssets() {
+
   const loadAssets = useCallback(async () => {
-    const fromApi = (obj) => {
-      if (!obj || typeof obj !== 'object') return obj
-      if (Array.isArray(obj)) return obj.map(fromApi)
-      return Object.fromEntries(
-        Object.entries(obj).map(([k, v]) => [
-          k.replace(/_([a-z])/g, (_, c) => c.toUpperCase()),
-          Array.isArray(v) ? v.map(i =>
-            typeof i === 'object' ? fromApi(i) : i) : v,
-        ])
-      )
-    }
-
-    const BASE_URL = typeof import.meta !== 'undefined'
-      ? (import.meta.env?.VITE_API_URL ?? 'http://localhost:8000')
-      : 'http://localhost:8000'
-
     try {
       const [fds, mfs, lics, chits] = await Promise.all([
-        fetch(`${BASE_URL}/api/assets/fixeddeposits`).then(r => r.json()),
-        fetch(`${BASE_URL}/api/assets/mutualfunds`).then(r => r.json()),
-        fetch(`${BASE_URL}/api/assets/lic`).then(r => r.json()),
-        fetch(`${BASE_URL}/api/assets/chitfunds`).then(r => r.json()),
+        fetch(`${BASE}/api/assets/fixeddeposits`).then(r => r.json()),
+        fetch(`${BASE}/api/assets/mutualfunds`).then(r => r.json()),
+        fetch(`${BASE}/api/assets/lic`).then(r => r.json()),
+        fetch(`${BASE}/api/assets/chitfunds`).then(r => r.json()),
       ])
       const result = {
-        fixedDeposits: fromApi(fds),
-        mutualFunds: fromApi(mfs),
-        licPolicies: fromApi(lics),
-        chitFunds: fromApi(chits),
+        fixedDeposits: toCamel(Array.isArray(fds) ? fds : []),
+        mutualFunds:   toCamel(Array.isArray(mfs) ? mfs : []),
+        licPolicies:   toCamel(Array.isArray(lics) ? lics : []),
+        chitFunds:     toCamel(Array.isArray(chits) ? chits : []),
       }
-      // Save to store so localStorage is always in sync with server
+      // Persist normalised server data to Zustand so localStorage stays in sync
       useStore.setState(result)
       return result
     } catch {
-      // API unreachable — use localStorage data
+      // Backend unreachable — serve from localStorage
       const s = useStore.getState()
       return {
         fixedDeposits: s.fixedDeposits ?? [],
-        mutualFunds: s.mutualFunds ?? [],
-        licPolicies: s.licPolicies ?? [],
-        chitFunds: s.chitFunds ?? [],
+        mutualFunds:   s.mutualFunds   ?? [],
+        licPolicies:   s.licPolicies   ?? [],
+        chitFunds:     s.chitFunds     ?? [],
       }
     }
   }, [])
 
-  /**
-   * getTotalCorpus — pure function, no API call.
-   * Computes totals from the provided data.
-   */
-  const getTotalCorpus = (fixedDeposits, mutualFunds, gold) => {
-    const fds = fixedDeposits.reduce((sum, fd) => sum + fd.principal, 0)
-    const mfs = mutualFunds.reduce((sum, mf) => sum + mf.currentValue, 0)
-    const goldTotal = gold.weightGrams * gold.currentValuePerGram
-    return {
-      fds,
-      mfs,
-      gold: goldTotal,
-      total: fds + mfs + goldTotal,
-    }
+  const getTotalCorpus = () => {
+    const s = useStore.getState()
+    const fds  = (s.fixedDeposits ?? []).reduce((n, fd) => n + (fd.principal ?? 0), 0)
+    const mfs  = (s.mutualFunds   ?? []).reduce((n, mf) => n + (mf.currentValue ?? 0), 0)
+    const gold = (s.gold?.weightGrams ?? 0) * (s.gold?.currentValuePerGram ?? 0)
+    return { fds, mfs, gold, total: fds + mfs + gold }
   }
 
-  /**
-   * getUpcomingFDMaturities — pure function.
-   * Returns FDs maturing within `days` days, sorted ascending.
-   */
-  const getUpcomingFDMaturities = (fixedDeposits, days = 90) => {
-    return fixedDeposits
-      .filter((fd) => {
-        const d = daysUntil(fd.maturityDate)
-        return d !== null && d >= 0 && d <= days
-      })
-      .sort(
-        (a, b) => new Date(a.maturityDate) - new Date(b.maturityDate)
-      )
+  const getUpcomingFDMaturities = (fds, days) => {
+    const cutoff = new Date()
+    cutoff.setDate(cutoff.getDate() + days)
+    return (fds ?? []).filter(fd =>
+      fd.maturityDate && new Date(fd.maturityDate) <= cutoff
+    )
   }
 
-  /**
-   * getUpcomingLICDues — pure function.
-   * Returns LIC policies due within `days` days, sorted ascending.
-   */
-  const getUpcomingLICDues = (licPolicies, days = 60) => {
-    return licPolicies
-      .filter((lic) => {
-        const d = daysUntil(lic.nextDueDate)
-        return d !== null && d >= 0 && d <= days
-      })
-      .sort(
-        (a, b) => new Date(a.nextDueDate) - new Date(b.nextDueDate)
-      )
+  const getUpcomingLICDues = (lics, days) => {
+    const cutoff = new Date()
+    cutoff.setDate(cutoff.getDate() + days)
+    return (lics ?? []).filter(l =>
+      l.nextDueDate && new Date(l.nextDueDate) <= cutoff
+    )
   }
 
   return { loadAssets, getTotalCorpus, getUpcomingFDMaturities, getUpcomingLICDues }

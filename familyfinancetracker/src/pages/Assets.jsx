@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import useStore from '../store/useStore'
-import { useAssets } from '../hooks/useAssets'
+import { useAssets, toCamel, toSnake } from '../hooks/useAssets'
 import { api } from '../utils/api'
 import { formatCurrency, formatDate, daysUntil } from '../utils/formatters'
 import Card from '../components/ui/Card'
@@ -24,31 +24,6 @@ import {
 } from 'lucide-react'
 
 // ─── Tab config ──────────────────────────────────────────────────────────────
-
-// Convert camelCase object keys to snake_case for API requests
-const toSnake = (obj) =>
-  Object.fromEntries(
-    Object.entries(obj).map(([k, v]) => [
-      k.replace(/[A-Z]/g, c => '_' + c.toLowerCase()),
-      v,
-    ])
-  )
-
-// Convert snake_case object keys to camelCase for API responses
-const toCamel = (obj) => {
-  if (!obj || typeof obj !== 'object') return obj
-  if (Array.isArray(obj)) return obj.map(toCamel)
-  return Object.fromEntries(
-    Object.entries(obj).map(([k, v]) => [
-      k.replace(/_([a-z])/g, (_, c) => c.toUpperCase()),
-      Array.isArray(v) ? v.map(item =>
-        typeof item === 'object' ? toCamel(item) : item
-      ) : v,
-    ])
-  )
-}
-
-const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 const TABS = [
   { key: 'fd', label: 'FDs' },
@@ -189,15 +164,18 @@ export default function Assets() {
           body: JSON.stringify({ current_value: currentVal }),
         }
       )
-      if (!res.ok) throw new Error('API error')
-    } catch { /* offline — continue with local update */ }
-    // Always update store and local state regardless of API result
-    const fullPatch = { ...patch }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    } catch {
+      // Offline — local update still runs below
+    }
+    // Always update store and local state
     setMutualFunds(prev => prev.map(mf =>
-      mf.id === modalForm.id ? { ...mf, ...fullPatch } : mf))
+      mf.id === modalForm.id ? { ...mf, ...patch } : mf
+    ))
     useStore.setState(state => ({
       mutualFunds: state.mutualFunds.map(mf =>
-        mf.id === modalForm.id ? { ...mf, ...fullPatch } : mf)
+        mf.id === modalForm.id ? { ...mf, ...patch } : mf
+      )
     }))
     setModalLoading(false)
     closeModal()
@@ -298,13 +276,19 @@ export default function Assets() {
         useStore.setState(state => ({
           fixedDeposits: state.fixedDeposits.map(fd => fd.id === saved.id ? saved : fd)
         }))
-      } else { throw new Error('API error') }
-    } catch {
-      // Offline fallback — save locally only
+      } else {
+        throw new Error(`HTTP ${res.status}`)
+      }
+    } catch (e) {
+      // Offline or API error — save locally and show warning
       setFixedDeposits(prev => prev.map(fd => fd.id === updated.id ? updated : fd))
       useStore.setState(state => ({
         fixedDeposits: state.fixedDeposits.map(fd => fd.id === updated.id ? updated : fd)
       }))
+      showToast('Saved locally — will sync when online', 'success')
+      setModalLoading(false)
+      closeModal()
+      return
     }
     setModalLoading(false)
     closeModal()
@@ -336,12 +320,18 @@ export default function Assets() {
         useStore.setState(state => ({
           licPolicies: state.licPolicies.map(l => l.id === saved.id ? saved : l)
         }))
-      } else { throw new Error('API error') }
+      } else {
+        throw new Error(`HTTP ${res.status}`)
+      }
     } catch {
       setLicPolicies(prev => prev.map(l => l.id === updated.id ? updated : l))
       useStore.setState(state => ({
         licPolicies: state.licPolicies.map(l => l.id === updated.id ? updated : l)
       }))
+      showToast('Saved locally — will sync when online', 'success')
+      setModalLoading(false)
+      closeModal()
+      return
     }
     setModalLoading(false)
     closeModal()
@@ -374,12 +364,18 @@ export default function Assets() {
         useStore.setState(state => ({
           chitFunds: state.chitFunds.map(c => c.id === saved.id ? saved : c)
         }))
-      } else { throw new Error('API error') }
+      } else {
+        throw new Error(`HTTP ${res.status}`)
+      }
     } catch {
       setChitFunds(prev => prev.map(c => c.id === updated.id ? updated : c))
       useStore.setState(state => ({
         chitFunds: state.chitFunds.map(c => c.id === updated.id ? updated : c)
       }))
+      showToast('Saved locally — will sync when online', 'success')
+      setModalLoading(false)
+      closeModal()
+      return
     }
     setModalLoading(false)
     closeModal()
