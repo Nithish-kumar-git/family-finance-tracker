@@ -1,6 +1,7 @@
 // Hook for loading and computing asset data.
 // Primary data source: api.assets.getAll()
 // Fallback (offline): Zustand store fields.
+import { useCallback } from 'react'
 
 import { api } from '../utils/api'
 import { daysUntil } from '../utils/formatters'
@@ -11,25 +12,51 @@ export const useAssets = () => {
    * loadAssets — fetch all 4 asset types from the backend.
    * Falls back to store data if the API is unreachable.
    */
-  const loadAssets = async () => {
-    try {
-      const data = await api.assets.getAll()
+  const loadAssets = useCallback(async () => {
+    // PRIORITY: use Zustand store (localStorage) if it has data.
+    // Only fetch from API if store is completely empty.
+    // This preserves user edits across page refreshes.
+    const storeState = useStore.getState()
+    
+    const storeHasData =
+      (storeState.fixedDeposits?.length ?? 0) > 0 ||
+      (storeState.mutualFunds?.length ?? 0) > 0 ||
+      (storeState.licPolicies?.length ?? 0) > 0 ||
+      (storeState.chitFunds?.length ?? 0) > 0
+
+    if (storeHasData) {
+      // Return store data directly — no API call needed
       return {
-        fixedDeposits: data.fixedDeposits ?? [],
-        mutualFunds: data.mutualFunds ?? [],
-        licPolicies: data.licPolicies ?? [],
-        chitFunds: data.chitFunds ?? [],
-      }
-    } catch {
-      const state = useStore.getState()
-      return {
-        fixedDeposits: state.fixedDeposits,
-        mutualFunds: state.mutualFunds,
-        licPolicies: state.licPolicies,
-        chitFunds: state.chitFunds,
+        fixedDeposits: storeState.fixedDeposits ?? [],
+        mutualFunds:   storeState.mutualFunds ?? [],
+        licPolicies:   storeState.licPolicies ?? [],
+        chitFunds:     storeState.chitFunds ?? [],
       }
     }
-  }
+
+    // Store is empty — first time load, fetch from API
+    try {
+      const data = await api.assets.getAll()
+      
+      const fixedDeposits = data.fixedDeposits ?? []
+      const mutualFunds = data.mutualFunds ?? []
+      const licPolicies = data.licPolicies ?? []
+      const chitFunds = data.chitFunds ?? []
+      
+      // Save API response to store so future loads use store
+      useStore.setState({ fixedDeposits, mutualFunds, licPolicies, chitFunds })
+      
+      return { fixedDeposits, mutualFunds, licPolicies, chitFunds }
+    } catch {
+      // API also failed — return seed data from store as final fallback
+      return {
+        fixedDeposits: storeState.fixedDeposits ?? [],
+        mutualFunds:   storeState.mutualFunds ?? [],
+        licPolicies:   storeState.licPolicies ?? [],
+        chitFunds:     storeState.chitFunds ?? [],
+      }
+    }
+  }, [])
 
   /**
    * getTotalCorpus — pure function, no API call.

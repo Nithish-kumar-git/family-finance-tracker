@@ -160,15 +160,13 @@ export default function Assets() {
       // API failed — continue with local update silently
     }
     useStore.getState().updateMutualFundValue(modalForm.id, currentValue)
-    if (invested !== null) {
-      useStore.setState(state => ({
-        mutualFunds: state.mutualFunds.map(mf =>
-          mf.id === modalForm.id
-            ? { ...mf, currentValue, investedAmount: invested }
-            : mf
-        ),
-      }))
-    }
+    useStore.setState(state => ({
+      mutualFunds: state.mutualFunds.map(mf =>
+        mf.id === modalForm.id
+          ? { ...mf, currentValue, ...(invested !== null ? { investedAmount: invested } : {}) }
+          : mf
+      ),
+    }))
     setMutualFunds(prev =>
       prev.map(mf =>
         mf.id === modalForm.id
@@ -388,6 +386,33 @@ export default function Assets() {
       </div>
 
       <div className="mt-4">
+        <div className="flex justify-end mb-2">
+          <button
+            onClick={async () => {
+              try {
+                const [fixedDeposits, mutualFunds, licPolicies, chitFunds] =
+                  await Promise.all([
+                    fetch(`${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}/api/assets/fixeddeposits`).then(r => r.json()),
+                    fetch(`${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}/api/assets/mutualfunds`).then(r => r.json()),
+                    fetch(`${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}/api/assets/lic`).then(r => r.json()),
+                    fetch(`${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}/api/assets/chitfunds`).then(r => r.json()),
+                  ])
+                useStore.setState({ fixedDeposits, mutualFunds, licPolicies, chitFunds })
+                setFixedDeposits(fixedDeposits)
+                setMutualFunds(mutualFunds)
+                setLicPolicies(licPolicies)
+                setChitFunds(chitFunds)
+                showToast('Refreshed from server ✓', 'success')
+              } catch {
+                showToast('Could not reach server — showing local data', 'error')
+              }
+            }}
+            className="text-xs text-slate-400 underline"
+          >
+            ↺ Sync from server
+          </button>
+        </div>
+
         {/* ── Loading skeleton ── */}
         {loading && activeTab !== 'gold' && (
           <div className="space-y-3">
