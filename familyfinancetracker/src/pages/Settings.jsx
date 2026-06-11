@@ -305,7 +305,7 @@ export default function Settings() {
 
   // ═════════════════════════════════════════════════════════════════════════════
   return (
-    <div className="px-4 py-4 pb-28">
+    <div className="px-4 py-4 pb-28 lg:pb-8 lg:max-w-3xl lg:mx-auto lg:px-6">
 
       {/* ── Hero ── */}
       <div className="-mx-4 -mt-4 px-4 pt-4 pb-6 bg-slate-900 mb-6">

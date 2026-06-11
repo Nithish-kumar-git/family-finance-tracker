@@ -220,13 +220,13 @@ export default function Dashboard() {
   return (
     <>
       {/* ── Section 1 & 2: Dark Hero (Greeting + Net Position) ────────── */}
-      <div className="-mx-4 px-4 pt-4 pb-8 bg-slate-900 mb-4">
+      <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 -mx-4 px-4 pt-6 pb-12 lg:mx-0 lg:rounded-2xl lg:mb-6">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
               {getGreeting()}
             </p>
-            <p className="text-2xl font-bold text-white">{user?.name ?? 'Friend'}</p>
+            <p className="text-2xl lg:text-3xl font-bold text-white">{user?.name ?? 'Friend'}</p>
           </div>
           <p className="text-xs text-slate-400">
             {now.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}
@@ -236,16 +236,33 @@ export default function Dashboard() {
         <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-4 mb-1">
           This Month
         </p>
-        <p className={`text-4xl font-bold tracking-tight ${netPosition < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+        <p className={`text-4xl lg:text-5xl font-bold tracking-tight ${netPosition < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
           {formatDeficit(netPosition)}
         </p>
         <p className="text-sm text-slate-400 mt-1">
           Income {formatCurrency(income, true)} · Spent {formatCurrency(totalExpenses, true)}
         </p>
+
+        {/* Glass stat cards */}
+        <div className="grid grid-cols-3 gap-3 mt-6">
+          {[
+            { label: 'Income', value: formatCurrency(income, true), color: 'text-emerald-400' },
+            { label: 'Spent', value: formatCurrency(totalExpenses, true), color: 'text-red-400' },
+            { label: 'Saved', value: formatCurrency(Math.max(0, income - totalExpenses), true), color: 'text-white' },
+          ].map(stat => (
+            <div
+              key={stat.label}
+              className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-3 py-3 text-center"
+            >
+              <p className="text-xs text-white/50 uppercase tracking-wide mb-1">{stat.label}</p>
+              <p className={`text-base font-bold ${stat.color}`}>{stat.value}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* ── Section 3: Corpus card ────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 -mt-4 mx-0 p-5 mb-3 relative">
+      <div className="-mt-6 mx-0 bg-white rounded-2xl shadow-lg border border-slate-100 p-5 mb-3 relative lg:mt-0 lg:shadow-sm">
         {/* Header */}
         <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
           Total Savings
@@ -330,8 +347,11 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── Section 4: Upcoming milestones ───────────────────────────── */}
-      <div className="mb-3">
+      {/* Responsive dashboard grid */}
+      <div className="lg:grid lg:grid-cols-2 lg:gap-6">
+        <div className="lg:col-span-1">
+          {/* ── Section 4: Upcoming milestones ───────────────────────────── */}
+          <div className="mb-3">
         <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-2">
           Upcoming
         </p>
@@ -370,8 +390,11 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* ── Section 5: Budget strip ───────────────────────────────────── */}
-      <div className="mb-3">
+        </div>
+        
+        <div className="lg:col-span-1">
+          {/* ── Section 5: Budget strip ───────────────────────────────────── */}
+          <div className="mb-3">
         <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-2">
           Budget
         </p>
@@ -454,19 +477,20 @@ export default function Dashboard() {
         )}
       </Card>
 
-      {/* ── Section 7: SparkLine (conditional) ───────────────────────── */}
-      {sparkData.length >= 2 && (
-        <Card className="mb-3">
-          <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">
-            Corpus Trend
-          </p>
-          <p className="text-xs text-slate-400 mb-3">Last {sparkData.length} months</p>
-          <SparkLine data={sparkData} height={60} />
-        </Card>
-      )}
+          {sparkData.length >= 2 && (
+            <Card className="mb-3">
+              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">
+                Corpus Trend
+              </p>
+              <p className="text-xs text-slate-400 mb-3">Last {sparkData.length} months</p>
+              <SparkLine data={sparkData} height={60} />
+            </Card>
+          )}
+        </div>
+      </div>
 
       {/* Bottom padding so FAB doesn't overlap last card */}
-      <div className="h-32" />
+      <div className="h-32 lg:h-8" />
 
       {/* ── FAB — Add Expense ─────────────────────────────────────────── */}
       <button

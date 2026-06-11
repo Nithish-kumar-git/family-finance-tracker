@@ -237,6 +237,7 @@ export default function Budgets() {
       </div>
 
       {/* ── Section 3 — Category rows ── */}
+      <div className="lg:grid lg:grid-cols-2 lg:gap-3">
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         {categoryData.map(({ key, cat, limit, spent, pct, isOver, isWarn, isChit }) => {
           const IconComponent = iconMap[cat.icon]
@@ -335,6 +336,7 @@ export default function Budgets() {
             </div>
           )
         })}
+      </div>
       </div>
 
       {/* ── Section 4 — Untracked amount card ── */}

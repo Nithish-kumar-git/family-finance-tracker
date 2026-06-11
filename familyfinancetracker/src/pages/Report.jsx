@@ -273,6 +273,9 @@ export default function Report() {
         </>
       ) : (
         <>
+          {/* Desktop 2-column layout */}
+          <div className="lg:grid lg:grid-cols-3 lg:gap-6">
+            <div className="lg:col-span-2">
 
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           {/* SECTION 2 — CORPUS CARD                                     */}
@@ -579,6 +582,10 @@ export default function Report() {
             )}
           </Card>
 
+          {/* Close left column, open right column for action buttons */}
+          </div>
+          <div className="lg:col-span-1 lg:sticky lg:top-4">
+
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           {/* SECTION 8 — COPY FOR CLAUDE (most prominent element)        */}
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
@@ -621,11 +628,15 @@ export default function Report() {
             <Save size={14} className="mr-1.5" />
             Save Snapshot for {monthLabel}
           </Button>
+
+          {/* Close right column and grid wrapper */}
+          </div>
+          </div>
         </>
       )}
 
       {/* Bottom padding */}
-      <div className="h-8" />
+      <div className="h-8 lg:h-4" />
     </>
   )
 }

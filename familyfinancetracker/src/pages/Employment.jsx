@@ -577,10 +577,13 @@ export default function Employment() {
         </>
       ) : (
         <>
+          {/* Desktop 2-column layout */}
+          <div className="lg:grid lg:grid-cols-5 lg:gap-6">
+            <div className="lg:col-span-2">
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           {/* SECTION 1 — STATUS CARD                                     */}
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-          <div className="-mx-4 px-4 pt-4 pb-6 bg-slate-900 mb-4">
+          <div className="bg-gradient-to-r from-slate-900 to-slate-800 -mx-4 px-4 pt-4 pb-6 mb-4 lg:mx-0 lg:rounded-2xl">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Briefcase size={18} className="text-slate-700" />
@@ -757,6 +760,10 @@ export default function Employment() {
           {/* SECTION 3 — ADD APPLICATION FORM                            */}
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           {addFormJSX}
+          
+          {/* Close left column, open right column */}
+          </div>
+          <div className="lg:col-span-3">
 
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           {/* SECTION 4 — TOTALS 2×2 GRID                                 */}
@@ -887,6 +894,10 @@ export default function Employment() {
                 {renderApplicationCard(app)}
               </div>
             ))}
+
+          {/* Close right column and grid wrapper */}
+          </div>
+          </div>
 
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           {/* SECTION 7 — MOTIVATION CARD (non-dismissible)               */}

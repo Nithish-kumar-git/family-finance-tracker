@@ -305,9 +305,13 @@ export default function Milestones() {
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           {/* SECTION 1 — URGENT                                          */}
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+          
+          {/* Desktop 2-column layout wrapper */}
+          <div className="lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
+            <div>
           {urgentMilestones.length > 0 && (
             <>
-              <div className="-mx-4 px-4 pt-3 pb-4 bg-red-950 mb-4">
+              <div className="bg-gradient-to-r from-red-950 to-slate-900 -mx-4 px-4 pt-4 pb-6 mb-4 lg:mx-0 lg:rounded-2xl">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse flex-shrink-0" />
                   <p className="text-sm font-bold text-white">Urgent — Act Now</p>
@@ -452,6 +456,10 @@ export default function Milestones() {
 
           <div className="mb-6" />
 
+          {/* Close first column, open second */}
+          </div>
+          <div>
+
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           {/* SECTION 2 — UPCOMING (timeline layout)                      */}
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
@@ -590,6 +598,10 @@ export default function Milestones() {
           )}
 
           <div className="mb-6" />
+
+          {/* Close second column and grid wrapper */}
+          </div>
+          </div>
 
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           {/* SECTION 3 — COMPLETED (collapsed by default)                */}

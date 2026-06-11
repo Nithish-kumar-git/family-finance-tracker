@@ -509,7 +509,7 @@ export default function Assets() {
         {activeTab === 'fd' && !loading && (
           <>
             {/* Total FD card */}
-            <div className="-mx-4 px-4 pt-4 pb-6 bg-slate-900 mb-4">
+            <div className="bg-gradient-to-r from-slate-900 to-indigo-950 -mx-4 px-4 pt-4 pb-8 mb-4 lg:mx-0 lg:rounded-2xl">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-widest text-slate-400">Fixed Deposits</p>
@@ -523,7 +523,19 @@ export default function Assets() {
                 {fixedDeposits.length} deposit
                 {fixedDeposits.length !== 1 ? 's' : ''} · All in Canara Bank
               </p>
-            </div>>
+              
+              {/* Glass sub-stats */}
+              <div className="grid grid-cols-2 gap-2 mt-4">
+                <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-3 py-2">
+                  <p className="text-xs text-white/50 mb-0.5">Count</p>
+                  <p className="text-base font-bold text-white">{fixedDeposits.length}</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-3 py-2">
+                  <p className="text-xs text-white/50 mb-0.5">Total</p>
+                  <p className="text-base font-bold text-white">{formatCurrency(fdTotal, true)}</p>
+                </div>
+              </div>
+            </div>
 
             {/* Add FD button */}
             <div className="flex justify-end mb-3">
@@ -536,7 +548,8 @@ export default function Assets() {
               </Button>
             </div>
 
-            {/* FD cards */}
+            {/* FD cards - 2 column grid on desktop */}
+            <div className="lg:grid lg:grid-cols-2 lg:gap-4">
             {fixedDeposits.map((fd) => {
               const days = daysUntil(fd.maturityDate)
               const isExpiringSoon = days !== null && days <= 60
@@ -662,6 +675,7 @@ export default function Assets() {
                 </Card>
               )
             })}
+            </div>
 
             {fixedDeposits.length === 0 && (
               <p className="text-sm text-slate-400 text-center py-8">
@@ -678,7 +692,7 @@ export default function Assets() {
           <>
             {/* Total MF card */}
             {/* Total MF card */}
-            <div className="-mx-4 px-4 pt-4 pb-6 bg-slate-900 mb-4">
+            <div className="bg-gradient-to-r from-slate-900 to-indigo-950 -mx-4 px-4 pt-4 pb-8 mb-4 lg:mx-0 lg:rounded-2xl">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-widest text-slate-400">Mutual Funds</p>
@@ -713,7 +727,8 @@ export default function Assets() {
               )}
             </div>
 
-            {/* MF cards */}
+            {/* MF cards - 2 column grid on desktop */}
+            <div className="lg:grid lg:grid-cols-2 lg:gap-4">
             {sortedFunds.map((mf) => {
               const isEmergencyFund = mf.notes
                 ?.toUpperCase()
@@ -856,6 +871,7 @@ export default function Assets() {
                 No mutual funds yet
               </p>
             )}
+            </div>
           </>
         )}
 

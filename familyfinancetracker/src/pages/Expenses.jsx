@@ -358,12 +358,14 @@ export default function Expenses() {
         </div>
       )}
 
-      <div className="px-4 py-4 max-w-lg mx-auto">
+      <div className="px-4 py-4 max-w-7xl mx-auto lg:px-6 pb-24 lg:pb-8">
 
         {/* ════════════════════════════════════════════════════════════════════
             TAB 1 — ADD EXPENSE
             ════════════════════════════════════════════════════════════════ */}
         {activeTab === 'add' && (
+          <div className="lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
+            <div>
           <div className="flex flex-col gap-4">
 
             {/* Amount + SMS parser */}
@@ -524,6 +526,31 @@ export default function Expenses() {
             >
               Add Expense
             </Button>
+          </div>
+          </div>
+          
+          {/* Second column for recent expenses preview on desktop */}
+          <div className="hidden lg:block">
+            <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-3">
+              Recent Expenses
+            </p>
+            <div className="space-y-2">
+              {expenses.slice(0, 5).map(expense => {
+                const catMeta = EXPENSE_CATEGORIES[expense.category]
+                return (
+                  <div key={expense.id} className="flex items-center gap-3 py-2 px-3 bg-white rounded-xl border border-slate-100">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-slate-800 truncate">
+                        {expense.description || catMeta?.label}
+                      </p>
+                      <p className="text-xs text-slate-400">{formatDate(expense.date)}</p>
+                    </div>
+                    <p className="text-sm font-semibold text-slate-800">{formatCurrency(expense.amount)}</p>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
           </div>
         )}
 
