@@ -21,7 +21,7 @@ import {
 
 const CATEGORY_COLORS = {
   form_submission: 'bg-red-500',
-  account_setup: 'bg-violet-500',
+  account_setup: 'bg-indigo-500',
   fd_maturity: 'bg-blue-500',
   lic_premium: 'bg-purple-500',
   chit_completion: 'bg-amber-500',
@@ -282,7 +282,7 @@ export default function Milestones() {
             className={`rounded-full px-3 py-1.5 text-xs font-medium cursor-pointer
                        flex-shrink-0 transition-colors ${
                          activeFilter === tab.key
-                           ? 'bg-violet-600 text-white'
+                           ? 'bg-indigo-600 text-white'
                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                        }`}
           >
@@ -307,10 +307,12 @@ export default function Milestones() {
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           {urgentMilestones.length > 0 && (
             <>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-base">🚨</span>
-                <p className="text-sm font-bold text-red-700">Urgent — Act Now</p>
-                <Badge color="red">{urgentMilestones.length}</Badge>
+              <div className="-mx-4 px-4 pt-3 pb-4 bg-red-950 mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse flex-shrink-0" />
+                  <p className="text-sm font-bold text-white">Urgent — Act Now</p>
+                  <Badge color="red">{urgentMilestones.length}</Badge>
+                </div>
               </div>
 
               {urgentMilestones.map((m) => {
@@ -320,13 +322,11 @@ export default function Milestones() {
                 return (
                   <div
                     key={m.id}
-                    className="rounded-xl border border-red-200 bg-white mb-3
-                               border-l-4 border-l-red-500 overflow-hidden"
+                    className="bg-white border-l-4 border-red-500 rounded-r-2xl shadow-sm p-4 mb-3"
                   >
-                    <div className="p-4">
-                      {/* Title row with pulsing dot */}
+                    <div>
+                      {/* Title row */}
                       <div className="flex items-start gap-2 mb-2">
-                        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse flex-shrink-0 mt-1.5" />
                         <p className="text-sm font-semibold text-slate-800 leading-snug flex-1">
                           {m.title}
                         </p>
@@ -463,21 +463,16 @@ export default function Milestones() {
           </p>
 
           {upcomingMilestones.length > 0 ? (
-            <div className="relative">
-              {/* Vertical timeline line */}
-              <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-slate-200" />
-
+            <div className="relative border-l-2 border-slate-100 pl-5 ml-1">
               {upcomingMilestones.map((m) => {
                 const days = daysUntil(m.date)
-                const dotClass = CATEGORY_COLORS[m.category] ?? 'bg-slate-400'
                 const isOverdue = days !== null && days < 0
 
                 return (
-                  <div key={m.id} className="relative pl-9 pb-5">
+                  <div key={m.id} className="relative pb-5">
                     {/* Timeline dot */}
                     <div
-                      className={`absolute left-1.5 top-1 w-3 h-3 rounded-full ${dotClass}
-                                  ring-2 ring-white flex-shrink-0`}
+                      className="absolute -left-[26px] mt-1.5 w-2 h-2 rounded-full bg-indigo-500 ring-4 ring-slate-50 flex-shrink-0"
                     />
 
                     {/* Card */}
@@ -647,8 +642,8 @@ export default function Milestones() {
                 </div>
                 <button
                   onClick={() => handleUpdateStatus(m.id, 'pending')}
-                  className="p-1 rounded text-slate-300 hover:text-violet-500
-                             hover:bg-violet-50 flex-shrink-0 transition-colors"
+                  className="p-1 rounded text-slate-300 hover:text-indigo-500
+                             hover:bg-indigo-50 flex-shrink-0 transition-colors"
                   title="Reset to pending"
                 >
                   <Clock size={14} />
@@ -677,7 +672,7 @@ export default function Milestones() {
                   </p>
                   <button
                     onClick={() => handleUpdateStatus(m.id, 'pending')}
-                    className="text-xs text-violet-500 hover:underline flex-shrink-0"
+                    className="text-xs text-indigo-500 hover:underline flex-shrink-0"
                   >
                     Restore
                   </button>
@@ -738,7 +733,7 @@ export default function Milestones() {
                   }
                   placeholder="e.g. Renew Canara Bank FD"
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                             focus:outline-none focus:ring-2 focus:ring-violet-500"
+                             focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   maxLength={100}
                 />
               </div>
@@ -755,7 +750,7 @@ export default function Milestones() {
                     setAddForm((p) => ({ ...p, date: e.target.value }))
                   }
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                             focus:outline-none focus:ring-2 focus:ring-violet-500"
+                             focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
@@ -770,7 +765,7 @@ export default function Milestones() {
                     setAddForm((p) => ({ ...p, category: e.target.value }))
                   }
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                             focus:outline-none focus:ring-2 focus:ring-violet-500"
+                             focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   {Object.entries(CATEGORY_LABELS).map(([val, label]) => (
                     <option key={val} value={val}>
@@ -798,7 +793,7 @@ export default function Milestones() {
                     }
                     placeholder="Leave blank if not applicable"
                     className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-violet-500"
+                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
               </div>
@@ -868,7 +863,7 @@ export default function Milestones() {
                   placeholder="Any additional context or action steps..."
                   rows={3}
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                             focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+                             focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
                   maxLength={300}
                 />
               </div>

@@ -285,8 +285,8 @@ export default function Budgets() {
                           if (e.key === 'Escape') setEditingCategory(null)
                         }}
                         autoFocus
-                        className="w-20 text-sm border border-violet-300 rounded-lg px-2 py-1
-                                   focus:outline-none focus:ring-2 focus:ring-violet-500 text-right"
+                        className="w-20 text-sm border border-indigo-300 rounded-lg px-2 py-1
+                                   focus:outline-none focus:ring-2 focus:ring-indigo-500 text-right"
                       />
                       <button
                         onClick={() => saveInlineEdit(key)}
@@ -314,7 +314,7 @@ export default function Budgets() {
                         >
                           {formatCurrency(spent)}
                         </p>
-                        <p className="text-xs text-slate-400 group-hover:text-violet-500 transition-colors">
+                        <p className="text-xs text-slate-400 group-hover:text-indigo-500 transition-colors">
                           / {formatCurrency(limit)}
                         </p>
                       </button>
@@ -529,7 +529,7 @@ export default function Budgets() {
                         }
                         className="w-24 text-sm border border-slate-200 rounded-lg
                                    px-2 py-1.5 text-right focus:outline-none
-                                   focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                                   focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                       />
                     </div>
                   </div>

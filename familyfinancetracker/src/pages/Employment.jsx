@@ -393,7 +393,7 @@ export default function Employment() {
             onChange={(e) => handleUpdateStatus(app.id, e.target.value)}
             className="text-xs border border-slate-200 rounded-lg px-2 py-1.5
                        text-slate-600 focus:outline-none focus:ring-2
-                       focus:ring-violet-500 flex-shrink-0 max-w-[130px]
+                       focus:ring-indigo-500 flex-shrink-0 max-w-[130px]
                        disabled:opacity-50"
           >
             {STATUS_OPTIONS.map((opt) => (
@@ -435,7 +435,7 @@ export default function Employment() {
               }
               placeholder="Company name"
               className="w-full rounded-lg border border-slate-200 px-2.5 py-2 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-violet-500"
+                         focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
           <div>
@@ -450,7 +450,7 @@ export default function Employment() {
               }
               placeholder="Job title"
               className="w-full rounded-lg border border-slate-200 px-2.5 py-2 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-violet-500"
+                         focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
         </div>
@@ -467,7 +467,7 @@ export default function Employment() {
                 setAddForm((p) => ({ ...p, platform: e.target.value }))
               }
               className="w-full rounded-lg border border-slate-200 px-2.5 py-2 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-violet-500"
+                         focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               {PLATFORM_OPTIONS.map((p) => (
                 <option key={p} value={p}>
@@ -487,7 +487,7 @@ export default function Employment() {
                 setAddForm((p) => ({ ...p, appliedDate: e.target.value }))
               }
               className="w-full rounded-lg border border-slate-200 px-2.5 py-2 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-violet-500"
+                         focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
         </div>
@@ -504,7 +504,7 @@ export default function Employment() {
               setAddForm((p) => ({ ...p, followUpDate: e.target.value }))
             }
             className="w-full rounded-lg border border-slate-200 px-2.5 py-2 text-sm
-                       focus:outline-none focus:ring-2 focus:ring-violet-500"
+                       focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
 
@@ -522,7 +522,7 @@ export default function Employment() {
             placeholder="Recruiter name, source, etc."
             maxLength={120}
             className="w-full rounded-lg border border-slate-200 px-2.5 py-2 text-sm
-                       focus:outline-none focus:ring-2 focus:ring-violet-500"
+                       focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
 
@@ -580,10 +580,10 @@ export default function Employment() {
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           {/* SECTION 1 — STATUS CARD                                     */}
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-          <Card className="mb-4">
+          <div className="-mx-4 px-4 pt-4 pb-6 bg-slate-900 mb-4">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Briefcase size={18} className="text-violet-600" />
+                <Briefcase size={18} className="text-slate-700" />
                 <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
                   Nithish's Job Search
                 </p>
@@ -601,7 +601,7 @@ export default function Employment() {
                 </Badge>
                 <ChevronRight
                   size={14}
-                  className="text-slate-400 group-hover:text-violet-500"
+                  className="text-slate-400 group-hover:text-indigo-500"
                 />
               </button>
             </div>
@@ -648,7 +648,7 @@ export default function Employment() {
                       onChange={(e) => setSalaryInput(e.target.value)}
                       placeholder="e.g. 30000"
                       className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm
-                                 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                                 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                 </div>
@@ -658,9 +658,9 @@ export default function Employment() {
             {/* When EMPLOYED: show salary + confirmed impact */}
             {isEmployed && (
               <>
-                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4">
+                <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 mb-4">
                   <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Monthly salary</p>
-                  <p className="text-3xl font-bold tracking-tight text-emerald-700">
+                  <p className="text-3xl font-bold tracking-tight text-white">
                     {formatCurrency(nithishSalary)}
                   </p>
                   {newDeficit <= 0 ? (
@@ -685,7 +685,7 @@ export default function Employment() {
                       value={salaryInput}
                       onChange={(e) => setSalaryInput(e.target.value)}
                       className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm
-                                 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                                 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                   <Button
@@ -700,10 +700,10 @@ export default function Employment() {
               </>
             )}
 
-            <p className="text-xs text-slate-300 mt-3 text-center">
+            <p className="text-xs text-slate-500 mt-3 text-center">
               Tap the status badge to update as your search progresses →
             </p>
-          </Card>
+          </div>
 
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           {/* SECTION 2 — WEEKLY PROGRESS CARD                            */}
@@ -711,7 +711,7 @@ export default function Employment() {
           <Card className="mb-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Target size={16} className="text-violet-600" />
+                <Target size={16} className="text-indigo-600" />
                 <p className="text-xs font-medium uppercase tracking-widest text-slate-400">This Week</p>
               </div>
               {streak > 0 && (
@@ -767,7 +767,7 @@ export default function Employment() {
               <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-0.5">Total sent</p>
             </Card>
             <Card className="text-center py-3">
-              <p className="text-3xl font-bold tracking-tight text-violet-700">
+              <p className="text-3xl font-bold tracking-tight text-indigo-700">
                 {interviewCount}
               </p>
               <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-0.5">Interviews</p>
@@ -810,7 +810,7 @@ export default function Employment() {
                   />
                   <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
                   <Tooltip formatter={(v) => [v, 'Applications']} />
-                  <Bar dataKey="count" fill="#7C3AED" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="count" fill="#4F46E5" radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}

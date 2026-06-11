@@ -219,71 +219,33 @@ export default function Dashboard() {
   // ── Main render ───────────────────────────────────────────────────────
   return (
     <>
-      {/* ── Section 1: Greeting ───────────────────────────────────────── */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
-            {getGreeting()}
+      {/* ── Section 1 & 2: Dark Hero (Greeting + Net Position) ────────── */}
+      <div className="-mx-4 px-4 pt-4 pb-8 bg-slate-900 mb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
+              {getGreeting()}
+            </p>
+            <p className="text-2xl font-bold text-white">{user?.name ?? 'Friend'}</p>
+          </div>
+          <p className="text-xs text-slate-400">
+            {now.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}
           </p>
-          <p className="text-2xl font-bold text-slate-900">{user?.name ?? 'Friend'}</p>
         </div>
-        <p className="text-xs text-slate-400">
-          {now.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}
+
+        <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-4 mb-1">
+          This Month
         </p>
-      </div>
-
-      {/* ── Section 2: Net Position card (hero) ───────────────────────── */}
-      <div className={`rounded-2xl border p-4 mb-3 ${netBg}`}>
-        {/* Top row */}
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
-            This Month
-          </p>
-          <Badge color={netPosition < 0 ? 'red' : 'green'}>
-            {netPosition < 0 ? 'Deficit' : 'Surplus'}
-          </Badge>
-        </div>
-
-        {/* Hero number */}
-        <p className={`text-4xl font-bold tracking-tight mb-4 ${netNumberColor}`}>
+        <p className={`text-4xl font-bold tracking-tight ${netPosition < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
           {formatDeficit(netPosition)}
         </p>
-
-        {/* Bottom 3-column breakdown */}
-        <div className="grid grid-cols-3 gap-2 text-center">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">
-              Income
-            </p>
-            <p className="text-sm font-semibold text-emerald-600">
-              {formatCurrency(income, true)}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">
-              Budget
-            </p>
-            <p className="text-sm font-semibold text-slate-700">
-              {formatCurrency(85800, true)}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">
-              Spent
-            </p>
-            <p className="text-sm font-semibold text-red-500">
-              {formatCurrency(totalExpenses, true)}
-            </p>
-          </div>
-        </div>
-
-        <p className="text-xs text-slate-400 mt-3 text-center">
-          Monthly deficit target: ₹48,196
+        <p className="text-sm text-slate-400 mt-1">
+          Income {formatCurrency(income, true)} · Spent {formatCurrency(totalExpenses, true)}
         </p>
       </div>
 
       {/* ── Section 3: Corpus card ────────────────────────────────────── */}
-      <div className="rounded-2xl border border-slate-100 shadow-sm bg-white p-5 mb-3">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 -mt-4 mx-0 p-5 mb-3 relative">
         {/* Header */}
         <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
           Total Savings
@@ -305,7 +267,7 @@ export default function Dashboard() {
             <p className="text-base font-semibold text-slate-700 mt-0.5">
               {formatCurrency(fdTotal, true)}
             </p>
-            <p className="text-xs text-violet-500 mt-0.5">Edit →</p>
+            <p className="text-xs text-indigo-500 mt-0.5">Edit →</p>
           </button>
 
           <button
@@ -316,7 +278,7 @@ export default function Dashboard() {
             <p className="text-base font-semibold text-slate-700 mt-0.5">
               {formatCurrency(mfTotal, true)}
             </p>
-            <p className="text-xs text-violet-500 mt-0.5">Edit →</p>
+            <p className="text-xs text-indigo-500 mt-0.5">Edit →</p>
           </button>
 
           <button
@@ -327,7 +289,7 @@ export default function Dashboard() {
             <p className="text-base font-semibold text-slate-700 mt-0.5">
               {formatCurrency(goldTotal, true)}
             </p>
-            <p className="text-xs text-violet-500 mt-0.5">Edit →</p>
+            <p className="text-xs text-indigo-500 mt-0.5">Edit →</p>
           </button>
 
           <button
@@ -338,7 +300,7 @@ export default function Dashboard() {
             <p className="text-base font-semibold text-slate-700 mt-0.5">
               {formatCurrency(savingsBalance, true)}
             </p>
-            <p className="text-xs text-violet-500 mt-0.5">Edit →</p>
+            <p className="text-xs text-indigo-500 mt-0.5">Edit →</p>
           </button>
         </div>
 
@@ -445,7 +407,7 @@ export default function Dashboard() {
       <Card className="mb-3">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Briefcase size={15} className={isEmployed ? 'text-emerald-600' : 'text-violet-600'} />
+            <Briefcase size={15} className={isEmployed ? 'text-emerald-600' : 'text-indigo-600'} />
             <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
               Job Search
             </p>
@@ -509,9 +471,9 @@ export default function Dashboard() {
       {/* ── FAB — Add Expense ─────────────────────────────────────────── */}
       <button
         onClick={() => navigate('/expenses')}
-        className="fixed bottom-36 right-4 w-14 h-14 rounded-full bg-violet-600
+        className="fixed bottom-36 right-4 w-14 h-14 rounded-full bg-indigo-600
                    text-white shadow-lg flex items-center justify-center
-                   hover:bg-violet-700 active:scale-95 transition-all z-30"
+                   hover:bg-indigo-700 active:scale-95 transition-all z-30"
         aria-label="Add expense"
       >
         <Plus size={24} />
@@ -520,9 +482,9 @@ export default function Dashboard() {
       {/* ── Ask Amma AI button ────────────────────────────────────────── */}
       <button
         onClick={() => setChatOpen(true)}
-        className="fixed bottom-20 right-4 rounded-full bg-violet-600
+        className="fixed bottom-20 right-4 rounded-full bg-indigo-600
                    text-white shadow-lg flex items-center justify-center z-40
-                   hover:bg-violet-700 active:scale-95 transition-all relative"
+                   hover:bg-indigo-700 active:scale-95 transition-all relative"
         style={{ width: 52, height: 52 }}
         aria-label="Ask Amma AI"
       >
@@ -550,7 +512,7 @@ export default function Dashboard() {
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-slate-100 flex-shrink-0">
               <div className="flex items-center gap-2">
-                <Sparkles size={18} className="text-violet-600" />
+                <Sparkles size={18} className="text-indigo-600" />
                 <p className="text-base font-semibold text-slate-800">Ask Amma AI</p>
               </div>
               <button
@@ -588,9 +550,9 @@ export default function Dashboard() {
                         <button
                           key={i}
                           onClick={() => handleSend(s)}
-                          className="w-full text-left text-xs bg-violet-50 border border-violet-100
-                                     text-violet-700 rounded-xl px-3 py-2.5
-                                     hover:bg-violet-100 transition-colors"
+                          className="w-full text-left text-xs bg-indigo-50 border border-indigo-100
+                                     text-indigo-700 rounded-xl px-3 py-2.5
+                                     hover:bg-indigo-100 transition-colors"
                         >
                           {s}
                         </button>
@@ -607,7 +569,7 @@ export default function Dashboard() {
                       <div
                         className={`max-w-xs rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed
                           ${msg.role === 'user'
-                            ? 'bg-violet-600 text-white rounded-br-sm'
+                            ? 'bg-indigo-600 text-white rounded-br-sm'
                             : 'bg-slate-100 text-slate-800 rounded-bl-sm'}`}
                       >
                         {msg.content}
@@ -653,14 +615,14 @@ export default function Dashboard() {
                     placeholder="Ask about your finances..."
                     disabled={chatLoading}
                     className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-violet-500
+                               focus:outline-none focus:ring-2 focus:ring-indigo-500
                                focus:border-transparent disabled:opacity-50"
                   />
                   <button
                     onClick={() => handleSend()}
                     disabled={chatLoading || !chatInput.trim()}
-                    className="w-10 h-10 rounded-xl bg-violet-600 text-white flex items-center
-                               justify-center hover:bg-violet-700 disabled:opacity-40
+                    className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center
+                               justify-center hover:bg-indigo-700 disabled:opacity-40
                                disabled:cursor-not-allowed transition-colors flex-shrink-0"
                   >
                     <Send size={16} />

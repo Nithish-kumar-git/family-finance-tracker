@@ -291,7 +291,7 @@ export default function Expenses() {
             <textarea
               rows={4}
               className="w-full rounded-xl border border-slate-200 p-3 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-violet-500
+                         focus:outline-none focus:ring-2 focus:ring-indigo-500
                          focus:border-transparent resize-none"
               placeholder="Paste your bank SMS or UPI notification here..."
               value={smsText}
@@ -332,7 +332,7 @@ export default function Expenses() {
               onClick={() => setActiveTab(tab)}
               className={`flex-1 text-sm font-medium transition-colors
                 ${activeTab === tab
-                  ? 'border-b-2 border-violet-600 text-violet-600 font-semibold'
+                  ? 'border-b-2 border-indigo-600 text-indigo-600 font-semibold'
                   : 'text-slate-400 hover:text-slate-600'}`}
             >
               {tab === 'add' ? 'Add' : tab === 'history' ? 'History' : 'Summary'}
@@ -349,7 +349,7 @@ export default function Expenses() {
             onChange={e => setSelectedMonth(e.target.value)}
             className="border border-slate-100 rounded-xl px-3 py-1.5 text-sm
                        text-slate-700 focus:outline-none focus:ring-2
-                       focus:ring-violet-500 bg-slate-50"
+                       focus:ring-indigo-500 bg-slate-50"
           >
             {MONTH_OPTIONS.map(o => (
               <option key={o.val} value={o.val}>{o.label}</option>
@@ -412,7 +412,7 @@ export default function Expenses() {
                       className={`rounded-xl p-2.5 flex flex-col items-center gap-1
                         cursor-pointer text-xs transition-colors
                         ${isSelected
-                          ? 'ring-2 ring-violet-500 bg-violet-50 text-violet-700'
+                          ? 'ring-2 ring-indigo-500 bg-indigo-50 text-indigo-700'
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
                     >
                       {renderCategoryIcon(key, 18)}
@@ -457,7 +457,7 @@ export default function Expenses() {
                 max={todayStr()}
                 onChange={e => setDate(e.target.value)}
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                           bg-white focus:outline-none focus:ring-2 focus:ring-violet-500
+                           bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500
                            focus:border-transparent"
               />
             </div>
@@ -474,7 +474,7 @@ export default function Expenses() {
                       onClick={() => setSelectedUserId(u.id)}
                       className={`w-8 h-8 rounded-full flex items-center justify-center
                         text-white text-xs font-bold transition-all
-                        ${active ? 'ring-2 ring-offset-1 ring-violet-600 scale-110' : 'opacity-70'}`}
+                        ${active ? 'ring-2 ring-offset-1 ring-indigo-600 scale-110' : 'opacity-70'}`}
                       style={{ backgroundColor: u.color }}
                       title={u.name}
                     >
@@ -497,8 +497,8 @@ export default function Expenses() {
                   aria-checked={isRecurring}
                   onClick={() => setIsRecurring(v => !v)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full
-                    transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500
-                    ${isRecurring ? 'bg-violet-600' : 'bg-slate-200'}`}
+                    transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500
+                    ${isRecurring ? 'bg-indigo-600' : 'bg-slate-200'}`}
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white
@@ -544,7 +544,7 @@ export default function Expenses() {
                   className={`rounded-full px-3 py-1 text-xs font-medium cursor-pointer
                     transition-colors
                     ${historyUserFilter === f.id
-                      ? 'bg-violet-600 text-white'
+                      ? 'bg-indigo-600 text-white'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
                 >
                   {f.label}

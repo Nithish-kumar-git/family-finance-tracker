@@ -449,20 +449,22 @@ export default function Assets() {
       )}
 
       {/* ── Tab bar ── */}
-      <div className="flex items-center border-b border-slate-100 bg-white sticky top-14 z-10 -mx-4 px-4">
-        {TABS.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`flex-1 text-center py-3 text-sm font-medium transition-colors ${
-              activeTab === tab.key
-                ? 'border-b-2 border-violet-600 text-violet-600 font-semibold'
-                : 'text-slate-400 hover:text-slate-600'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="sticky top-14 z-10 -mx-4 px-4 bg-slate-50 pt-2 pb-2">
+        <div className="flex items-center bg-slate-100 rounded-full p-1">
+          {TABS.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex-1 text-center py-2 text-sm font-medium transition-colors ${
+                activeTab === tab.key
+                  ? 'bg-white rounded-full shadow-sm text-indigo-600'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="mt-4">
@@ -507,21 +509,21 @@ export default function Assets() {
         {activeTab === 'fd' && !loading && (
           <>
             {/* Total FD card */}
-            <Card className="mb-4">
+            <div className="-mx-4 px-4 pt-4 pb-6 bg-slate-900 mb-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-widest text-slate-400">Fixed Deposits</p>
-                  <p className="text-3xl font-bold tracking-tight text-slate-900 mt-0.5">
+                  <p className="text-3xl font-bold tracking-tight text-white mt-0.5">
                     {formatCurrency(fdTotal)}
                   </p>
                 </div>
-                <Landmark size={28} className="text-slate-100" />
+                <Landmark size={28} className="text-slate-700" />
               </div>
               <p className="text-xs text-slate-400 mt-2">
                 {fixedDeposits.length} deposit
                 {fixedDeposits.length !== 1 ? 's' : ''} · All in Canara Bank
               </p>
-            </Card>
+            </div>>
 
             {/* Add FD button */}
             <div className="flex justify-end mb-3">
@@ -675,17 +677,18 @@ export default function Assets() {
         {activeTab === 'mf' && !loading && (
           <>
             {/* Total MF card */}
-            <Card className="mb-4">
+            {/* Total MF card */}
+            <div className="-mx-4 px-4 pt-4 pb-6 bg-slate-900 mb-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-widest text-slate-400">Mutual Funds</p>
-                  <p className="text-3xl font-bold tracking-tight text-slate-900 mt-0.5">
+                  <p className="text-3xl font-bold tracking-tight text-white mt-0.5">
                     {formatCurrency(mfTotal)}
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-slate-400">Invested</p>
-                  <p className="text-sm font-medium text-slate-600">
+                  <p className="text-sm font-medium text-slate-400">
                     {formatCurrency(mfInvested, true)}
                   </p>
                 </div>
@@ -693,7 +696,7 @@ export default function Assets() {
               {mfInvested > 0 && (
                 <div
                   className={`flex items-center gap-1 mt-2 ${
-                    mfGain >= 0 ? 'text-emerald-600' : 'text-red-500'
+                    mfGain >= 0 ? 'text-emerald-400' : 'text-red-400'
                   }`}
                 >
                   {mfGain >= 0 ? (
@@ -708,7 +711,7 @@ export default function Assets() {
                   </p>
                 </div>
               )}
-            </Card>
+            </div>
 
             {/* MF cards */}
             {sortedFunds.map((mf) => {
@@ -723,9 +726,11 @@ export default function Assets() {
                   : 0
 
               return (
-                <Card
+                <div
                   key={mf.id}
-                  className={`mb-3 ${isRegular ? 'border-red-200' : ''}`}
+                  className={`bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-3 ${
+                    isRegular ? 'border-t-2 border-red-400 bg-red-50' : ''
+                  } ${isEmergencyFund ? 'border-t-2 border-emerald-500 bg-emerald-50' : ''}`}
                 >
                   {/* Regular plan warning banner */}
                   {isRegular && (
@@ -842,7 +847,7 @@ export default function Assets() {
                       <Edit2 size={12} className="mr-1" /> Update Value
                     </Button>
                   </div>
-                </Card>
+                </div>
               )
             })}
 
@@ -860,22 +865,22 @@ export default function Assets() {
         {activeTab === 'lic' && !loading && (
           <>
             {/* Total annual outflow card */}
-            <Card className="mb-4">
+            <div className="-mx-4 px-4 pt-4 pb-6 bg-slate-900 mb-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-widest text-slate-400">LIC Annual Outflow</p>
-                  <p className="text-3xl font-bold tracking-tight text-slate-900 mt-0.5">
+                  <p className="text-3xl font-bold tracking-tight text-white mt-0.5">
                     {formatCurrency(annualTotal)}
                   </p>
                 </div>
-                <Shield size={28} className="text-slate-100" />
+                <Shield size={28} className="text-slate-700" />
               </div>
               <p className="text-xs text-slate-400 mt-2">
                 {formatCurrency(Math.round(annualTotal / 12))}/month ·{' '}
                 {licPolicies.length} polic
                 {licPolicies.length !== 1 ? 'ies' : 'y'}
               </p>
-            </Card>
+            </div>
 
             {/* Upcoming dues mini-timeline */}
             {upcomingDues.length > 0 && (
@@ -1018,25 +1023,25 @@ export default function Assets() {
         {activeTab === 'chit' && !loading && (
           <>
             {/* Total monthly outflow card */}
-            <Card className="mb-4">
+            <div className="-mx-4 px-4 pt-4 pb-6 bg-slate-900 mb-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-widest text-slate-400">Monthly Chit Outflow</p>
-                  <p className="text-3xl font-bold tracking-tight text-slate-900 mt-0.5">
+                  <p className="text-3xl font-bold tracking-tight text-white mt-0.5">
                     {totalMonthly > 0 ? formatCurrency(totalMonthly) : '—'}
                   </p>
                 </div>
-                <Users size={28} className="text-slate-100" />
+                <Users size={28} className="text-slate-700" />
               </div>
               {hasUnknown && (
                 <div className="flex items-center gap-1.5 mt-2">
                   <AlertTriangle size={13} className="text-amber-500" />
-                  <p className="text-xs text-amber-600">
+                  <p className="text-xs text-amber-500">
                     Some chit amounts unverified — call Nadar Sangam
                   </p>
                 </div>
               )}
-            </Card>
+            </div>
 
             {/* Add chit button */}
             <div className="flex justify-end mb-3">
@@ -1150,7 +1155,7 @@ export default function Assets() {
                       }
                       onClick={(e) => e.stopPropagation()}
                       className="text-xs border border-slate-200 rounded-lg px-2 py-1.5
-                                 text-slate-600 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                                 text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="active">Active</option>
                       <option value="completed">Completed</option>
@@ -1182,25 +1187,25 @@ export default function Assets() {
         {activeTab === 'gold' && (
           <>
             {/* Current value card */}
-            <Card className="mb-4">
+            <div className="-mx-4 px-4 pt-4 pb-6 bg-slate-900 mb-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-widest text-slate-400">Physical Gold</p>
-                  <p className="text-3xl font-bold tracking-tight text-amber-600 mt-0.5">
+                  <p className="text-3xl font-bold tracking-tight text-amber-500 mt-0.5">
                     {formatCurrency(calculatedValue)}
                   </p>
                 </div>
-                <Coins size={28} className="text-amber-100" />
+                <Coins size={28} className="text-slate-700" />
               </div>
               <p className="text-xs text-slate-400 mt-2">
                 {parsedWeight}g × {formatCurrency(parsedPrice)}/g
               </p>
               {gold.lastUpdated && (
-                <p className="text-xs text-slate-300 mt-1">
+                <p className="text-xs text-slate-500 mt-1">
                   Last updated: {formatDate(gold.lastUpdated)}
                 </p>
               )}
-            </Card>
+            </div>
 
             {/* Physical gold warning */}
             <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 mb-4">
@@ -1235,7 +1240,7 @@ export default function Assets() {
                       }))
                     }
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-violet-500"
+                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     placeholder="e.g. 8"
                   />
                 </div>
@@ -1258,7 +1263,7 @@ export default function Assets() {
                         }))
                       }
                       className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm
-                                 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                                 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       placeholder="e.g. 14650"
                     />
                   </div>
@@ -1338,7 +1343,7 @@ export default function Assets() {
                       setModalForm((p) => ({ ...p, bank: e.target.value }))
                     }
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-violet-500"
+                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
                 <div>
@@ -1354,7 +1359,7 @@ export default function Assets() {
                     }
                     placeholder="e.g. 600000"
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-violet-500"
+                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
                 <div>
@@ -1371,7 +1376,7 @@ export default function Assets() {
                     }
                     placeholder="e.g. 6.45"
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-violet-500"
+                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
                 <div>
@@ -1388,7 +1393,7 @@ export default function Assets() {
                       }))
                     }
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-violet-500"
+                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
                 <div>
@@ -1405,7 +1410,7 @@ export default function Assets() {
                       }))
                     }
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-violet-500"
+                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
                 <div>
@@ -1418,7 +1423,7 @@ export default function Assets() {
                       setModalForm((p) => ({ ...p, purpose: e.target.value }))
                     }
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-violet-500"
+                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     <option value="marriage">Marriage</option>
                     <option value="renovation">Renovation</option>
@@ -1437,7 +1442,7 @@ export default function Assets() {
                       setModalForm((p) => ({ ...p, holders: e.target.value }))
                     }
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-violet-500"
+                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
                 <div>
@@ -1451,7 +1456,7 @@ export default function Assets() {
                     }
                     rows={2}
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+                               focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
                   />
                 </div>
               </div>
@@ -1474,7 +1479,7 @@ export default function Assets() {
                       }))
                     }
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-violet-500"
+                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
                 <div>
@@ -1493,7 +1498,7 @@ export default function Assets() {
                     }
                     placeholder="0 if unknown"
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-violet-500"
+                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
                 <div>
@@ -1512,7 +1517,7 @@ export default function Assets() {
                     }
                     placeholder="e.g. 277000"
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-violet-500"
+                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
                 <div>
@@ -1529,7 +1534,7 @@ export default function Assets() {
                       }))
                     }
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-violet-500"
+                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
                 <div>
@@ -1543,7 +1548,7 @@ export default function Assets() {
                     }
                     rows={2}
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+                               focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
                   />
                 </div>
               </div>
@@ -1555,32 +1560,32 @@ export default function Assets() {
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Bank</label>
                   <input type="text" value={modalForm.bank ?? ''} onChange={e => setModalForm(p => ({ ...p, bank: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Principal (₹)</label>
                   <input type="number" inputMode="numeric" value={modalForm.principal ?? ''} onChange={e => setModalForm(p => ({ ...p, principal: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Interest rate (% p.a.)</label>
                   <input type="number" inputMode="decimal" step="0.01" value={modalForm.rate ?? ''} onChange={e => setModalForm(p => ({ ...p, rate: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Maturity date</label>
                   <input type="date" value={modalForm.maturityDate ?? ''} onChange={e => setModalForm(p => ({ ...p, maturityDate: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Start date</label>
                   <input type="date" value={modalForm.startDate ?? ''} onChange={e => setModalForm(p => ({ ...p, startDate: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Purpose</label>
                   <select value={modalForm.purpose ?? 'core'} onChange={e => setModalForm(p => ({ ...p, purpose: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <option value="marriage">Marriage</option>
                     <option value="renovation">Renovation</option>
                     <option value="core">Core</option>
@@ -1590,12 +1595,12 @@ export default function Assets() {
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Holder(s)</label>
                   <input type="text" value={modalForm.holders ?? 'mother'} onChange={e => setModalForm(p => ({ ...p, holders: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Notes</label>
                   <textarea rows={2} value={modalForm.notes ?? ''} onChange={e => setModalForm(p => ({ ...p, notes: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
                 </div>
               </div>
             )}
@@ -1606,40 +1611,40 @@ export default function Assets() {
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Insured person</label>
                   <input type="text" value={modalForm.insured ?? ''} onChange={e => setModalForm(p => ({ ...p, insured: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Plan name</label>
                   <input type="text" value={modalForm.plan ?? ''} onChange={e => setModalForm(p => ({ ...p, plan: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Annual premium (₹)</label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">₹</span>
                     <input type="number" inputMode="numeric" value={modalForm.annualPremium ?? ''} onChange={e => setModalForm(p => ({ ...p, annualPremium: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                      className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Next due date</label>
                   <input type="date" value={modalForm.nextDueDate ?? ''} onChange={e => setModalForm(p => ({ ...p, nextDueDate: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Paid-up eligible date</label>
                   <input type="date" value={modalForm.paidUpEligibleDate ?? ''} onChange={e => setModalForm(p => ({ ...p, paidUpEligibleDate: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Premiums paid</label>
                   <input type="number" inputMode="numeric" value={modalForm.premiumsPaid ?? 0} onChange={e => setModalForm(p => ({ ...p, premiumsPaid: parseInt(e.target.value, 10) || 0 }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Notes</label>
                   <textarea rows={2} value={modalForm.notes ?? ''} onChange={e => setModalForm(p => ({ ...p, notes: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
                 </div>
               </div>
             )}
@@ -1650,14 +1655,14 @@ export default function Assets() {
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Organizer</label>
                   <input type="text" value={modalForm.organizer ?? ''} onChange={e => setModalForm(p => ({ ...p, organizer: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Monthly contribution (₹)</label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">₹</span>
                     <input type="number" inputMode="numeric" value={modalForm.monthlyContribution ?? ''} onChange={e => setModalForm(p => ({ ...p, monthlyContribution: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                      className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                   </div>
                 </div>
                 <div>
@@ -1665,18 +1670,18 @@ export default function Assets() {
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">₹</span>
                     <input type="number" inputMode="numeric" value={modalForm.expectedPrize ?? ''} onChange={e => setModalForm(p => ({ ...p, expectedPrize: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                      className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Completion date</label>
                   <input type="date" value={modalForm.completionDate ?? ''} onChange={e => setModalForm(p => ({ ...p, completionDate: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Notes</label>
                   <textarea rows={2} value={modalForm.notes ?? ''} onChange={e => setModalForm(p => ({ ...p, notes: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
                 </div>
               </div>
             )}
@@ -1707,7 +1712,7 @@ export default function Assets() {
                       }
                       autoFocus
                       className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm
-                                 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                                 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                 </div>
@@ -1730,7 +1735,7 @@ export default function Assets() {
                         }))
                       }
                       className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm
-                                 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                                 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                 </div>

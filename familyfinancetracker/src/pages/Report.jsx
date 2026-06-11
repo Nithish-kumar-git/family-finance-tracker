@@ -193,31 +193,78 @@ export default function Report() {
         </div>
       )}
 
-      {/* ── Month selector ── */}
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <p className="text-3xl font-bold tracking-tight text-slate-900">Monthly Report</p>
-          <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-0.5">{monthLabel}</p>
+      {/* ── Month selector (Hero) ── */}
+      <div className="-mx-4 px-4 pt-4 pb-6 bg-slate-900 mb-4">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <p className="text-3xl font-bold tracking-tight text-white">Monthly Report</p>
+            <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-0.5">{monthLabel}</p>
+          </div>
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="border border-slate-700 rounded-xl px-3 py-2 text-sm
+                       text-slate-200 focus:outline-none focus:ring-2
+                       focus:ring-indigo-500 bg-slate-800"
+          >
+            {monthOptions.map((o) => (
+              <option key={o.val} value={o.val}>
+                {o.label}
+              </option>
+            ))}
+          </select>
         </div>
-        <select
-          value={selectedMonth}
-          onChange={(e) => setSelectedMonth(e.target.value)}
-          className="border border-slate-200 rounded-xl px-3 py-2 text-sm
-                     text-slate-700 focus:outline-none focus:ring-2
-                     focus:ring-violet-500 bg-white"
-        >
-          {monthOptions.map((o) => (
-            <option key={o.val} value={o.val}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+
+        {reportJson && (
+          <div className="grid grid-cols-3 gap-2 text-center border-t border-slate-800 pt-5">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Income</p>
+              <p className="text-xl font-bold tracking-tight text-emerald-500">
+                {formatCurrency(cf?.income?.total ?? 0, true)}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Expenses</p>
+              <p className="text-xl font-bold tracking-tight text-red-500">
+                {formatCurrency(
+                  cf?.expenses_by_category?.total ?? 0,
+                  true
+                )}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Net Flow</p>
+              <p className="text-xl font-bold tracking-tight text-white">
+                {netPos >= 0 ? '+' : '−'}
+                {formatCurrency(Math.abs(netPos), true)}
+              </p>
+            </div>
+            
+            <div className="col-span-3 mt-3 pt-3 border-t border-slate-800 flex items-center justify-between">
+              <p className="text-xs text-slate-400">vs ₹85,800 budget</p>
+              <p
+                className={`text-xs font-semibold ${
+                  (cf?.variance_from_budget ?? 0) >= 0
+                    ? 'text-emerald-500'
+                    : 'text-red-500'
+                }`}
+              >
+                {(cf?.variance_from_budget ?? 0) >= 0
+                  ? `${formatCurrency(cf.variance_from_budget, true)} under`
+                  : `${formatCurrency(
+                      Math.abs(cf?.variance_from_budget ?? 0),
+                      true
+                    )} over`}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Loading skeletons ── */}
       {!reportJson ? (
         <>
-          {[...Array(5)].map((_, i) => (
+          {[...Array(4)].map((_, i) => (
             <div
               key={i}
               className="h-28 bg-slate-100 rounded-2xl animate-pulse mb-3"
@@ -226,62 +273,6 @@ export default function Report() {
         </>
       ) : (
         <>
-          {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-          {/* SECTION 1 — CASH FLOW CARD                                  */}
-          {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-          <div className={`rounded-2xl border p-4 mb-3 ${netBg}`}>
-            <div className="flex items-center gap-2 mb-3">
-              {netPos >= 0 ? (
-                <TrendingUp size={16} className="text-emerald-600" />
-              ) : (
-                <TrendingDown size={16} className="text-red-600" />
-              )}
-              <p className="text-xs font-medium uppercase tracking-widest text-slate-400">Cash Flow</p>
-            </div>
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Income</p>
-                <p className="text-xl font-bold tracking-tight text-emerald-700">
-                  {formatCurrency(cf?.income?.total ?? 0, true)}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Expenses</p>
-                <p className="text-xl font-bold tracking-tight text-red-600">
-                  {formatCurrency(
-                    cf?.expenses_by_category?.total ?? 0,
-                    true
-                  )}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Net</p>
-                <p className={`text-xl font-bold tracking-tight ${netColor}`}>
-                  {netPos >= 0 ? '+' : '−'}
-                  {formatCurrency(Math.abs(netPos), true)}
-                </p>
-              </div>
-            </div>
-            <div className="mt-3 pt-3 border-t border-slate-200">
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-slate-500">vs ₹85,800 budget</p>
-                <p
-                  className={`text-xs font-semibold ${
-                    (cf?.variance_from_budget ?? 0) >= 0
-                      ? 'text-emerald-600'
-                      : 'text-red-600'
-                  }`}
-                >
-                  {(cf?.variance_from_budget ?? 0) >= 0
-                    ? `${formatCurrency(cf.variance_from_budget, true)} under`
-                    : `${formatCurrency(
-                        Math.abs(cf?.variance_from_budget ?? 0),
-                        true
-                      )} over`}
-                </p>
-              </div>
-            </div>
-          </div>
 
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           {/* SECTION 2 — CORPUS CARD                                     */}
@@ -382,7 +373,7 @@ export default function Report() {
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           <Card className="mb-3">
             <div className="flex items-center gap-2 mb-3">
-              <Calendar size={15} className="text-violet-600" />
+              <Calendar size={15} className="text-indigo-600" />
               <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
                 Milestones
               </p>
@@ -437,7 +428,7 @@ export default function Report() {
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           <Card className="mb-3">
             <div className="flex items-center gap-2 mb-3">
-              <Briefcase size={15} className="text-violet-600" />
+              <Briefcase size={15} className="text-indigo-600" />
               <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
                 Employment
               </p>
@@ -523,7 +514,7 @@ export default function Report() {
                 onClick={handleGetInsights}
                 disabled={!reportJson}
               >
-                <Sparkles size={15} className="mr-2 text-violet-600" />
+                <Sparkles size={15} className="mr-2 text-indigo-600" />
                 Get AI Insights
               </Button>
             )}
@@ -531,7 +522,7 @@ export default function Report() {
             {/* Loading state */}
             {insightsLoading && (
               <div className="flex items-center justify-center gap-2 py-4">
-                <div className="w-4 h-4 border-2 border-violet-600 border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
                 <p className="text-sm text-slate-500">
                   Getting insights from Gemini AI...
                 </p>
@@ -546,7 +537,7 @@ export default function Report() {
                 </p>
                 <button
                   onClick={() => setInsightsError(false)}
-                  className="text-xs text-violet-600 underline mt-1"
+                  className="text-xs text-indigo-600 underline mt-1"
                 >
                   Try again
                 </button>
@@ -557,15 +548,15 @@ export default function Report() {
             {insights && !insightsLoading && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <Sparkles size={15} className="text-violet-600" />
+                  <Sparkles size={15} className="text-indigo-600" />
                   <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
                     AI Insights
                   </p>
                 </div>
-                <div className="bg-violet-50 rounded-xl p-4 space-y-3">
+                <div className="space-y-3">
                   {insights.map((insight, i) => (
-                    <div key={i} className="flex gap-2">
-                      <span className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-200 text-violet-700 text-xs flex items-center justify-center font-bold mt-0.5">
+                    <div key={i} className="flex gap-2 bg-slate-50 border border-slate-100 rounded-xl p-3">
+                      <span className="flex-shrink-0 w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 text-xs flex items-center justify-center font-bold mt-0.5">
                         {i + 1}
                       </span>
                       <p className="text-sm text-slate-700 leading-relaxed">
@@ -599,7 +590,7 @@ export default function Report() {
                         ${
                           copied
                             ? 'bg-emerald-600 text-white'
-                            : 'bg-violet-600 text-white hover:bg-violet-700 active:scale-[0.98]'
+                            : 'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-[0.98]'
                         }
                         disabled:opacity-50 disabled:cursor-not-allowed`}
           >

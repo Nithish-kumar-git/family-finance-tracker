@@ -29,7 +29,7 @@ const JOB_STATUSES = [
 function SectionHeader({ icon: Icon, title }) {
   return (
     <div className="flex items-center gap-2 mb-4">
-      <Icon size={18} className="text-violet-600" />
+      <Icon size={18} className="text-indigo-600" />
       <h2 className="text-xs font-medium text-slate-400 uppercase tracking-widest">
         {title}
       </h2>
@@ -307,6 +307,17 @@ export default function Settings() {
   return (
     <div className="px-4 py-4 pb-28">
 
+      {/* ── Hero ── */}
+      <div className="-mx-4 -mt-4 px-4 pt-4 pb-6 bg-slate-900 mb-6">
+        <div className="flex justify-between items-end">
+          <div>
+            <p className="text-3xl font-bold tracking-tight text-white">Settings</p>
+            <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-0.5">Preferences & Data</p>
+          </div>
+          <span className="text-sm font-medium text-slate-400 mb-1">v1.0.0</span>
+        </div>
+      </div>
+
       {/* ── Section A: Monthly Income ──────────────────────────────────────── */}
       <div className="mb-8">
         <SectionHeader icon={Wallet} title="Monthly Income" />
@@ -419,7 +430,7 @@ export default function Settings() {
                 value={efTarget}
                 onChange={e => setEfTarget(e.target.value)}
                 onBlur={handleEfTargetBlur}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 pl-7 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 pl-7 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -442,7 +453,7 @@ export default function Settings() {
                     emergencyFund: { ...state.emergencyFund, cashInBank: val }
                   }))
                 }}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 pl-7 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 pl-7 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
             <p className="text-xs text-slate-400 mt-1">
@@ -457,7 +468,7 @@ export default function Settings() {
               type="checkbox"
               checked={efIsolated}
               onChange={handleEfIsolatedChange}
-              className="w-5 h-5 rounded accent-violet-600 cursor-pointer"
+              className="w-5 h-5 rounded accent-indigo-600 cursor-pointer"
             />
           </label>
 
@@ -489,7 +500,7 @@ export default function Settings() {
                 id="select-expense-month"
                 value={selectedExpMonth}
                 onChange={e => setSelectedExpMonth(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 mb-3"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-3"
               >
                 <option value="">— Select a month —</option>
                 {expenseMonths.map(m => (
@@ -522,7 +533,7 @@ export default function Settings() {
                 id="select-app-status"
                 value={selectedAppStatus}
                 onChange={e => setSelectedAppStatus(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 mb-3"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-3"
               >
                 {JOB_STATUSES.map(s => (
                   <option key={s.value} value={s.value}>
@@ -549,7 +560,7 @@ export default function Settings() {
         >
           <p className="text-sm text-slate-600 leading-relaxed pr-2">
             To delete a specific FD, LIC policy, mutual fund, or chit fund,{' '}
-            <span className="text-violet-600 font-medium">go to Assets → tap the item → Delete.</span>
+            <span className="text-indigo-600 font-medium">go to Assets → tap the item → Delete.</span>
           </p>
           <ChevronRight size={18} className="text-slate-400 flex-shrink-0" />
         </Card>
@@ -594,7 +605,7 @@ export default function Settings() {
             <span className="text-sm text-slate-500">Built by</span>
             <span className="text-sm font-medium text-slate-800">
               Nithish —{' '}
-              <a href="#" className="text-violet-600 underline">GitHub</a>
+              <a href="#" className="text-indigo-600 underline">GitHub</a>
             </span>
           </div>
           <div className="flex items-center justify-between px-4 py-3">
