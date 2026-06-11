@@ -236,9 +236,9 @@ export default function Milestones() {
       {/* ── Toast ── */}
       {toast && (
         <div
-          className={`fixed top-4 left-4 right-4 z-50 rounded-xl px-4 py-3
-                     shadow-lg flex items-center gap-2 text-sm font-medium
-                     text-white pointer-events-none
+          className={`fixed bottom-20 left-1/2 -translate-x-1/2 z-50 rounded-2xl px-5 py-3
+                     shadow-xl flex items-center gap-2 text-sm font-medium
+                     text-white whitespace-nowrap
                      ${toast.type === 'error' ? 'bg-red-600' : 'bg-emerald-600'}`}
         >
           {toast.type === 'error' ? (
@@ -253,8 +253,8 @@ export default function Milestones() {
       {/* ── Page header ── */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-lg font-bold text-slate-800">Milestones</p>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-3xl font-bold tracking-tight text-slate-900">Milestones</p>
+          <p className="text-xs font-medium text-slate-400 mt-0.5">
             {urgentMilestones.length > 0
               ? `${urgentMilestones.length} urgent action${urgentMilestones.length > 1 ? 's' : ''} needed`
               : 'All urgent actions complete ✓'}
@@ -294,11 +294,11 @@ export default function Milestones() {
       {/* ── Loading state ── */}
       {loading ? (
         <div className="space-y-3">
-          <div className="h-20 bg-slate-200 rounded-xl animate-pulse" />
-          <div className="h-20 bg-slate-200 rounded-xl animate-pulse" />
-          <div className="h-20 bg-slate-200 rounded-xl animate-pulse" />
-          <div className="h-20 bg-slate-200 rounded-xl animate-pulse" />
-          <div className="h-20 bg-slate-200 rounded-xl animate-pulse" />
+          <div className="h-20 bg-slate-100 rounded-2xl animate-pulse" />
+          <div className="h-20 bg-slate-100 rounded-2xl animate-pulse" />
+          <div className="h-20 bg-slate-100 rounded-2xl animate-pulse" />
+          <div className="h-20 bg-slate-100 rounded-2xl animate-pulse" />
+          <div className="h-20 bg-slate-100 rounded-2xl animate-pulse" />
         </div>
       ) : (
         <>
@@ -455,7 +455,7 @@ export default function Milestones() {
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           {/* SECTION 2 — UPCOMING (timeline layout)                      */}
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-          <p className="text-sm font-bold text-slate-700 mb-3">
+          <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-3">
             Upcoming
             {upcomingMilestones.length > 0
               ? ` (${upcomingMilestones.length})`

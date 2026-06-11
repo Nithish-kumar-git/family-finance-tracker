@@ -179,9 +179,9 @@ export default function Report() {
       {/* ── Toast ── */}
       {toast && (
         <div
-          className={`fixed top-4 left-4 right-4 z-50 rounded-xl px-4 py-3
-                     shadow-lg flex items-center gap-2 text-sm font-medium
-                     text-white pointer-events-none
+          className={`fixed bottom-20 left-1/2 -translate-x-1/2 z-50 rounded-2xl px-5 py-3
+                     shadow-xl flex items-center gap-2 text-sm font-medium
+                     text-white whitespace-nowrap
                      ${toast.type === 'error' ? 'bg-red-600' : 'bg-emerald-600'}`}
         >
           {toast.type === 'error' ? (
@@ -196,8 +196,8 @@ export default function Report() {
       {/* ── Month selector ── */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <p className="text-lg font-bold text-slate-800">Monthly Report</p>
-          <p className="text-xs text-slate-400 mt-0.5">{monthLabel}</p>
+          <p className="text-3xl font-bold tracking-tight text-slate-900">Monthly Report</p>
+          <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-0.5">{monthLabel}</p>
         </div>
         <select
           value={selectedMonth}
@@ -220,7 +220,7 @@ export default function Report() {
           {[...Array(5)].map((_, i) => (
             <div
               key={i}
-              className="h-28 bg-slate-200 rounded-xl animate-pulse mb-3"
+              className="h-28 bg-slate-100 rounded-2xl animate-pulse mb-3"
             />
           ))}
         </>
@@ -229,25 +229,25 @@ export default function Report() {
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           {/* SECTION 1 — CASH FLOW CARD                                  */}
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-          <div className={`rounded-xl border p-4 mb-3 ${netBg}`}>
+          <div className={`rounded-2xl border p-4 mb-3 ${netBg}`}>
             <div className="flex items-center gap-2 mb-3">
               {netPos >= 0 ? (
                 <TrendingUp size={16} className="text-emerald-600" />
               ) : (
                 <TrendingDown size={16} className="text-red-600" />
               )}
-              <p className="text-sm font-semibold text-slate-700">Cash Flow</p>
+              <p className="text-xs font-medium uppercase tracking-widest text-slate-400">Cash Flow</p>
             </div>
             <div className="grid grid-cols-3 gap-2 text-center">
               <div>
-                <p className="text-xs text-slate-500">Income</p>
-                <p className="text-sm font-bold text-emerald-700">
+                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Income</p>
+                <p className="text-xl font-bold tracking-tight text-emerald-700">
                   {formatCurrency(cf?.income?.total ?? 0, true)}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-slate-500">Expenses</p>
-                <p className="text-sm font-bold text-red-600">
+                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Expenses</p>
+                <p className="text-xl font-bold tracking-tight text-red-600">
                   {formatCurrency(
                     cf?.expenses_by_category?.total ?? 0,
                     true
@@ -255,8 +255,8 @@ export default function Report() {
                 </p>
               </div>
               <div>
-                <p className="text-xs text-slate-500">Net</p>
-                <p className={`text-sm font-bold ${netColor}`}>
+                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Net</p>
+                <p className={`text-xl font-bold tracking-tight ${netColor}`}>
                   {netPos >= 0 ? '+' : '−'}
                   {formatCurrency(Math.abs(netPos), true)}
                 </p>
@@ -288,9 +288,9 @@ export default function Report() {
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           <Card className="mb-3">
             <div className="flex items-center gap-2 mb-3">
-              <p className="text-sm font-semibold text-slate-700">Corpus</p>
+              <p className="text-xs font-medium uppercase tracking-widest text-slate-400">Corpus</p>
             </div>
-            <p className="text-2xl font-bold text-slate-800 mb-3">
+            <p className="text-3xl font-bold tracking-tight text-slate-900 mb-3">
               {formatCurrency(corp?.total_corpus ?? 0, true)}
             </p>
             <div className="grid grid-cols-2 gap-2">
@@ -343,7 +343,7 @@ export default function Report() {
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           <Card className="mb-3">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-semibold text-slate-700">
+              <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
                 Budget Compliance
               </p>
               <Badge color={overCategories.length === 0 ? 'green' : 'red'}>
@@ -354,16 +354,16 @@ export default function Report() {
             </div>
             <div className="flex items-center gap-3">
               <div className="text-center flex-1">
-                <p className="text-2xl font-bold text-emerald-700">
+                <p className="text-3xl font-bold tracking-tight text-emerald-700">
                   {withinCount}
                 </p>
-                <p className="text-xs text-slate-400">within limit</p>
+                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-1">within limit</p>
               </div>
               <div className="text-center flex-1">
-                <p className="text-2xl font-bold text-red-600">
+                <p className="text-3xl font-bold tracking-tight text-red-600">
                   {overCategories.length}
                 </p>
-                <p className="text-xs text-slate-400">over budget</p>
+                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-1">over budget</p>
               </div>
             </div>
             {worstOffender && (
@@ -383,32 +383,32 @@ export default function Report() {
           <Card className="mb-3">
             <div className="flex items-center gap-2 mb-3">
               <Calendar size={15} className="text-violet-600" />
-              <p className="text-sm font-semibold text-slate-700">
+              <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
                 Milestones
               </p>
             </div>
             <div className="grid grid-cols-3 gap-2 text-center">
               <div>
-                <p className="text-xl font-bold text-emerald-700">
+                <p className="text-3xl font-bold tracking-tight text-emerald-700">
                   {doneCount}
                 </p>
-                <p className="text-xs text-slate-400">done this month</p>
+                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-1">done</p>
               </div>
               <div>
                 <p
-                  className={`text-xl font-bold ${
+                  className={`text-3xl font-bold tracking-tight ${
                     overdueCount > 0 ? 'text-red-600' : 'text-slate-400'
                   }`}
                 >
                   {overdueCount}
                 </p>
-                <p className="text-xs text-slate-400">overdue</p>
+                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-1">overdue</p>
               </div>
               <div>
-                <p className="text-xl font-bold text-amber-600">
+                <p className="text-3xl font-bold tracking-tight text-amber-600">
                   {upcoming30}
                 </p>
-                <p className="text-xs text-slate-400">due in 30d</p>
+                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-1">due in 30d</p>
               </div>
             </div>
             {(ms?.overdue?.length ?? 0) > 0 && (
@@ -438,13 +438,13 @@ export default function Report() {
           <Card className="mb-3">
             <div className="flex items-center gap-2 mb-3">
               <Briefcase size={15} className="text-violet-600" />
-              <p className="text-sm font-semibold text-slate-700">
+              <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
                 Employment
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <p className="text-xs text-slate-400">Status</p>
+                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Status</p>
                 <Badge
                   color={
                     emp?.nithish_status?.startsWith('employed')
@@ -458,20 +458,20 @@ export default function Report() {
                 </Badge>
               </div>
               <div>
-                <p className="text-xs text-slate-400">This month</p>
-                <p className="text-sm font-semibold text-slate-700">
+                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">This month</p>
+                <p className="text-base font-semibold text-slate-700">
                   {emp?.applications_this_month ?? 0} applications
                 </p>
               </div>
               <div>
-                <p className="text-xs text-slate-400">Interviews</p>
-                <p className="text-sm font-semibold text-slate-700">
+                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Interviews</p>
+                <p className="text-base font-semibold text-slate-700">
                   {emp?.interviews_total ?? 0}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-slate-400">Offers</p>
-                <p className="text-sm font-semibold text-slate-700">
+                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Offers</p>
+                <p className="text-base font-semibold text-slate-700">
                   {emp?.offers_total ?? 0}
                 </p>
               </div>
@@ -558,7 +558,7 @@ export default function Report() {
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <Sparkles size={15} className="text-violet-600" />
-                  <p className="text-sm font-semibold text-slate-700">
+                  <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
                     AI Insights
                   </p>
                 </div>

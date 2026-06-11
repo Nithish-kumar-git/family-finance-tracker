@@ -434,9 +434,9 @@ export default function Assets() {
       {/* ── Toast ── */}
       {toast && (
         <div
-          className={`fixed top-4 left-4 right-4 z-50 rounded-xl px-4 py-3
-                     shadow-lg flex items-center gap-2 text-sm font-medium
-                     text-white pointer-events-none
+          className={`fixed bottom-20 left-1/2 -translate-x-1/2 z-50 rounded-2xl px-5 py-3
+                     shadow-xl flex items-center gap-2 text-sm font-medium
+                     text-white whitespace-nowrap
                      ${toast.type === 'error' ? 'bg-red-600' : 'bg-emerald-600'}`}
         >
           {toast.type === 'error' ? (
@@ -449,15 +449,15 @@ export default function Assets() {
       )}
 
       {/* ── Tab bar ── */}
-      <div className="flex items-center border-b border-slate-200 bg-white sticky top-14 z-10 -mx-4 px-4">
+      <div className="flex items-center border-b border-slate-100 bg-white sticky top-14 z-10 -mx-4 px-4">
         {TABS.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex-1 text-center py-3 text-sm transition-colors ${
+            className={`flex-1 text-center py-3 text-sm font-medium transition-colors ${
               activeTab === tab.key
                 ? 'border-b-2 border-violet-600 text-violet-600 font-semibold'
-                : 'text-slate-500'
+                : 'text-slate-400 hover:text-slate-600'
             }`}
           >
             {tab.label}
@@ -495,9 +495,9 @@ export default function Assets() {
         {/* ── Loading skeleton ── */}
         {loading && activeTab !== 'gold' && (
           <div className="space-y-3">
-            <div className="h-24 bg-slate-200 rounded-xl animate-pulse" />
-            <div className="h-24 bg-slate-200 rounded-xl animate-pulse" />
-            <div className="h-24 bg-slate-200 rounded-xl animate-pulse" />
+            <div className="h-24 bg-slate-100 rounded-2xl animate-pulse" />
+            <div className="h-24 bg-slate-100 rounded-2xl animate-pulse" />
+            <div className="h-24 bg-slate-100 rounded-2xl animate-pulse" />
           </div>
         )}
 
@@ -510,12 +510,12 @@ export default function Assets() {
             <Card className="mb-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-slate-500">Total in Fixed Deposits</p>
-                  <p className="text-2xl font-bold text-slate-800 mt-0.5">
+                  <p className="text-xs font-medium uppercase tracking-widest text-slate-400">Fixed Deposits</p>
+                  <p className="text-3xl font-bold tracking-tight text-slate-900 mt-0.5">
                     {formatCurrency(fdTotal)}
                   </p>
                 </div>
-                <Landmark size={28} className="text-violet-200" />
+                <Landmark size={28} className="text-slate-100" />
               </div>
               <p className="text-xs text-slate-400 mt-2">
                 {fixedDeposits.length} deposit
@@ -678,8 +678,8 @@ export default function Assets() {
             <Card className="mb-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-slate-500">Total Mutual Fund Value</p>
-                  <p className="text-2xl font-bold text-slate-800 mt-0.5">
+                  <p className="text-xs font-medium uppercase tracking-widest text-slate-400">Mutual Funds</p>
+                  <p className="text-3xl font-bold tracking-tight text-slate-900 mt-0.5">
                     {formatCurrency(mfTotal)}
                   </p>
                 </div>
@@ -863,12 +863,12 @@ export default function Assets() {
             <Card className="mb-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-slate-500">Annual LIC outflow</p>
-                  <p className="text-2xl font-bold text-slate-800 mt-0.5">
+                  <p className="text-xs font-medium uppercase tracking-widest text-slate-400">LIC Annual Outflow</p>
+                  <p className="text-3xl font-bold tracking-tight text-slate-900 mt-0.5">
                     {formatCurrency(annualTotal)}
                   </p>
                 </div>
-                <Shield size={28} className="text-violet-200" />
+                <Shield size={28} className="text-slate-100" />
               </div>
               <p className="text-xs text-slate-400 mt-2">
                 {formatCurrency(Math.round(annualTotal / 12))}/month ·{' '}
@@ -880,7 +880,7 @@ export default function Assets() {
             {/* Upcoming dues mini-timeline */}
             {upcomingDues.length > 0 && (
               <div className="mb-4">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-2">
                   Upcoming Premiums
                 </p>
                 {upcomingDues.map((lic) => {
@@ -1021,12 +1021,12 @@ export default function Assets() {
             <Card className="mb-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-slate-500">Monthly chit outflow</p>
-                  <p className="text-2xl font-bold text-slate-800 mt-0.5">
+                  <p className="text-xs font-medium uppercase tracking-widest text-slate-400">Monthly Chit Outflow</p>
+                  <p className="text-3xl font-bold tracking-tight text-slate-900 mt-0.5">
                     {totalMonthly > 0 ? formatCurrency(totalMonthly) : '—'}
                   </p>
                 </div>
-                <Users size={28} className="text-violet-200" />
+                <Users size={28} className="text-slate-100" />
               </div>
               {hasUnknown && (
                 <div className="flex items-center gap-1.5 mt-2">
@@ -1185,12 +1185,12 @@ export default function Assets() {
             <Card className="mb-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-slate-500">Physical Gold Value</p>
-                  <p className="text-2xl font-bold text-amber-600 mt-0.5">
+                  <p className="text-xs font-medium uppercase tracking-widest text-slate-400">Physical Gold</p>
+                  <p className="text-3xl font-bold tracking-tight text-amber-600 mt-0.5">
                     {formatCurrency(calculatedValue)}
                   </p>
                 </div>
-                <Coins size={28} className="text-amber-200" />
+                <Coins size={28} className="text-amber-100" />
               </div>
               <p className="text-xs text-slate-400 mt-2">
                 {parsedWeight}g × {formatCurrency(parsedPrice)}/g

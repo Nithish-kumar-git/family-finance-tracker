@@ -417,7 +417,7 @@ export default function Employment() {
   // ── Add application form (shared — shown in both loading + loaded states) ──
   const addFormJSX = (
     <Card className={`mb-4 ${addSuccess ? 'border-emerald-300 bg-emerald-50' : ''}`}>
-      <p className="text-sm font-semibold text-slate-700 mb-3">
+      <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-3">
         {addSuccess ? '✓ Saved! Add another:' : 'Log Application'}
       </p>
       <div className="space-y-3">
@@ -549,9 +549,9 @@ export default function Employment() {
       {/* ── Toast ── */}
       {toast && (
         <div
-          className={`fixed top-4 left-4 right-4 z-50 rounded-xl px-4 py-3
-                     shadow-lg flex items-center gap-2 text-sm font-medium
-                     text-white pointer-events-none
+          className={`fixed bottom-20 left-1/2 -translate-x-1/2 z-50 rounded-2xl px-5 py-3
+                     shadow-xl flex items-center gap-2 text-sm font-medium
+                     text-white whitespace-nowrap
                      ${toast.type === 'error' ? 'bg-red-600' : 'bg-emerald-600'}`}
         >
           {toast.type === 'error' ? (
@@ -566,14 +566,14 @@ export default function Employment() {
       {loading ? (
         <>
           {/* Skeletons for status + weekly card */}
-          <div className="h-40 bg-slate-200 rounded-xl animate-pulse mb-4" />
-          <div className="h-28 bg-slate-200 rounded-xl animate-pulse mb-4" />
+          <div className="h-40 bg-slate-100 rounded-2xl animate-pulse mb-4" />
+          <div className="h-28 bg-slate-100 rounded-2xl animate-pulse mb-4" />
           {/* Add form always visible */}
           {addFormJSX}
           {/* App row skeletons */}
-          <div className="h-20 bg-slate-200 rounded-xl animate-pulse mb-2" />
-          <div className="h-20 bg-slate-200 rounded-xl animate-pulse mb-2" />
-          <div className="h-20 bg-slate-200 rounded-xl animate-pulse mb-2" />
+          <div className="h-20 bg-slate-100 rounded-2xl animate-pulse mb-2" />
+          <div className="h-20 bg-slate-100 rounded-2xl animate-pulse mb-2" />
+          <div className="h-20 bg-slate-100 rounded-2xl animate-pulse mb-2" />
         </>
       ) : (
         <>
@@ -584,7 +584,7 @@ export default function Employment() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Briefcase size={18} className="text-violet-600" />
-                <p className="text-sm font-semibold text-slate-700">
+                <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
                   Nithish's Job Search
                 </p>
               </div>
@@ -659,8 +659,8 @@ export default function Employment() {
             {isEmployed && (
               <>
                 <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4">
-                  <p className="text-xs text-emerald-600 mb-1">Monthly salary</p>
-                  <p className="text-2xl font-bold text-emerald-700">
+                  <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Monthly salary</p>
+                  <p className="text-3xl font-bold tracking-tight text-emerald-700">
                     {formatCurrency(nithishSalary)}
                   </p>
                   {newDeficit <= 0 ? (
@@ -712,7 +712,7 @@ export default function Employment() {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Target size={16} className="text-violet-600" />
-                <p className="text-sm font-semibold text-slate-700">This Week</p>
+                <p className="text-xs font-medium uppercase tracking-widest text-slate-400">This Week</p>
               </div>
               {streak > 0 && (
                 <div className="flex items-center gap-1">
@@ -726,8 +726,8 @@ export default function Employment() {
 
             <div className="flex items-end justify-between mb-2">
               <div>
-                <p className="text-3xl font-bold text-slate-800">{thisWeek}</p>
-                <p className="text-xs text-slate-400">applications</p>
+                <p className="text-3xl font-bold tracking-tight text-slate-900">{thisWeek}</p>
+                <p className="text-xs font-medium uppercase tracking-widest text-slate-400">applications</p>
               </div>
               <div className="text-right">
                 <Badge color={weekBadgeColor}>
@@ -763,22 +763,22 @@ export default function Employment() {
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           <div className="grid grid-cols-2 gap-3 mb-4">
             <Card className="text-center py-3">
-              <p className="text-2xl font-bold text-slate-800">{totalApps}</p>
-              <p className="text-xs text-slate-500 mt-0.5">Total sent</p>
+              <p className="text-3xl font-bold tracking-tight text-slate-900">{totalApps}</p>
+              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-0.5">Total sent</p>
             </Card>
             <Card className="text-center py-3">
-              <p className="text-2xl font-bold text-violet-700">
+              <p className="text-3xl font-bold tracking-tight text-violet-700">
                 {interviewCount}
               </p>
-              <p className="text-xs text-slate-500 mt-0.5">Interviews</p>
+              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-0.5">Interviews</p>
             </Card>
             <Card className="text-center py-3">
-              <p className="text-2xl font-bold text-emerald-700">{offerCount}</p>
-              <p className="text-xs text-slate-500 mt-0.5">Offers</p>
+              <p className="text-3xl font-bold tracking-tight text-emerald-700">{offerCount}</p>
+              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-0.5">Offers</p>
             </Card>
             <Card className="text-center py-3">
-              <p className="text-2xl font-bold text-blue-700">{responseRate}%</p>
-              <p className="text-xs text-slate-500 mt-0.5">Response rate</p>
+              <p className="text-3xl font-bold tracking-tight text-blue-700">{responseRate}%</p>
+              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-0.5">Response rate</p>
             </Card>
           </div>
 
@@ -786,7 +786,7 @@ export default function Employment() {
           {/* SECTION 5 — WEEKLY BAR CHART                                */}
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           <Card className="mb-4">
-            <p className="text-sm font-semibold text-slate-700 mb-1">
+            <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">
               Applications per week
             </p>
             <p className="text-xs text-slate-400 mb-3">Last 8 weeks</p>

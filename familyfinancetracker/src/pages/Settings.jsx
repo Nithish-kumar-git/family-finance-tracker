@@ -30,7 +30,7 @@ function SectionHeader({ icon: Icon, title }) {
   return (
     <div className="flex items-center gap-2 mb-4">
       <Icon size={18} className="text-violet-600" />
-      <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
+      <h2 className="text-xs font-medium text-slate-400 uppercase tracking-widest">
         {title}
       </h2>
     </div>
@@ -558,10 +558,10 @@ export default function Settings() {
 
       {/* ── Section E: Full Data Reset ─────────────────────────────────────── */}
       <div className="mb-8">
-        <div className="rounded-xl border border-red-200 border-l-4 border-l-red-500 bg-red-50 p-4">
+        <div className="rounded-2xl border border-red-200 border-l-4 border-l-red-500 bg-red-50 p-4">
           <div className="flex items-center gap-2 mb-3">
             <AlertTriangle size={18} className="text-red-500" />
-            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
+            <h2 className="text-xs font-medium text-red-500 uppercase tracking-widest">
               Danger Zone — Full Reset
             </h2>
           </div>
@@ -754,8 +754,8 @@ export default function Settings() {
         <div
           className={`
             fixed bottom-20 left-1/2 -translate-x-1/2 z-50
-            flex items-center gap-2 px-4 py-3
-            max-w-xs w-auto rounded-xl shadow-lg text-white text-sm font-medium
+            flex items-center gap-2 px-5 py-3
+            w-auto rounded-2xl shadow-xl text-white text-sm font-medium whitespace-nowrap
             ${toast.type === 'error' ? 'bg-red-600' : 'bg-emerald-600'}
           `}
         >

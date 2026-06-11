@@ -258,13 +258,13 @@ export default function Expenses() {
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-50 pb-24">
+    <div className="min-h-screen bg-white pb-24">
 
       {/* ── Toast ─────────────────────────────────────────────────────────── */}
       {toast && (
         <div
-          className={`fixed top-4 left-4 right-4 z-50 rounded-xl px-4 py-3 text-sm
-            font-medium shadow-lg flex items-center gap-2
+          className={`fixed bottom-20 left-1/2 -translate-x-1/2 z-50 rounded-2xl px-5 py-3 text-sm
+            font-medium shadow-xl flex items-center gap-2 whitespace-nowrap
             ${toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}`}
         >
           {toast.message}
@@ -278,12 +278,12 @@ export default function Expenses() {
             className="fixed inset-0 bg-black/50 z-50"
             onClick={() => { setSmsModalOpen(false); setSmsText('') }}
           />
-          <div className="fixed inset-x-4 top-1/4 bg-white rounded-2xl p-5 z-50 shadow-xl">
+          <div className="fixed inset-x-4 bottom-0 bg-white rounded-t-2xl p-5 z-50 shadow-2xl">
             <div className="flex items-center justify-between mb-4">
-              <p className="text-base font-semibold text-slate-800">Paste UPI / SMS</p>
+              <p className="text-base font-semibold text-slate-900">Paste UPI / SMS</p>
               <button
                 onClick={() => { setSmsModalOpen(false); setSmsText('') }}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100"
               >
                 <X size={18} />
               </button>
@@ -318,21 +318,22 @@ export default function Expenses() {
                 Parse with AI
               </Button>
             </div>
+            <div className="h-safe-bottom" />
           </div>
         </>
       )}
 
       {/* ── Tab bar ───────────────────────────────────────────────────────── */}
-      <div className="sticky top-14 z-10 bg-white border-b border-slate-200">
+      <div className="sticky top-14 z-10 bg-white border-b border-slate-100">
         <div className="flex h-11">
           {['add', 'history', 'summary'].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 text-sm transition-colors
+              className={`flex-1 text-sm font-medium transition-colors
                 ${activeTab === tab
                   ? 'border-b-2 border-violet-600 text-violet-600 font-semibold'
-                  : 'text-slate-500 hover:text-slate-700'}`}
+                  : 'text-slate-400 hover:text-slate-600'}`}
             >
               {tab === 'add' ? 'Add' : tab === 'history' ? 'History' : 'Summary'}
             </button>
@@ -346,9 +347,9 @@ export default function Expenses() {
           <select
             value={selectedMonth}
             onChange={e => setSelectedMonth(e.target.value)}
-            className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm
+            className="border border-slate-100 rounded-xl px-3 py-1.5 text-sm
                        text-slate-700 focus:outline-none focus:ring-2
-                       focus:ring-violet-500 bg-white"
+                       focus:ring-violet-500 bg-slate-50"
           >
             {MONTH_OPTIONS.map(o => (
               <option key={o.val} value={o.val}>{o.label}</option>
@@ -400,7 +401,7 @@ export default function Expenses() {
 
             {/* Category selector */}
             <div>
-              <p className="text-sm font-medium text-slate-700 mb-2">Category</p>
+              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-2">Category</p>
               <div className="grid grid-cols-5 gap-2">
                 {Object.entries(EXPENSE_CATEGORIES).map(([key, cat]) => {
                   const isSelected = category === key
@@ -463,7 +464,7 @@ export default function Expenses() {
 
             {/* Paid by */}
             <div>
-              <p className="text-sm font-medium text-slate-700 mb-2">Paid by</p>
+              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-2">Paid by</p>
               <div className="flex gap-3">
                 {users.map(u => {
                   const active = (selectedUserId ?? currentUser) === u.id
@@ -487,7 +488,7 @@ export default function Expenses() {
             {/* Recurring toggle */}
             <div>
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-slate-700">
+                <p className="text-sm font-medium text-slate-600">
                   Repeat for next 3 months
                 </p>
                 {/* Pill toggle */}
@@ -553,9 +554,9 @@ export default function Expenses() {
 
             {/* Loading skeletons */}
             {dataLoading && (
-              <div>
+              <div className="space-y-2">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-16 bg-slate-100 rounded-xl animate-pulse mb-2" />
+                  <div key={i} className="h-16 bg-slate-100 rounded-xl animate-pulse" />
                 ))}
               </div>
             )}
@@ -563,8 +564,8 @@ export default function Expenses() {
             {/* Empty state */}
             {!dataLoading && filteredExpenses.length === 0 && (
               <div className="flex flex-col items-center justify-center py-16">
-                <p className="text-slate-400 text-sm font-medium">No expenses recorded</p>
-                <p className="text-slate-300 text-xs mt-1">
+                <p className="text-sm font-medium text-slate-400">No expenses recorded</p>
+                <p className="text-xs text-slate-300 mt-1">
                   {historyUserFilter !== 'all'
                     ? 'Try switching the user filter above'
                     : 'Tap Add to record your first expense'}
@@ -576,8 +577,7 @@ export default function Expenses() {
             {!dataLoading && groupedExpenses.sortedDates.map(dateKey => (
               <div key={dateKey}>
                 {/* Date heading */}
-                <p className="text-xs font-semibold text-slate-400 uppercase
-                              tracking-wide py-2">
+                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 py-2">
                   {dateHeading(dateKey)}
                 </p>
 
@@ -675,14 +675,15 @@ export default function Expenses() {
                                               : 'bg-emerald-500'
               return (
                 <Card className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-semibold text-slate-700">Monthly Total</p>
-                    <p className={`text-sm font-bold
-                      ${pct >= 100 ? 'text-red-600' : 'text-slate-800'}`}>
-                      {formatCurrency(totalSpent)} / {formatCurrency(budgetTarget)}
+                  <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Monthly Spend</p>
+                  <div className="flex items-end justify-between mb-3">
+                    <p className={`text-3xl font-bold tracking-tight
+                      ${pct >= 100 ? 'text-red-500' : 'text-slate-900'}`}>
+                      {formatCurrency(totalSpent)}
                     </p>
+                    <p className="text-xs text-slate-400 mb-1">of {formatCurrency(budgetTarget)}</p>
                   </div>
-                  <div className="h-3 rounded-full bg-slate-100 overflow-hidden">
+                  <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${barColor}`}
                       style={{ width: `${pct}%` }}
@@ -691,7 +692,7 @@ export default function Expenses() {
                   <p className="text-xs text-slate-400 mt-1.5">
                     {pct >= 100
                       ? `Over budget by ${formatCurrency(totalSpent - budgetTarget)}`
-                      : `${formatCurrency(budgetTarget - totalSpent)} remaining in budget`}
+                      : `${formatCurrency(budgetTarget - totalSpent)} remaining`}
                   </p>
                 </Card>
               )
@@ -699,7 +700,7 @@ export default function Expenses() {
 
             {/* Spending by category bar chart */}
             <Card className="mb-4">
-              <p className="text-sm font-semibold text-slate-700 mb-3">
+              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-3">
                 Spending by Category
               </p>
               {dataLoading ? (
@@ -739,7 +740,7 @@ export default function Expenses() {
 
             {/* Budget vs Actual table */}
             <Card>
-              <p className="text-sm font-semibold text-slate-700 mb-3">
+              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-3">
                 Budget vs Actual
               </p>
               <div className="space-y-2">

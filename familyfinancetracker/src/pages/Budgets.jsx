@@ -177,9 +177,9 @@ export default function Budgets() {
       {/* ── Toast ── */}
       {toast && (
         <div
-          className={`fixed top-4 left-4 right-4 z-50 rounded-xl px-4 py-3
-                     shadow-lg flex items-center gap-2 text-sm font-medium
-                     text-white pointer-events-none
+          className={`fixed bottom-20 left-1/2 -translate-x-1/2 z-50 rounded-2xl px-5 py-3
+                     shadow-xl flex items-center gap-2 text-sm font-medium
+                     text-white whitespace-nowrap
                      ${toast.type === 'error' ? 'bg-red-600' : 'bg-emerald-600'}`}
         >
           {toast.type === 'error' ? (
@@ -193,29 +193,29 @@ export default function Budgets() {
 
       {/* ── Section 1 — Month total card ── */}
       <Card className="mb-4">
-        <div className="flex items-center justify-between mb-1">
-          <p className="text-sm font-semibold text-slate-700">
-            {new Date(year, month - 1).toLocaleDateString('en-IN', {
-              month: 'long',
-              year: 'numeric',
-            })}{' '}
-            Budget
-          </p>
-          <Badge
-            color={
-              totalPct >= 100 ? 'red' : totalPct >= 80 ? 'amber' : 'green'
-            }
-          >
-            {totalPct.toFixed(0)}% used
-          </Badge>
-        </div>
-        <div className="flex items-end justify-between mb-2">
-          <p className={`text-2xl font-bold ${totalTextColor}`}>
+        <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">
+          {new Date(year, month - 1).toLocaleDateString('en-IN', {
+            month: 'long',
+            year: 'numeric',
+          })}{' '}
+          Budget
+        </p>
+        <div className="flex items-end justify-between mb-3">
+          <p className={`text-3xl font-bold tracking-tight ${totalTextColor}`}>
             {formatCurrency(totalSpent)}
           </p>
-          <p className="text-sm text-slate-400">of {formatCurrency(BUDGET_TARGET)}</p>
+          <div className="text-right">
+            <Badge
+              color={
+                totalPct >= 100 ? 'red' : totalPct >= 80 ? 'amber' : 'green'
+              }
+            >
+              {totalPct.toFixed(0)}% used
+            </Badge>
+            <p className="text-xs text-slate-400 mt-1">of {formatCurrency(BUDGET_TARGET)}</p>
+          </div>
         </div>
-        <div className="h-3 rounded-full bg-slate-100 overflow-hidden">
+        <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all ${totalBarColor}`}
             style={{ width: `${totalPct}%` }}
@@ -230,14 +230,14 @@ export default function Budgets() {
 
       {/* ── Section 2 — Edit All button ── */}
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-semibold text-slate-700">Category Budgets</p>
+        <p className="text-xs font-medium uppercase tracking-widest text-slate-400">Category Budgets</p>
         <Button variant="secondary" size="sm" onClick={() => openEditAllModal()}>
           <Edit2 size={13} className="mr-1.5" /> Edit All
         </Button>
       </div>
 
       {/* ── Section 3 — Category rows ── */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         {categoryData.map(({ key, cat, limit, spent, pct, isOver, isWarn, isChit }) => {
           const IconComponent = iconMap[cat.icon]
           const barColor = isOver
@@ -392,7 +392,7 @@ export default function Budgets() {
       {/* ── Section 5 — Alerts ── */}
       {(overBudget.length > 0 || nearLimit.length > 0) && (
         <div className="mt-4 space-y-2">
-          <p className="text-sm font-semibold text-slate-700">Alerts</p>
+        <p className="text-sm font-semibold text-slate-700">Alerts</p>
 
           {overBudget.map((d) => (
             <Card key={d.key} danger className="py-3">
@@ -447,8 +447,8 @@ export default function Budgets() {
           {/* Modal header */}
           <div className="flex items-center justify-between px-4 py-4 border-b border-slate-100 flex-shrink-0">
             <div>
-              <p className="text-base font-semibold text-slate-800">Edit All Budgets</p>
-              <p className="text-xs text-slate-500 mt-0.5">Target: ₹85,800/month</p>
+              <p className="text-base font-semibold text-slate-900">Edit All Budgets</p>
+              <p className="text-xs text-slate-400 mt-0.5">Target: ₹85,800/month</p>
             </div>
             <button
               onClick={() => setEditAllOpen(false)}
