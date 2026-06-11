@@ -542,7 +542,7 @@ export default function Assets() {
               const isExpiringSoon = days !== null && days <= 60
               const isExpiringSoonish = days !== null && days > 60 && days <= 120
               const purposeColor =
-                { marriage: 'violet', renovation: 'amber', core: 'blue', emergency: 'green' }[
+                { marriage: 'indigo', renovation: 'amber', core: 'blue', emergency: 'green' }[
                   fd.purpose
                 ] ?? 'slate'
 
@@ -769,7 +769,7 @@ export default function Assets() {
                         <Badge
                           color={
                             mf.type === 'equity'
-                              ? 'violet'
+                              ? 'indigo'
                               : mf.type === 'debt'
                               ? 'blue'
                               : 'amber'

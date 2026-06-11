@@ -585,12 +585,12 @@ export default function Report() {
           <button
             onClick={handleCopyForClaude}
             disabled={!reportJson}
-            className={`w-full h-14 rounded-2xl font-semibold text-sm flex items-center
+            className={`w-full h-14 rounded-2xl font-semibold text-base flex items-center
                         justify-center gap-2 transition-all mb-3 shadow-md
                         ${
                           copied
                             ? 'bg-emerald-600 text-white'
-                            : 'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-[0.98]'
+                            : 'bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.98]'
                         }
                         disabled:opacity-50 disabled:cursor-not-allowed`}
           >

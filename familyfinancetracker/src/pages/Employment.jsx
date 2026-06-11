@@ -42,7 +42,7 @@ const STATUS_OPTIONS = [
 
 const STATUS_COLORS = {
   applied: 'slate',
-  interview_scheduled: 'violet',
+  interview_scheduled: 'indigo',
   interviewed: 'blue',
   rejected: 'red',
   offered: 'green',
@@ -52,7 +52,7 @@ const STATUS_COLORS = {
 const PLATFORM_COLORS = {
   LinkedIn: 'blue',
   Naukri: 'amber',
-  Indeed: 'violet',
+  Indeed: 'indigo',
   Referral: 'green',
   Other: 'slate',
 }
@@ -66,7 +66,7 @@ const EMPLOYMENT_STATUS_CYCLE = [
 
 const EMPLOYMENT_STATUS_DISPLAY = {
   searching: { label: 'Searching', badgeColor: 'amber' },
-  interview_stage: { label: 'Interview Stage', badgeColor: 'violet' },
+  interview_stage: { label: 'Interview Stage', badgeColor: 'indigo' },
   offer_received: { label: 'Offer Received', badgeColor: 'blue' },
   employed: { label: 'Employed', badgeColor: 'green' },
 }

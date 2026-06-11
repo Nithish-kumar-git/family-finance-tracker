@@ -391,7 +391,7 @@ export default function Expenses() {
                   Paste UPI / SMS
                 </Button>
                 {parsedByAI && (
-                  <Badge color="violet">
+                  <Badge color="indigo">
                     <Sparkles size={10} className="mr-1 inline" />
                     Parsed by AI
                   </Badge>
