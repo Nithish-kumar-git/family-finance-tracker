@@ -1,20 +1,17 @@
+---
+
 <div align="center">
 
 # FamilyFinanceTracker
 
 **AI-powered family finance PWA — built for real, used daily**
 
-[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=white)](https://react.dev)
-[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com)
-[![Gemini AI](https://img.shields.io/badge/Gemini-2.5_Flash-4285F4?style=flat-square&logo=google&logoColor=white)](https://ai.google.dev)
-[![Netlify](https://img.shields.io/badge/Netlify-Live-00C7B7?style=flat-square&logo=netlify&logoColor=white)](https://scintillating-donut-a597ff.netlify.app)
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org) [![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com) [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=white)](https://react.dev) [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com) [![Gemini AI](https://img.shields.io/badge/Gemini-2.5_Flash-4285F4?style=flat-square&logo=google&logoColor=white)](https://ai.google.dev) [![Netlify](https://img.shields.io/badge/Netlify-Live-00C7B7?style=flat-square&logo=netlify&logoColor=white)](https://scintillating-donut-a597ff.netlify.app)
 
 [**→ Live Demo**](https://scintillating-donut-a597ff.netlify.app) · [API Health](https://family-finance-tracker-pearl.vercel.app/health)
 
-> *"A full-stack finance tracker built for real family use, with AI-powered expense parsing,
-> financial insights, and a natural language chatbot. Live and used daily by my family in Chennai."*
+> *"A full-stack finance tracker built for real family use, with AI-powered expense parsing,*
+> *financial insights, and a natural language chatbot. Live and used daily by my family in Chennai."*
 
 </div>
 
@@ -51,18 +48,34 @@ Most portfolio projects are tutorials with fake data. This one is different:
 ## AI Features (the portfolio centrepiece)
 
 ### 1. Smart UPI / SMS Transaction Parser
+
 Paste any Indian bank SMS or UPI notification. Gemini extracts the amount, merchant name, and expense category automatically — filling the add-expense form in under a second.
-Input:  "SBI UPI: Rs.1,200 paid to BIGBASKET via UPI Ref 12345"
-Output: { amount: 1200, category: "groceries", description: "BigBasket", confidence: 0.97 }
+
+```
+Input: "SBI UPI: Rs.1,200 paid to BIGBASKET via UPI Ref 12345"
+
+Output: {
+  amount: 1200,
+  category: "groceries",
+  description: "BigBasket",
+  confidence: 0.97
+}
+```
 
 ### 2. Ask Amma AI — Finance Chatbot
+
 A floating chat interface on the Dashboard. Family members ask questions in plain English. The AI receives the complete live financial context (income, expenses, corpus, upcoming milestones, employment status) with every message.
+
+```
 "What happens if Nithish gets a ₹35,000 job?"
-→ "At ₹35,000/month, your monthly deficit drops from ₹48,196 to ₹13,196.
-Abeerami's post-marriage contribution of ₹15,000 would bring you
-to a surplus of ₹1,804/month — effectively ending the deficit."
+
+→ "At ₹35,000/month, your monthly deficit drops from ₹48,196 to ₹13,196. 
+   Abeerami's post-marriage contribution of ₹15,000 would bring you to a 
+   surplus of ₹1,804/month — effectively ending the deficit."
+```
 
 ### 3. Monthly Financial Insights
+
 One-click generation of 5 plain-English observations about the month's finances. Prompted specifically for a non-finance-background Chennai household — no jargon, exact rupee amounts, actionable observations.
 
 ---
@@ -114,24 +127,34 @@ One-click generation of 5 plain-English observations about the month's finances.
 ---
 
 ## Architecture
+
+```
 [Android / iOS / Desktop Browser]
-│  PWA — runs without browser chrome
-▼
-[React 18 + Vite + Tailwind]  ←── localStorage (offline fallback)
-│  api.js — fetch with automatic offline fallback
-│  On network error: serves cached data, sets isOffline flag
-▼
+         │
+         │ PWA — runs without browser chrome
+         ▼
+[React 18 + Vite + Tailwind] ←── localStorage (offline fallback)
+         │
+         │ api.js — fetch with automatic offline fallback
+         │ On network error: serves cached data, sets isOffline flag
+         ▼
 [FastAPI on Vercel Serverless]
-│ SQLAlchemy ORM + pandas        │ google-genai SDK
-│ Monthly aggregation            │ 3 AI endpoints
-▼                                ▼
-[Supabase PostgreSQL]        [Gemini 2.5 Flash Lite]
+         │
+         │ SQLAlchemy ORM + pandas
+         │ google-genai SDK
+         │ Monthly aggregation
+         │ 3 AI endpoints
+         ▼                    ▼
+[Supabase PostgreSQL]   [Gemini 2.5 Flash Lite]
+```
 
 **Offline behaviour:** When `api.js` receives a network error, it sets `isOffline: true` in Zustand, shows a red dot in the header, and returns Zustand store data (persisted to localStorage). The user sees no error. Writes queue locally and sync when connectivity returns.
 
 ---
 
 ## Project Structure
+
+```
 family-finance-tracker/
 ├── backend/                    Python FastAPI backend
 │   ├── main.py                 App entry, CORS, router registration
@@ -140,16 +163,17 @@ family-finance-tracker/
 │   ├── seed.py                 One-time table creation + family data
 │   ├── services/
 │   │   ├── ai_service.py       Gemini API — all 3 AI features
-│   │   └── analytics_service.py  pandas aggregation
+│   │   └── analytics_service.py pandas aggregation
 │   └── routers/                7 route modules
 │
 └── familyfinancetracker/       React 18 PWA
-└── src/
-├── pages/              9 pages
-├── hooks/              useExpenses, useAssets, useReport, usePWAInstall
-├── components/         layout/, ui/, charts/
-├── store/              Zustand + localStorage persistence
-└── utils/              api.js (offline fallback), formatters, calculations
+    └── src/
+        ├── pages/              9 pages
+        ├── hooks/              useExpenses, useAssets, useReport, usePWAInstall
+        ├── components/         layout/, ui/, charts/
+        ├── store/              Zustand + localStorage persistence
+        └── utils/              api.js (offline fallback), formatters, calculations
+```
 
 ---
 
@@ -164,18 +188,16 @@ cd family-finance-tracker
 
 # Backend
 cd backend
-cp .env.example .env
-# Fill in SUPABASE_DATABASE_URL and GEMINI_API_KEY
+cp .env.example .env     # Fill in SUPABASE_DATABASE_URL and GEMINI_API_KEY
 pip install -r requirements.txt
-python seed.py          # creates tables + inserts family data
+python seed.py           # creates tables + inserts family data
 uvicorn main:app --reload --port 8000
 
 # Frontend (new terminal)
 cd familyfinancetracker
 npm install
 echo "VITE_API_URL=http://localhost:8000" > .env.local
-npm run dev
-# → http://localhost:5173
+npm run dev              # → http://localhost:5173
 ```
 
 Login: Amma (PIN 1111) · Nithish (PIN 2222) · Abeerami (PIN 3333)
@@ -185,12 +207,16 @@ Login: Amma (PIN 1111) · Nithish (PIN 2222) · Abeerami (PIN 3333)
 ## Environment Variables
 
 **backend/.env**
+```
 SUPABASE_DATABASE_URL=postgresql://postgres:[password]@db.[ref].supabase.co:5432/postgres
 GEMINI_API_KEY=AIza...
 FRONTEND_URL=https://scintillating-donut-a597ff.netlify.app
+```
 
 **familyfinancetracker/.env.local**
+```
 VITE_API_URL=https://family-finance-tracker-pearl.vercel.app
+```
 
 ---
 
@@ -213,5 +239,9 @@ Live: [https://scintillating-donut-a597ff.netlify.app](https://scintillating-don
 ---
 
 <div align="center">
+
 Built by <a href="https://github.com/Nithish-kumar-git">Nithish</a> · Chennai, 2026 · MIT License
+
 </div>
+
+---
