@@ -2,6 +2,8 @@
 
 AI-powered family finance tracker built for a Chennai family managing pension income, investments, job search, and long-term milestones.
 
+**Live demo:** [https://scintillating-donut-a597ff.netlify.app](https://scintillating-donut-a597ff.netlify.app)
+
 ## What this app does
 
 - **Dashboard** — income overview, deficit calculator, Ask Amma AI chatbot
@@ -169,7 +171,7 @@ family-finance-tracker/
 ```
 SUPABASE_DATABASE_URL=postgresql://postgres:[password]@db.[ref].supabase.co:5432/postgres
 GEMINI_API_KEY=AIza...
-FRONTEND_URL=https://your-netlify-app.netlify.app
+FRONTEND_URL=https://scintillating-donut-a597ff.netlify.app
 ```
 
 ### Frontend (`.env.production` or Netlify)
