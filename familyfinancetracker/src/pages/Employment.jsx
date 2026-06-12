@@ -583,11 +583,11 @@ export default function Employment() {
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           {/* SECTION 1 — STATUS CARD                                     */}
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-          <div className="bg-gradient-to-r from-slate-900 to-slate-800 -mx-4 px-4 pt-4 pb-6 mb-4 lg:mx-0 lg:rounded-2xl">
+          <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 -mx-4 px-4 pt-4 pb-6 mb-4 lg:mx-0 lg:rounded-2xl">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Briefcase size={18} className="text-slate-700" />
-                <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
                   Nithish's Job Search
                 </p>
               </div>
@@ -616,7 +616,7 @@ export default function Employment() {
                   <div
                     className={`rounded-xl p-3 mb-4 ${
                       isSurplus
-                        ? 'bg-green-50 border border-green-200'
+                        ? 'bg-emerald-50 border border-emerald-200'
                         : 'bg-blue-50 border border-blue-200'
                     }`}
                   >
@@ -637,7 +637,7 @@ export default function Employment() {
                   </div>
                 )}
                 <div>
-                  <p className="text-xs text-slate-500 mb-1.5">
+                  <p className="text-xs text-slate-400 mb-1.5">
                     Estimate salary to see impact:
                   </p>
                   <div className="relative">
@@ -651,7 +651,7 @@ export default function Employment() {
                       onChange={(e) => setSalaryInput(e.target.value)}
                       placeholder="e.g. 30000"
                       className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm
-                                 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                     />
                   </div>
                 </div>
@@ -661,18 +661,18 @@ export default function Employment() {
             {/* When EMPLOYED: show salary + confirmed impact */}
             {isEmployed && (
               <>
-                <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 mb-4">
-                  <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Monthly salary</p>
+                <div className="bg-white/15 backdrop-blur-md border border-white/25 rounded-xl p-4 mb-4">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1">Monthly salary</p>
                   <p className="text-3xl font-bold tracking-tight text-white">
                     {formatCurrency(nithishSalary)}
                   </p>
                   {newDeficit <= 0 ? (
-                    <p className="text-xs font-semibold text-emerald-600 mt-1">
+                    <p className="text-xs font-semibold text-emerald-400 mt-1">
                       🎉 Family surplus:{' '}
                       {formatCurrency(Math.abs(newDeficit))}/month
                     </p>
                   ) : (
-                    <p className="text-xs text-emerald-600 mt-1">
+                    <p className="text-xs text-emerald-400 mt-1">
                       Deficit reduced to {formatCurrency(newDeficit)}/month
                     </p>
                   )}
@@ -688,7 +688,7 @@ export default function Employment() {
                       value={salaryInput}
                       onChange={(e) => setSalaryInput(e.target.value)}
                       className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm
-                                 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                     />
                   </div>
                   <Button
@@ -703,7 +703,7 @@ export default function Employment() {
               </>
             )}
 
-            <p className="text-xs text-slate-500 mt-3 text-center">
+            <p className="text-xs text-slate-400 mt-3 text-center">
               Tap the status badge to update as your search progresses →
             </p>
           </div>

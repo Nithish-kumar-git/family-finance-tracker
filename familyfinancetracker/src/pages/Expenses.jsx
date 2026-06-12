@@ -324,16 +324,16 @@ export default function Expenses() {
       )}
 
       {/* ── Tab bar ───────────────────────────────────────────────────────── */}
-      <div className="sticky top-14 z-10 bg-white border-b border-slate-100">
-        <div className="flex h-11">
+      <div className="sticky top-14 z-10 bg-slate-100 -mx-4 px-4 pt-2 pb-2 lg:mx-0 lg:rounded-xl lg:mb-4">
+        <div className="flex items-center bg-white rounded-full p-1 shadow-sm">
           {['add', 'history', 'summary'].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 text-sm font-medium transition-colors
+              className={`flex-1 text-center py-2 text-sm font-medium transition-colors rounded-full
                 ${activeTab === tab
-                  ? 'border-b-2 border-indigo-600 text-indigo-600 font-semibold'
-                  : 'text-slate-400 hover:text-slate-600'}`}
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-slate-500 hover:text-slate-700'}`}
             >
               {tab === 'add' ? 'Add' : tab === 'history' ? 'History' : 'Summary'}
             </button>

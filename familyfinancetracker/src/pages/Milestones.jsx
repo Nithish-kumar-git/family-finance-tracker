@@ -311,7 +311,7 @@ export default function Milestones() {
             <div>
           {urgentMilestones.length > 0 && (
             <>
-              <div className="bg-gradient-to-r from-red-950 to-slate-900 -mx-4 px-4 pt-4 pb-6 mb-4 lg:mx-0 lg:rounded-2xl">
+              <div className="bg-gradient-to-br from-red-950 via-slate-900 to-slate-900 -mx-4 px-4 pt-4 pb-6 mb-4 lg:mx-0 lg:rounded-2xl">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse flex-shrink-0" />
                   <p className="text-sm font-bold text-white">Urgent — Act Now</p>

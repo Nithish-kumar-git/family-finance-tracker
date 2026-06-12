@@ -194,11 +194,11 @@ export default function Report() {
       )}
 
       {/* ── Month selector (Hero) ── */}
-      <div className="-mx-4 px-4 pt-4 pb-6 bg-slate-900 mb-4">
+      <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 -mx-4 px-4 pt-4 pb-6 mb-5">
         <div className="flex items-center justify-between mb-5">
           <div>
             <p className="text-3xl font-bold tracking-tight text-white">Monthly Report</p>
-            <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-0.5">{monthLabel}</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mt-0.5">{monthLabel}</p>
           </div>
           <select
             value={selectedMonth}
@@ -216,47 +216,47 @@ export default function Report() {
         </div>
 
         {reportJson && (
-          <div className="grid grid-cols-3 gap-2 text-center border-t border-slate-800 pt-5">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Income</p>
-              <p className="text-xl font-bold tracking-tight text-emerald-500">
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div className="bg-white/15 backdrop-blur-md border border-white/25 rounded-xl p-3">
+              <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1">Income</p>
+              <p className="text-xl font-bold tracking-tight text-emerald-400">
                 {formatCurrency(cf?.income?.total ?? 0, true)}
               </p>
             </div>
-            <div>
-              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Expenses</p>
-              <p className="text-xl font-bold tracking-tight text-red-500">
+            <div className="bg-white/15 backdrop-blur-md border border-white/25 rounded-xl p-3">
+              <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1">Expenses</p>
+              <p className="text-xl font-bold tracking-tight text-red-400">
                 {formatCurrency(
                   cf?.expenses_by_category?.total ?? 0,
                   true
                 )}
               </p>
             </div>
-            <div>
-              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Net Flow</p>
+            <div className="bg-white/15 backdrop-blur-md border border-white/25 rounded-xl p-3">
+              <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1">Net Flow</p>
               <p className="text-xl font-bold tracking-tight text-white">
                 {netPos >= 0 ? '+' : '−'}
                 {formatCurrency(Math.abs(netPos), true)}
               </p>
             </div>
-            
-            <div className="col-span-3 mt-3 pt-3 border-t border-slate-800 flex items-center justify-between">
-              <p className="text-xs text-slate-400">vs ₹85,800 budget</p>
-              <p
-                className={`text-xs font-semibold ${
-                  (cf?.variance_from_budget ?? 0) >= 0
-                    ? 'text-emerald-500'
-                    : 'text-red-500'
-                }`}
-              >
-                {(cf?.variance_from_budget ?? 0) >= 0
-                  ? `${formatCurrency(cf.variance_from_budget, true)} under`
-                  : `${formatCurrency(
-                      Math.abs(cf?.variance_from_budget ?? 0),
-                      true
-                    )} over`}
-              </p>
-            </div>
+          </div>
+          
+          <div className="mt-4 pt-4 border-t border-slate-700 flex items-center justify-between">
+            <p className="text-xs text-slate-400">vs ₹85,800 budget</p>
+            <p
+              className={`text-xs font-semibold ${
+                (cf?.variance_from_budget ?? 0) >= 0
+                  ? 'text-emerald-400'
+                  : 'text-red-400'
+              }`}
+            >
+              {(cf?.variance_from_budget ?? 0) >= 0
+                ? `${formatCurrency(cf.variance_from_budget, true)} under`
+                : `${formatCurrency(
+                    Math.abs(cf?.variance_from_budget ?? 0),
+                    true
+                  )} over`}
+            </p>
           </div>
         )}
       </div>

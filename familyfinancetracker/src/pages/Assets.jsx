@@ -449,15 +449,15 @@ export default function Assets() {
       )}
 
       {/* ── Tab bar ── */}
-      <div className="sticky top-14 z-10 -mx-4 px-4 bg-slate-50 pt-2 pb-2">
-        <div className="flex items-center bg-slate-100 rounded-full p-1">
+      <div className="sticky top-14 z-10 -mx-4 px-4 bg-slate-100 pt-2 pb-2 lg:mx-0 lg:rounded-xl lg:mb-4">
+        <div className="flex items-center bg-white rounded-full p-1 shadow-sm">
           {TABS.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 text-center py-2 text-sm font-medium transition-colors ${
+              className={`flex-1 text-center py-2 text-sm font-medium transition-colors rounded-full ${
                 activeTab === tab.key
-                  ? 'bg-white rounded-full shadow-sm text-indigo-600'
+                  ? 'bg-indigo-600 text-white'
                   : 'text-slate-500 hover:text-slate-700'
               }`}
             >
@@ -509,10 +509,10 @@ export default function Assets() {
         {activeTab === 'fd' && !loading && (
           <>
             {/* Total FD card */}
-            <div className="bg-gradient-to-r from-slate-900 to-indigo-950 -mx-4 px-4 pt-4 pb-8 mb-4 lg:mx-0 lg:rounded-2xl">
+            <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 -mx-4 px-4 pt-4 pb-8 mb-5 lg:mx-0 lg:rounded-2xl">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-widest text-slate-400">Fixed Deposits</p>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Fixed Deposits</p>
                   <p className="text-3xl font-bold tracking-tight text-white mt-0.5">
                     {formatCurrency(fdTotal)}
                   </p>
@@ -526,12 +526,12 @@ export default function Assets() {
               
               {/* Glass sub-stats */}
               <div className="grid grid-cols-2 gap-2 mt-4">
-                <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-3 py-2">
-                  <p className="text-xs text-white/50 mb-0.5">Count</p>
+                <div className="bg-white/15 backdrop-blur-md border border-white/25 rounded-xl px-3 py-2 text-center">
+                  <p className="text-xs text-white/60 mb-0.5">Count</p>
                   <p className="text-base font-bold text-white">{fixedDeposits.length}</p>
                 </div>
-                <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-3 py-2">
-                  <p className="text-xs text-white/50 mb-0.5">Total</p>
+                <div className="bg-white/15 backdrop-blur-md border border-white/25 rounded-xl px-3 py-2 text-center">
+                  <p className="text-xs text-white/60 mb-0.5">Total</p>
                   <p className="text-base font-bold text-white">{formatCurrency(fdTotal, true)}</p>
                 </div>
               </div>
@@ -691,11 +691,10 @@ export default function Assets() {
         {activeTab === 'mf' && !loading && (
           <>
             {/* Total MF card */}
-            {/* Total MF card */}
-            <div className="bg-gradient-to-r from-slate-900 to-indigo-950 -mx-4 px-4 pt-4 pb-8 mb-4 lg:mx-0 lg:rounded-2xl">
+            <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 -mx-4 px-4 pt-4 pb-8 mb-5 lg:mx-0 lg:rounded-2xl">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-widest text-slate-400">Mutual Funds</p>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Mutual Funds</p>
                   <p className="text-3xl font-bold tracking-tight text-white mt-0.5">
                     {formatCurrency(mfTotal)}
                   </p>
