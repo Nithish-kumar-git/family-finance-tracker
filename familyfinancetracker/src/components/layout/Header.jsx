@@ -26,8 +26,8 @@ export default function Header() {
   const color = user?.color ?? '#94A3B8'
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-10 bg-white border-b border-slate-100 h-14">
-      <div className="flex items-center justify-between h-full px-4 max-w-lg mx-auto">
+    <header className="bg-white border-b border-slate-100 h-14 flex-shrink-0">
+      <div className="flex items-center justify-between h-full px-4">
         <h1 className="text-lg font-semibold text-slate-800">{title}</h1>
 
         {/* Install button + user avatar */}

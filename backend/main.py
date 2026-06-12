@@ -16,13 +16,9 @@ from routers.settings import router as settings_router
 app = FastAPI(title="FamilyFinanceTracker API", version="1.0.0")
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
-# Support multiple frontend origins (development + production)
-frontend_url = os.getenv("FRONTEND_URL", "*")
-if frontend_url == "*" or not frontend_url:
-    allowed_origins = ["*"]
-else:
-    # Split by comma to support multiple origins
-    allowed_origins = [origin.strip() for origin in frontend_url.split(",")]
+# TEMPORARY FIX: Allow all origins until Vercel env is properly configured
+# TODO: Restrict to specific origins in production
+allowed_origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
