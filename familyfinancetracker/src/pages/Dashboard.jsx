@@ -503,7 +503,7 @@ export default function Dashboard() {
         className="fixed bottom-40 right-4 z-50 w-14 h-14 rounded-full
                    bg-indigo-600 text-white shadow-xl flex items-center
                    justify-center hover:bg-indigo-700 active:scale-95
-                   transition-all lg:bottom-20 lg:right-6"
+                   transition-all lg:bottom-8 lg:right-6"
         aria-label="Add expense"
       >
         <Plus size={24} />
@@ -515,7 +515,7 @@ export default function Dashboard() {
         className="fixed bottom-24 right-4 z-50 rounded-full bg-indigo-600
                    text-white shadow-xl flex items-center justify-center
                    hover:bg-indigo-700 active:scale-95 transition-all
-                   lg:bottom-8 lg:right-6"
+                   lg:bottom-8 lg:right-24"
         style={{ width: 52, height: 52 }}
         aria-label="Ask Amma AI"
       >
