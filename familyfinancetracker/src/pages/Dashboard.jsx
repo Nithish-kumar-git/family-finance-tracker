@@ -500,9 +500,10 @@ export default function Dashboard() {
       {/* ── FAB — Add Expense ─────────────────────────────────────────── */}
       <button
         onClick={() => navigate('/expenses')}
-        className="fixed bottom-24 lg:bottom-8 right-4 w-14 h-14 rounded-full bg-indigo-600
-                   text-white shadow-lg flex items-center justify-center
-                   hover:bg-indigo-700 active:scale-95 transition-all z-30"
+        className="fixed bottom-40 right-4 z-50 w-14 h-14 rounded-full
+                   bg-indigo-600 text-white shadow-xl flex items-center
+                   justify-center hover:bg-indigo-700 active:scale-95
+                   transition-all lg:bottom-20 lg:right-6"
         aria-label="Add expense"
       >
         <Plus size={24} />
@@ -511,9 +512,11 @@ export default function Dashboard() {
       {/* ── Ask Amma AI button ────────────────────────────────────────── */}
       <button
         onClick={() => setChatOpen(true)}
-        className="fixed bottom-24 lg:bottom-8 right-20 lg:right-20 rounded-full bg-indigo-600
-                   text-white shadow-lg flex items-center justify-center z-40
-                   hover:bg-indigo-700 active:scale-95 transition-all relative w-12 h-12"
+        className="fixed bottom-24 right-4 z-50 rounded-full bg-indigo-600
+                   text-white shadow-xl flex items-center justify-center
+                   hover:bg-indigo-700 active:scale-95 transition-all
+                   lg:bottom-8 lg:right-6"
+        style={{ width: 52, height: 52 }}
         aria-label="Ask Amma AI"
       >
         <MessageCircle size={20} />

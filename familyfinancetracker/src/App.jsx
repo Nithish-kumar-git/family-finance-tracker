@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate, NavLink } from 'react-router-dom'
-import { useState } from 'react'
 import useStore from './store/useStore.js'
 import Header from './components/layout/Header.jsx'
 import BottomNav from './components/layout/BottomNav.jsx'
@@ -14,14 +13,13 @@ import Report from './pages/Report.jsx'
 import Settings from './pages/Settings.jsx'
 import {
   Home, CreditCard, PieChart, Calendar, Briefcase,
-  FileText, Settings as SettingsIcon, MoreHorizontal, X
+  FileText, Settings as SettingsIcon
 } from 'lucide-react'
 
 // Protected layout — redirects to Auth if no user is selected
 function ProtectedLayout({ children }) {
   const currentUser = useStore(s => s.currentUser)
   const users = useStore(s => s.users)
-  const [moreOpen, setMoreOpen] = useState(false)
   
   if (!currentUser) return <Navigate to="/" replace />
   
@@ -29,6 +27,10 @@ function ProtectedLayout({ children }) {
   
   return (
     <div className="min-h-screen bg-slate-100">
+      <style>{`
+        .scrollbar-none::-webkit-scrollbar { display: none; }
+      `}</style>
+      
       {/* ── DESKTOP SIDEBAR ── */}
       <aside className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 lg:w-56 lg:bg-white lg:border-r lg:border-slate-200 lg:z-40">
         {/* Logo */}
@@ -88,7 +90,7 @@ function ProtectedLayout({ children }) {
       </aside>
 
       {/* ── MAIN CONTENT ── */}
-      <div className="lg:ml-56 flex flex-col min-h-screen">
+      <div className="lg:ml-56 flex flex-col min-h-screen lg:border-l lg:border-slate-200 bg-slate-100">
         <Header />
         
         {/* Page content */}
@@ -96,61 +98,44 @@ function ProtectedLayout({ children }) {
           {children}
         </main>
 
-        {/* BottomNav — mobile only */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30">
-          <BottomNav />
-        </div>
-      </div>
-
-      {/* ── MOBILE MORE BUTTON (Employment + Settings) ── */}
-      <button
-        onClick={() => setMoreOpen(true)}
-        className="lg:hidden fixed bottom-20 left-4 z-40 w-10 h-10 rounded-full bg-white border border-slate-200 shadow-md flex items-center justify-center text-slate-500"
-      >
-        <MoreHorizontal size={18} />
-      </button>
-
-      {/* ── MOBILE MORE DRAWER ── */}
-      {moreOpen && (
-        <>
-          <div
-            className="lg:hidden fixed inset-0 bg-black/40 z-50"
-            onClick={() => setMoreOpen(false)}
-          />
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-2xl p-6 shadow-xl">
-            <div className="flex items-center justify-between mb-5">
-              <p className="text-base font-semibold text-slate-900">More</p>
-              <button
-                onClick={() => setMoreOpen(false)}
-                className="text-slate-400 hover:text-slate-600"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <div className="space-y-2">
-              {[
-                { to: '/employment', label: 'Employment', Icon: Briefcase, sub: 'Job search tracker' },
-                { to: '/settings',   label: 'Settings',   Icon: SettingsIcon, sub: 'Income, PINs, reset' },
-              ].map(({ to, label, Icon, sub }) => (
-                <NavLink
-                  key={to}
-                  to={to}
-                  onClick={() => setMoreOpen(false)}
-                  className="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 transition-colors"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0">
-                    <Icon size={18} className="text-indigo-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-800">{label}</p>
-                    <p className="text-xs text-slate-400">{sub}</p>
-                  </div>
-                </NavLink>
-              ))}
-            </div>
+        {/* Custom scrollable mobile bottom nav */}
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40
+                        bg-white border-t border-slate-200 px-2">
+          <div className="flex overflow-x-auto scrollbar-none
+                          gap-1 py-2"
+               style={{ WebkitOverflowScrolling: 'touch',
+                        scrollbarWidth: 'none',
+                        msOverflowStyle: 'none' }}>
+            {[
+              { to: '/dashboard',  label: 'Home',       Icon: Home },
+              { to: '/expenses',   label: 'Expenses',   Icon: CreditCard },
+              { to: '/assets',     label: 'Assets',     Icon: PieChart },
+              { to: '/milestones', label: 'Goals',      Icon: Calendar },
+              { to: '/report',     label: 'Report',     Icon: FileText },
+              { to: '/employment', label: 'Employment', Icon: Briefcase },
+              { to: '/settings',   label: 'Settings',   Icon: SettingsIcon },
+            ].map(({ to, label, Icon }) => (
+              <NavLink key={to} to={to}
+                className={({ isActive }) =>
+                  `flex flex-col items-center justify-center gap-0.5
+                   min-w-[64px] px-2 py-1.5 rounded-xl transition-colors
+                   flex-shrink-0 ${isActive
+                     ? 'text-indigo-600 bg-indigo-50'
+                     : 'text-slate-400'
+                   }`
+                }>
+                <Icon size={20} strokeWidth={1.75} />
+                <span className="text-xs font-medium whitespace-nowrap">
+                  {label}
+                </span>
+              </NavLink>
+            ))}
           </div>
-        </>
-      )}
+        </nav>
+
+        {/* BottomNav — hidden */}
+        <div className="hidden"><BottomNav /></div>
+      </div>
     </div>
   )
 }
