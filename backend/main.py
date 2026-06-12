@@ -16,11 +16,13 @@ from routers.settings import router as settings_router
 app = FastAPI(title="FamilyFinanceTracker API", version="1.0.0")
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
+# Support multiple frontend origins (development + production)
 frontend_url = os.getenv("FRONTEND_URL", "*")
 if frontend_url == "*" or not frontend_url:
     allowed_origins = ["*"]
 else:
-    allowed_origins = [frontend_url]
+    # Split by comma to support multiple origins
+    allowed_origins = [origin.strip() for origin in frontend_url.split(",")]
 
 app.add_middleware(
     CORSMiddleware,
