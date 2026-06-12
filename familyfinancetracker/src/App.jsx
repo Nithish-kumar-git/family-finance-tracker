@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate, NavLink } from 'react-router-do
 import useStore from './store/useStore.js'
 import Header from './components/layout/Header.jsx'
 import BottomNav from './components/layout/BottomNav.jsx'
-import PageWrapper from './components/layout/PageWrapper.jsx'
 import Auth from './pages/Auth.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Expenses from './pages/Expenses.jsx'
@@ -12,7 +11,7 @@ import Milestones from './pages/Milestones.jsx'
 import Employment from './pages/Employment.jsx'
 import Report from './pages/Report.jsx'
 import Settings from './pages/Settings.jsx'
-import { Home, CreditCard, PieChart, Calendar, Briefcase, FileText, Settings as SettingsIcon } from 'lucide-react'
+import { Home, CreditCard, PieChart, Calendar, Briefcase, FileText, Settings as Settings2 } from 'lucide-react'
 
 // Placeholder for pages not yet built (Conversations 2–10)
 const PlaceholderPage = ({ name }) => (
@@ -31,60 +30,79 @@ function ProtectedLayout({ children }) {
   const user = users.find(u => u.id === currentUser)
   
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Desktop sidebar — hidden on mobile */}
-      <aside className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 lg:w-56 lg:bg-white lg:border-r lg:border-slate-100 lg:z-40 lg:shadow-sm">
-        {/* Sidebar logo */}
-        <div className="flex items-center gap-2 px-6 py-5 border-b border-slate-100">
-          <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">
-            ₹
+    <div className="flex min-h-screen bg-slate-50">
+      {/* ── Desktop Sidebar ── */}
+      <aside className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 lg:w-56 lg:bg-white lg:border-r lg:border-slate-200 lg:z-40">
+        {/* Logo */}
+        <div className="flex items-center gap-2.5 px-5 py-4 border-b border-slate-100">
+          <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center flex-shrink-0">
+            <span className="text-white font-bold text-sm">₹</span>
           </div>
-          <span className="text-sm font-semibold text-slate-800">FFTracker</span>
+          <div>
+            <p className="text-sm font-bold text-slate-900 leading-none">FFTracker</p>
+            <p className="text-xs text-slate-400 mt-0.5">Family Finance</p>
+          </div>
         </div>
 
-        {/* Sidebar nav links */}
-        <nav className="flex-1 px-3 py-4 space-y-1">
+        {/* Nav Links */}
+        <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
           {[
-            { path: '/dashboard', label: 'Dashboard', icon: Home },
-            { path: '/expenses', label: 'Expenses', icon: CreditCard },
-            { path: '/assets', label: 'Assets', icon: PieChart },
-            { path: '/milestones', label: 'Goals', icon: Calendar },
-            { path: '/employment', label: 'Employment', icon: Briefcase },
-            { path: '/report', label: 'Report', icon: FileText },
-            { path: '/settings', label: 'Settings', icon: SettingsIcon },
-          ].map(item => {
-            const Icon = item.icon
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-indigo-50 text-indigo-600'
-                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-                  }`
-                }
-              >
-                <Icon size={16} />
-                {item.label}
-              </NavLink>
-            )
-          })}
+            { to: '/dashboard',  label: 'Dashboard',  Icon: Home },
+            { to: '/expenses',   label: 'Expenses',   Icon: CreditCard },
+            { to: '/assets',     label: 'Assets',     Icon: PieChart },
+            { to: '/milestones', label: 'Goals',      Icon: Calendar },
+            { to: '/employment', label: 'Employment', Icon: Briefcase },
+            { to: '/report',     label: 'Report',     Icon: FileText },
+            { to: '/settings',   label: 'Settings',   Icon: Settings2 },
+          ].map(({ to, label, Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+                  isActive
+                    ? 'bg-indigo-50 text-indigo-600 font-semibold'
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                }`
+              }
+            >
+              <Icon size={16} />
+              {label}
+            </NavLink>
+          ))}
         </nav>
 
-        {/* Sidebar user info */}
-        <div className="px-4 py-4 border-t border-slate-100">
-          <p className="text-xs text-slate-400 truncate">Signed in as</p>
-          <p className="text-sm font-medium text-slate-700">{user?.name ?? 'User'}</p>
+        {/* User Info */}
+        <div className="px-4 py-3 border-t border-slate-100">
+          <div className="flex items-center gap-2">
+            <div
+              className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+              style={{ backgroundColor: user?.color ?? '#6366f1' }}
+            >
+              {user?.name?.[0] ?? 'N'}
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-slate-800 truncate">
+                {user?.name ?? 'User'}
+              </p>
+              <p className="text-xs text-slate-400">Active</p>
+            </div>
+          </div>
         </div>
       </aside>
 
-      {/* Main area — shifts right on desktop */}
-      <div className="lg:ml-56">
+      {/* ── Main content — full width minus sidebar ── */}
+      <div className="flex-1 lg:ml-56 min-w-0">
         <Header />
-        <PageWrapper>{children}</PageWrapper>
-        {/* BottomNav hidden on desktop */}
+        
+        {/* Page content — FULL WIDTH, proper padding */}
+        <div className="pt-14 pb-20 lg:pb-8 min-h-screen">
+          <div className="px-4 py-4 lg:px-8 lg:py-6">
+            {children}
+          </div>
+        </div>
+        
+        {/* Bottom nav — mobile only */}
         <div className="lg:hidden">
           <BottomNav />
         </div>
