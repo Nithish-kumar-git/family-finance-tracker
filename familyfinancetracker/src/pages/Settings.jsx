@@ -10,6 +10,7 @@ import {
 
 import useStore from '../store/useStore'
 import { formatCurrency } from '../utils/formatters'
+import { restoreData } from '../utils/dataRecovery'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
@@ -259,6 +260,25 @@ export default function Settings() {
   // ── Section E: Full Reset ─────────────────────────────────────────────────
   const [resetModal,    setResetModal]   = useState(false)
   const [resetLoading,  setResetLoading] = useState(false)
+
+  // ── Section E-1: Data Recovery ────────────────────────────────────────────
+  const [recoveryLoading, setRecoveryLoading] = useState(false)
+
+  async function handleRecoverData() {
+    if (!confirm('This will restore all data from the backend database. Your current localStorage data will be replaced. Continue?')) {
+      return
+    }
+
+    setRecoveryLoading(true)
+    try {
+      await restoreData()
+      // restoreData() reloads the page automatically
+    } catch (error) {
+      console.error('Recovery failed:', error)
+      showToast('Data recovery failed. Please try again.', 'error')
+      setRecoveryLoading(false)
+    }
+  }
 
   async function handleFullReset() {
     setResetLoading(true)
@@ -567,7 +587,33 @@ export default function Settings() {
       </div>
       <hr className="border-slate-100 mb-8" />
 
-      {/* ── Section E: Full Data Reset ─────────────────────────────────────── */}
+      {/* ── Section E-1: Data Recovery ────────────────────────────────────── */}
+      <div className="mb-8">
+        <div className="rounded-2xl border border-emerald-200 border-l-4 border-l-emerald-500 bg-emerald-50 p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Activity size={18} className="text-emerald-600" />
+            <h2 className="text-xs font-medium text-emerald-600 uppercase tracking-widest">
+              Data Recovery
+            </h2>
+          </div>
+          <p className="text-sm text-slate-600 mb-4 leading-relaxed">
+            If your data disappeared after clearing browser cache, click below to restore all data from the backend database.
+          </p>
+          <Button
+            variant="primary"
+            className="w-full h-12 bg-emerald-600 hover:bg-emerald-700"
+            onClick={handleRecoverData}
+            loading={recoveryLoading}
+            id="btn-recover-data"
+          >
+            <Activity size={16} className="mr-2" />
+            Recover Data from Backend
+          </Button>
+        </div>
+      </div>
+      <hr className="border-slate-100 mb-8" />
+
+      {/* ── Section E-2: Full Data Reset ───────────────────────────────────── */}
       <div className="mb-8">
         <div className="rounded-2xl border border-red-200 border-l-4 border-l-red-500 bg-red-50 p-4">
           <div className="flex items-center gap-2 mb-3">
