@@ -27,19 +27,29 @@ Most portfolio projects are tutorials with fake data. This one is different:
 
 ## Screenshots
 
-> **Dashboard — corpus overview with dark hero section**
-> ![Dashboard](docs/screenshots/dashboard.png)
+### Login Screen
+![Login](docs/screenshots/auth.png)
+*Clean dark login — three family members, PIN authentication*
 
-> **Ask Amma AI — natural language finance chatbot**
-> ![Ask Amma AI](docs/screenshots/chatbot.png)
+### Dashboard
+![Dashboard](docs/screenshots/dashboard.png)
+*Dark hero with live financial summary — corpus, income, expenses in one view*
 
-> **AI SMS Parser — paste a UPI notification, get a filled expense form**
-> ![SMS Parser](docs/screenshots/sms-parser.png)
+### Expense Tracker
+![Expenses](docs/screenshots/expenses.png)
+*AI-powered expense entry — paste a UPI notification to auto-fill the form*
 
-> **Milestones — urgent deadline tracking with timeline view**
-> ![Milestones](docs/screenshots/milestones.png)
+### Monthly Report
+![Report](docs/screenshots/report.png)
+*One-click report generation with Gemini AI insights and Claude analysis export*
 
-*To add screenshots: create `docs/screenshots/` folder and add PNG files named as above.*
+### Milestones & Goals
+![Milestones](docs/screenshots/milestones.png)
+*Urgent deadline tracking — 8 urgent actions, upcoming FD maturities and LIC premiums*
+
+### Ask Amma AI
+![Ask Amma AI](docs/screenshots/chatbot.png)
+*Natural language finance chatbot — answers questions using live family financial data*
 
 ---
 
