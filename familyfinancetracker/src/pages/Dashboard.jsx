@@ -44,8 +44,6 @@ export default function Dashboard() {
   const month = now.getMonth() + 1
 
   // ── Data loading state ───────────────────────────────────────────────
-  const [expenses, setExpenses] = useState([])
-  const [categoryTotals, setCategoryTotals] = useState({})
   const [milestones, setMilestones] = useState([])
   const [employmentStats, setEmploymentStats] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -57,34 +55,36 @@ export default function Dashboard() {
   const [chatLoading, setChatLoading] = useState(false)
   const messagesEndRef = useRef(null)
 
-  // ── Load data on mount ────────────────────────────────────────────────
+  // ── Derive expenses from Zustand store reactively ─────────────────────
+  const allExpenses = useStore(state => state.expenses)
+  const prefix = `${year}-${String(month).padStart(2, '0')}`
+  const currentMonthExpenses = allExpenses.filter(e => e.date.startsWith(prefix))
+  
+  // Compute category totals from current month expenses
+  const categoryTotals = {}
+  Object.keys(EXPENSE_CATEGORIES).forEach(k => { categoryTotals[k] = 0 })
+  currentMonthExpenses.forEach(e => {
+    if (categoryTotals[e.category] !== undefined) {
+      categoryTotals[e.category] += e.amount
+    } else {
+      categoryTotals.other = (categoryTotals.other ?? 0) + e.amount
+    }
+  })
+
+  // ── Load milestones and employment stats on mount ─────────────────────
   useEffect(() => {
     async function loadDashboard() {
       const results = await Promise.allSettled([
-        api.expenses.getByMonth(year, month),
         api.milestones.getAll({ status: 'pending', upcoming_days: 90 }),
         api.employment.getStats(),
       ])
 
       if (results[0].status === 'fulfilled') {
-        const res = results[0].value
-        if (res && res.expenses) {
-          setExpenses(res.expenses)
-          setCategoryTotals(res.category_totals ?? {})
-        } else if (Array.isArray(res)) {
-          setExpenses(res)
-          const totals = {}
-          res.forEach(e => { totals[e.category] = (totals[e.category] ?? 0) + e.amount })
-          setCategoryTotals(totals)
-        }
+        setMilestones(results[0].value ?? [])
       }
 
       if (results[1].status === 'fulfilled') {
-        setMilestones(results[1].value ?? [])
-      }
-
-      if (results[2].status === 'fulfilled') {
-        setEmploymentStats(results[2].value ?? null)
+        setEmploymentStats(results[1].value ?? null)
       }
 
       setLoading(false)
@@ -99,8 +99,8 @@ export default function Dashboard() {
 
   // ── Computed values ───────────────────────────────────────────────────
   const income = getMonthlyIncome(state)
-  const totalExpenses = getMonthlyExpensesTotal(state, year, month)
-  const netPosition = getMonthlyDeficit(state, year, month)
+  const totalExpenses = currentMonthExpenses.reduce((sum, e) => sum + e.amount, 0)
+  const netPosition = income - totalExpenses
   const totalCorpus = getTotalCorpus(state)
   const fdTotal = getFDTotal(state)
   const mfTotal = getMFTotal(state)
