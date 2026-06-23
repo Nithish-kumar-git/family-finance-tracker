@@ -36,6 +36,15 @@ const useStore = create((set, get) => ({
     set(state => ({ expenses: state.expenses.filter(e => e.id !== id) }))
   },
 
+  setExpensesForMonth(ym, freshExpenses) {
+    set(state => ({
+      expenses: [
+        ...state.expenses.filter(e => !e.date.startsWith(ym)),
+        ...freshExpenses,
+      ],
+    }))
+  },
+
   // ── Budgets ───────────────────────────────────────────────────────────
   updateBudget(category, amount) {
     set(state => ({ budgets: { ...state.budgets, [category]: amount } }))

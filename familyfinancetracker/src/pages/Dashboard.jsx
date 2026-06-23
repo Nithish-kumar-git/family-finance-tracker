@@ -77,6 +77,7 @@ export default function Dashboard() {
       const results = await Promise.allSettled([
         api.milestones.getAll({ status: 'pending', upcoming_days: 90 }),
         api.employment.getStats(),
+        api.expenses.getByMonth(year, month),
       ])
 
       if (results[0].status === 'fulfilled') {
@@ -85,6 +86,16 @@ export default function Dashboard() {
 
       if (results[1].status === 'fulfilled') {
         setEmploymentStats(results[1].value ?? null)
+      }
+
+      // Load current month expenses from API into store
+      if (results[2].status === 'fulfilled') {
+        const data = results[2].value
+        if (data && Array.isArray(data.expenses)) {
+          const apiExpenses = data.expenses
+          const ym = `${year}-${String(month).padStart(2, '0')}`
+          useStore.getState().setExpensesForMonth(ym, apiExpenses)
+        }
       }
 
       setLoading(false)
