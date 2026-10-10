@@ -10,7 +10,7 @@ import {
 
 import useStore from '../store/useStore'
 import { formatCurrency } from '../utils/formatters'
-import { restoreData } from '../utils/dataRecovery'
+import { RESTORE_UNAVAILABLE_MESSAGE } from '../utils/dataRecovery'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
@@ -260,25 +260,6 @@ export default function Settings() {
   // ── Section E: Full Reset ─────────────────────────────────────────────────
   const [resetModal,    setResetModal]   = useState(false)
   const [resetLoading,  setResetLoading] = useState(false)
-
-  // ── Section E-1: Data Recovery ────────────────────────────────────────────
-  const [recoveryLoading, setRecoveryLoading] = useState(false)
-
-  async function handleRecoverData() {
-    if (!confirm('This will restore all data from the backend database. Your current localStorage data will be replaced. Continue?')) {
-      return
-    }
-
-    setRecoveryLoading(true)
-    try {
-      await restoreData()
-      // restoreData() reloads the page automatically
-    } catch (error) {
-      console.error('Recovery failed:', error)
-      showToast('Data recovery failed. Please try again.', 'error')
-      setRecoveryLoading(false)
-    }
-  }
 
   async function handleFullReset() {
     setResetLoading(true)
@@ -597,17 +578,16 @@ export default function Settings() {
             </h2>
           </div>
           <p className="text-sm text-slate-600 mb-4 leading-relaxed">
-            If your data disappeared after clearing browser cache, click below to restore all data from the backend database.
+            {RESTORE_UNAVAILABLE_MESSAGE}
           </p>
           <Button
             variant="primary"
             className="w-full h-12 bg-emerald-600 hover:bg-emerald-700"
-            onClick={handleRecoverData}
-            loading={recoveryLoading}
+            disabled
             id="btn-recover-data"
           >
             <Activity size={16} className="mr-2" />
-            Recover Data from Backend
+            Restore Data — temporarily unavailable
           </Button>
         </div>
       </div>
