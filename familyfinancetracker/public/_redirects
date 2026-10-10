@@ -1,0 +1,10 @@
+# React page routes only: keep API and asset requests outside the SPA rewrites.
+# Add an entry here when a new client-side page route is introduced.
+/dashboard  /index.html  200
+/expenses  /index.html  200
+/assets  /index.html  200
+/milestones  /index.html  200
+/report  /index.html  200
+/employment  /index.html  200
+/settings  /index.html  200
+/budgets  /index.html  200
