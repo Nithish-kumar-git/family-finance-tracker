@@ -6,6 +6,9 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import useStore from '../store/useStore.js'
 import { useExpenses } from '../hooks/useExpenses.js'
 import { api } from '../utils/api.js'
+import {
+  createHistoryLoader, filterHistoryExpenses, findLocalIdCollisions, historyErrorMessage, initialHistoryState, localHistoryWarnings,
+} from '../utils/expenseHistory.js'
 import { formatCurrency, formatDate } from '../utils/formatters.js'
 import { EXPENSE_CATEGORIES } from '../data/seedData.js'
 import {
@@ -76,9 +79,10 @@ export default function Expenses() {
   const currentUser  = useStore(s => s.currentUser)
   const users        = useStore(s => s.users)
   const budgets      = useStore(s => s.budgets)
+  const localExpenses = useStore(s => s.expenses)
 
   const {
-    getExpensesForMonth,
+    getHistoryForMonth,
     getTotalByCategory,
     getMonthlyTotal,
     addExpense:    hookAddExpense,
@@ -93,9 +97,20 @@ export default function Expenses() {
     const n = new Date()
     return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}`
   })
-  const [expenses,       setExpenses]       = useState([])
-  const [categoryTotals, setCategoryTotals] = useState({})
-  const [dataLoading,    setDataLoading]    = useState(false)
+  const [historyState, setHistoryState] = useState(() => initialHistoryState(selectedMonth))
+  const historyLoader = useRef(null)
+  const selectedMonthRef = useRef(selectedMonth)
+  selectedMonthRef.current = selectedMonth
+  // Clear the visible period synchronously, before the month effect runs.
+  const history = historyState.month === selectedMonth ? historyState : initialHistoryState(selectedMonth)
+  const expenses = history.expenses
+  const categoryTotals = history.categoryTotals
+  const dataLoading = history.status === 'loading'
+  const fallbackWarnings = localHistoryWarnings(history.limitations, history.retained)
+  const deletionBlockedIds = useMemo(() => new Set([
+    ...findLocalIdCollisions(localExpenses), ...(history.collisionIds ?? []),
+    ...(history.limitations?.duplicateIds ?? []),
+  ]), [localExpenses, history.collisionIds, history.limitations])
 
   // ── Add tab state ────────────────────────────────────────────────────────────
   const [amount,          setAmount]          = useState('')
@@ -123,19 +138,21 @@ export default function Expenses() {
   const toastTimer                = useRef(null)
 
   // ── Data loader ──────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const loader = createHistoryLoader(getHistoryForMonth, setHistoryState)
+    historyLoader.current = loader
+    return () => { loader.invalidate(); historyLoader.current = null }
+  }, [getHistoryForMonth])
+
   const loadData = useCallback(() => {
-    const [yr, mo] = selectedMonth.split('-').map(Number)
-    setDataLoading(true)
-    getExpensesForMonth(yr, mo).then(result => {
-      setExpenses(result.expenses)
-      setCategoryTotals(result.categoryTotals)
-      setDataLoading(false)
-    })
-  }, [selectedMonth]) // eslint-disable-line react-hooks/exhaustive-deps
+    // Async add/retry handlers must refresh the current month, not the month
+    // captured when their event began.
+    return historyLoader.current?.load(selectedMonthRef.current)
+  }, [])
 
   useEffect(() => {
     loadData()
-  }, [loadData])
+  }, [selectedMonth, loadData, getHistoryForMonth])
 
   // ── Toast helper ─────────────────────────────────────────────────────────────
   const showToast = useCallback((message, type = 'success') => {
@@ -211,12 +228,19 @@ export default function Expenses() {
 
   // ── handleDeleteExpense ──────────────────────────────────────────────────────
   const handleDeleteExpense = async (id) => {
+    // Recheck the live store before starting the existing mutation: a collision
+    // can be introduced after rendering or while confirmation is open.
+    if (deletionBlockedIds.has(id) || findLocalIdCollisions(useStore.getState().expenses).includes(id)) {
+      setDeleteConfirmId(null)
+      showToast('Deletion unavailable — local ID collision', 'error')
+      return
+    }
     setDeletingId(id)
     try {
       await hookDeleteExpense(id)
       setDeleteConfirmId(null)
       setDeletingId(null)
-      setExpenses(prev => prev.filter(e => e.id !== id))
+      historyLoader.current?.removeExpense(id)
       showToast('Expense deleted', 'success')
     } catch {
       setDeletingId(null)
@@ -226,11 +250,7 @@ export default function Expenses() {
 
   // ── Filtered + grouped history ───────────────────────────────────────────────
   const filteredExpenses = useMemo(() => {
-    let list = [...expenses]
-    if (historyUserFilter !== 'all') {
-      list = list.filter(e => e.userId === historyUserFilter)
-    }
-    return list.sort((a, b) => b.date.localeCompare(a.date))
+    return filterHistoryExpenses(expenses, historyUserFilter)
   }, [expenses, historyUserFilter])
 
   const groupedExpenses = useMemo(() => {
@@ -324,13 +344,13 @@ export default function Expenses() {
       )}
 
       {/* ── Tab bar ───────────────────────────────────────────────────────── */}
-      <div className="sticky top-14 z-10 bg-slate-100 -mx-4 px-4 pt-2 pb-2 lg:mx-0 lg:rounded-xl lg:mb-4">
-        <div className="flex items-center bg-white rounded-full p-1 shadow-sm">
+      <div className="bg-slate-100 -mx-4 px-4 pt-2 pb-2 lg:mx-0 lg:rounded-xl lg:mb-4">
+        <div className="flex flex-wrap items-center bg-white rounded-full p-1 shadow-sm">
           {['add', 'history', 'summary'].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 text-center py-2 text-sm font-medium transition-colors rounded-full
+              className={`flex-1 basis-20 min-w-0 break-words text-center px-2 py-2 text-sm font-medium transition-colors rounded-full
                 ${activeTab === tab
                   ? 'bg-indigo-600 text-white'
                   : 'text-slate-500 hover:text-slate-700'}`}
@@ -343,11 +363,15 @@ export default function Expenses() {
 
       {/* ── Month selector (History + Summary only) ────────────────────────── */}
       {activeTab !== 'add' && (
-        <div className="px-4 py-2 bg-white border-b border-slate-100">
+        <div className="flex flex-wrap items-center gap-2 px-4 py-2 bg-white border-b border-slate-100">
+          <label htmlFor="expense-month" className="text-sm font-medium text-slate-700">
+            Month
+          </label>
           <select
+            id="expense-month"
             value={selectedMonth}
             onChange={e => setSelectedMonth(e.target.value)}
-            className="border border-slate-100 rounded-xl px-3 py-1.5 text-sm
+            className="min-w-0 max-w-full border border-slate-100 rounded-xl px-3 py-1.5 text-sm
                        text-slate-700 focus:outline-none focus:ring-2
                        focus:ring-indigo-500 bg-slate-50"
           >
@@ -359,6 +383,34 @@ export default function Expenses() {
       )}
 
       <div className="px-4 py-4 max-w-7xl mx-auto lg:px-6 pb-24 lg:pb-8">
+
+        {activeTab !== 'add' && (
+          <div role={history.error ? 'alert' : 'status'} className="mb-4 rounded-xl border border-slate-200 p-3 text-sm text-slate-700">
+            {dataLoading ? (
+              <p>Loading selected month…</p>
+            ) : history.status === 'fallback' || history.status === 'error' ? (
+              <>
+                <p>{historyErrorMessage(history.error)}</p>
+                <p className="mt-1">
+                  {history.retained
+                    ? 'Showing the previous successful response for this same month; current history could not be verified.'
+                    : history.status === 'fallback'
+                      ? 'Showing local fallback data. It may be incomplete; current history could not be verified.'
+                      : 'History is unavailable. Loading History does not replace stored records.'}
+                </p>
+                {fallbackWarnings.map(message => <p key={message} className="mt-1">{message}</p>)}
+                {history.fallbackError === 'LOCAL' && !fallbackWarnings.length && (
+                  <p className="mt-1">The local fallback could not be safely read. Stored records are unchanged.</p>
+                )}
+                <button type="button" onClick={loadData} className="mt-2 rounded-lg border border-slate-300 px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  Retry
+                </button>
+              </>
+            ) : (
+              <p>Response loaded for the selected month. Freshness is unverified; the response may be cached.</p>
+            )}
+          </div>
+        )}
 
         {/* ════════════════════════════════════════════════════════════════════
             TAB 1 — ADD EXPENSE
@@ -534,11 +586,16 @@ export default function Expenses() {
             <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-3">
               Recent Expenses
             </p>
+            {fallbackWarnings.length > 0 && (
+              <div role="alert" className="mb-3 text-sm text-slate-700">
+                {fallbackWarnings.map(message => <p key={message}>{message}</p>)}
+              </div>
+            )}
             <div className="space-y-2">
-              {expenses.slice(0, 5).map(expense => {
+              {expenses.slice(0, 5).map((expense, index) => {
                 const catMeta = EXPENSE_CATEGORIES[expense.category]
                 return (
-                  <div key={expense.id} className="flex items-center gap-3 py-2 px-3 bg-white rounded-xl border border-slate-100">
+                  <div key={`${expense.id}:${index}`} className="flex items-center gap-3 py-2 px-3 bg-white rounded-xl border border-slate-100">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-slate-800 truncate">
                         {expense.description || catMeta?.label}
@@ -589,7 +646,7 @@ export default function Expenses() {
             )}
 
             {/* Empty state */}
-            {!dataLoading && filteredExpenses.length === 0 && (
+            {!dataLoading && ['success', 'empty'].includes(history.status) && filteredExpenses.length === 0 && (
               <div className="flex flex-col items-center justify-center py-16">
                 <p className="text-sm font-medium text-slate-400">No expenses recorded</p>
                 <p className="text-xs text-slate-300 mt-1">
@@ -600,6 +657,10 @@ export default function Expenses() {
               </div>
             )}
 
+            {!dataLoading && history.status === 'fallback' && filteredExpenses.length === 0 && (
+              <p className="py-8 text-sm text-slate-500">No matching entries are available in this local or retained view. Current history could not be verified.</p>
+            )}
+
             {/* Grouped expense list */}
             {!dataLoading && groupedExpenses.sortedDates.map(dateKey => (
               <div key={dateKey}>
@@ -608,13 +669,14 @@ export default function Expenses() {
                   {dateHeading(dateKey)}
                 </p>
 
-                {groupedExpenses.grouped[dateKey].map(expense => {
+                {groupedExpenses.grouped[dateKey].map((expense, index) => {
                   const catMeta = EXPENSE_CATEGORIES[expense.category]
                   const u = users.find(u => u.id === expense.userId)
+                  const ambiguousLocalId = deletionBlockedIds.has(expense.id)
 
                   return (
                     <div
-                      key={expense.id}
+                      key={`${expense.id}:${index}`}
                       className="flex items-center gap-3 py-3 border-b border-slate-50"
                     >
                       {/* Category icon circle */}
@@ -636,6 +698,7 @@ export default function Expenses() {
                         </p>
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <p className="text-xs text-slate-400">{catMeta?.label}</p>
+                          {expense.userId === '' && <span className="text-xs text-slate-500">Empty profile ID</span>}
                           {u && (
                             <span
                               className="w-2 h-2 rounded-full flex-shrink-0"
@@ -650,7 +713,9 @@ export default function Expenses() {
                         <p className="text-sm font-semibold text-slate-800">
                           {formatCurrency(expense.amount)}
                         </p>
-                        {deleteConfirmId === expense.id ? (
+                        {ambiguousLocalId ? (
+                          <span className="text-xs text-slate-500">Duplicate ID — read-only</span>
+                        ) : deleteConfirmId === expense.id ? (
                           <div className="flex gap-1">
                             <button
                               onClick={() => handleDeleteExpense(expense.id)}
@@ -690,7 +755,7 @@ export default function Expenses() {
         {/* ════════════════════════════════════════════════════════════════════
             TAB 3 — SUMMARY
             ════════════════════════════════════════════════════════════════ */}
-        {activeTab === 'summary' && (
+        {activeTab === 'summary' && !dataLoading && !history.limited && (['success', 'empty', 'fallback'].includes(history.status) || history.retained) && (
           <div>
             {/* Monthly total vs budget bar */}
             {(() => {

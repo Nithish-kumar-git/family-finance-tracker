@@ -6,6 +6,12 @@ import { addMonths, format, startOfMonth } from 'date-fns'
 import { api } from '../utils/api.js'
 import useStore from '../store/useStore.js'
 
+// Stable identity for the History effect; the legacy method below is unchanged.
+const getHistoryForMonth = month => {
+  const [year, number] = month.split('-').map(Number)
+  return api.expenses.getForHistory(year, number)
+}
+
 // All 10 valid category keys
 const ALL_CATEGORIES = [
   'groceries',
@@ -146,6 +152,7 @@ export const useExpenses = () => {
   }
 
   return {
+    getHistoryForMonth,
     getExpensesForMonth,
     getTotalByCategory,
     getMonthlyTotal,

@@ -2,6 +2,7 @@
 // fallback when the backend is unreachable.
 
 import useStore from '../store/useStore.js'
+import { readHistoryMonth } from './expenseHistory.js'
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
@@ -44,6 +45,19 @@ export const api = {
   // ── Expenses ─────────────────────────────────────────────────────────
 
   expenses: {
+    // Opt-in History contract. Do not use apiFetch: its store setters can
+    // trigger persistence. Dashboard continues to use getByMonth unchanged.
+    getForHistory(year, month) {
+      const prefix = `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}`
+      const params = new URLSearchParams({ month: prefix })
+      return readHistoryMonth({
+        month: prefix,
+        url: `${BASE_URL}/api/expenses?${params}`,
+        fetchResponse: url => fetch(url),
+        getLocalExpenses: () => useStore.getState().expenses,
+      })
+    },
+
     async getByMonth(year, month, userId) {
       const mm = String(month).padStart(2, '0')
       const prefix = `${year}-${mm}`
