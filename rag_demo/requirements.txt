@@ -1,0 +1,6 @@
+# Separate demo environment; does not modify backend/requirements.txt.
+fastapi==0.115.12
+uvicorn==0.34.3
+httpx==0.28.1
+psycopg[binary]==3.2.9
+pypdf==6.20.1

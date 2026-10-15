@@ -1,0 +1,68 @@
+{
+  "version": "synthetic-policies-v1",
+  "synthetic_only": true,
+  "documents": [
+    {"filename": "harbor_insurance.pdf", "sections": [
+      {"id": "harbor_claim", "text": "Synthetic Harbor insurance claim policy: Submit the claim form and original receipt within thirty days of the incident."},
+      {"id": "harbor_exclusion", "text": "Synthetic Harbor insurance exclusion policy: Cosmetic treatment is excluded. Emergency treatment is eligible for review."},
+      {"id": "harbor_review", "text": "Synthetic Harbor insurance review policy: The claims committee reviews complete applications each Monday. Appeal decisions within ten days."}
+    ]},
+    {"filename": "meadow_savings.pdf", "sections": [
+      {"id": "meadow_withdrawal", "text": "Synthetic Meadow personal savings withdrawal policy: One withdrawal is permitted per quarter. Submit a withdrawal request five days in advance."},
+      {"id": "meadow_statement", "text": "Synthetic Meadow personal savings statement policy: Statements are published on the first day of each month. Report statement errors within seven days."},
+      {"id": "meadow_dormancy", "text": "Synthetic Meadow personal savings dormancy policy: Accounts become dormant after twelve months without activity. Reactivation requires an identity review."}
+    ]},
+    {"filename": "cedar_travel.pdf", "sections": [
+      {"id": "cedar_approval", "text": "Synthetic Cedar employee travel approval policy: Obtain manager approval before booking a trip. Keep the written approval with the itinerary."},
+      {"id": "cedar_reimbursement", "text": "Synthetic Cedar employee travel reimbursement policy: Submit receipts within fourteen days after returning. The finance desk reviews submissions each Friday."},
+      {"id": "cedar_international", "text": "Synthetic Cedar employee international travel policy: Obtain director approval for international trips. Passport validity must extend six months beyond return."}
+    ]},
+    {"filename": "harbor_auto.txt", "sections": [
+      {"id": "auto_claim", "text": "Synthetic Harbor auto insurance claim policy: Submit the vehicle claim within ten days. Include a repair estimate and incident report."},
+      {"id": "auto_review", "text": "Synthetic Harbor auto insurance review policy: Vehicle applications are reviewed each Wednesday. Submit an appeal within three days."},
+      {"id": "auto_exclusion", "text": "Synthetic Harbor auto insurance exclusion policy: Normal tyre wear is excluded. Collision damage is eligible for review."}
+    ]},
+    {"filename": "meadow_business.txt", "sections": [
+      {"id": "business_withdrawal", "text": "Synthetic Meadow business savings withdrawal policy: Three withdrawals are permitted per month. Requests require two business days notice."},
+      {"id": "business_statement", "text": "Synthetic Meadow business savings statement policy: Statements are published on the fifteenth day of each month. Report statement errors within twenty days."},
+      {"id": "business_dormancy", "text": "Synthetic Meadow business savings dormancy policy: Accounts become dormant after six months without activity. Reactivation requires a board resolution."}
+    ]},
+    {"filename": "cedar_guest.txt", "sections": [
+      {"id": "guest_approval", "text": "Synthetic Cedar guest travel approval policy: Obtain event coordinator approval before booking. Keep the invitation with the itinerary."},
+      {"id": "guest_reimbursement", "text": "Synthetic Cedar guest travel reimbursement policy: Submit receipts within seven days after the event. The events desk reviews submissions each Tuesday."},
+      {"id": "guest_international", "text": "Synthetic Cedar guest international travel policy: The event director approves international invitations. Passport validity must extend three months beyond return."}
+    ]}
+  ],
+  "questions": [
+    {"id": "q01", "question": "What is the Synthetic Harbor insurance claim deadline and required paperwork, excluding auto insurance?", "supports": ["harbor_claim"]},
+    {"id": "q02", "question": "Does Synthetic Harbor insurance cover cosmetic treatment or emergency treatment, excluding auto insurance?", "supports": ["harbor_exclusion"]},
+    {"id": "q03", "question": "When does the Synthetic Harbor insurance claims committee review applications and how long is the appeal window?", "supports": ["harbor_review"]},
+    {"id": "q04", "question": "How many withdrawals does Synthetic Meadow personal savings allow and what notice is needed?", "supports": ["meadow_withdrawal"]},
+    {"id": "q05", "question": "When are Synthetic Meadow personal savings statements published and when should errors be reported?", "supports": ["meadow_statement"]},
+    {"id": "q06", "question": "When does Synthetic Meadow personal savings become dormant and what is needed for reactivation?", "supports": ["meadow_dormancy"]},
+    {"id": "q07", "question": "Who approves Synthetic Cedar employee travel before booking and what paperwork must be kept?", "supports": ["cedar_approval"]},
+    {"id": "q08", "question": "What is the Synthetic Cedar employee travel receipt deadline and review day?", "supports": ["cedar_reimbursement"]},
+    {"id": "q09", "question": "Who approves Synthetic Cedar employee international travel and how long must the passport be valid?", "supports": ["cedar_international"]},
+    {"id": "q10", "question": "What is the Synthetic Harbor auto insurance claim deadline and required paperwork?", "supports": ["auto_claim"]},
+    {"id": "q11", "question": "When are Synthetic Harbor auto insurance applications reviewed and what is the appeal window?", "supports": ["auto_review"]},
+    {"id": "q12", "question": "Does Synthetic Harbor auto insurance cover normal tyre wear or collision damage?", "supports": ["auto_exclusion"]},
+    {"id": "q13", "question": "How many withdrawals does Synthetic Meadow business savings allow and what notice is needed?", "supports": ["business_withdrawal"]},
+    {"id": "q14", "question": "When are Synthetic Meadow business savings statements published and when should errors be reported?", "supports": ["business_statement"]},
+    {"id": "q15", "question": "When does Synthetic Meadow business savings become dormant and what is needed for reactivation?", "supports": ["business_dormancy"]},
+    {"id": "q16", "question": "Who approves Synthetic Cedar guest travel and what paperwork must be kept?", "supports": ["guest_approval"]},
+    {"id": "q17", "question": "What is the Synthetic Cedar guest travel receipt deadline and review day?", "supports": ["guest_reimbursement"]},
+    {"id": "q18", "question": "Who approves Synthetic Cedar guest international travel and how long must the passport be valid?", "supports": ["guest_international"]},
+    {"id": "q19", "question": "For Synthetic Harbor insurance excluding auto, combine claim submission requirements with committee review and appeal deadlines.", "supports": ["harbor_claim", "harbor_review"]},
+    {"id": "q20", "question": "For Synthetic Meadow personal savings, combine withdrawal notice with the statement error reporting window.", "supports": ["meadow_withdrawal", "meadow_statement"]},
+    {"id": "q21", "question": "For Synthetic Cedar employee travel, combine pre-booking approval requirements with post-return receipt deadlines.", "supports": ["cedar_approval", "cedar_reimbursement"]},
+    {"id": "q22", "question": "Compare Synthetic Harbor auto insurance claim and appeal deadlines with the non-auto Harbor insurance policy.", "supports": ["auto_claim", "auto_review", "harbor_claim", "harbor_review"]},
+    {"id": "q23", "question": "Compare Synthetic Meadow personal and business savings statement publication and error reporting deadlines.", "supports": ["meadow_statement", "business_statement"]},
+    {"id": "q24", "question": "Compare Synthetic Cedar employee and guest international travel approval and passport validity requirements.", "supports": ["cedar_international", "guest_international"]},
+    {"id": "q25", "question": "What is the premium price for Synthetic Harbor insurance?", "supports": []},
+    {"id": "q26", "question": "What interest rate does Synthetic Meadow personal savings pay?", "supports": []},
+    {"id": "q27", "question": "What is the hotel spending limit for Synthetic Cedar employee travel?", "supports": []},
+    {"id": "q28", "question": "Which garages repair vehicles under Synthetic Harbor auto insurance?", "supports": []},
+    {"id": "q29", "question": "What tax deduction applies to Synthetic Meadow business savings?", "supports": []},
+    {"id": "q30", "question": "Which airlines are approved for Synthetic Cedar guest travel?", "supports": []}
+  ]
+}
