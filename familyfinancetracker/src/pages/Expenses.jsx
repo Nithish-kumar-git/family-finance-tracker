@@ -136,6 +136,8 @@ export default function Expenses() {
   // ── Toast state ──────────────────────────────────────────────────────────────
   const [toast,     setToast]     = useState(null)
   const toastTimer                = useRef(null)
+  const addInFlight               = useRef(false)
+  const addAttempt                = useRef(null)
 
   // ── Data loader ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -158,11 +160,12 @@ export default function Expenses() {
   const showToast = useCallback((message, type = 'success') => {
     clearTimeout(toastTimer.current)
     setToast({ message, type })
-    toastTimer.current = setTimeout(() => setToast(null), 2500)
+    toastTimer.current = setTimeout(() => setToast(null), type === 'error' ? 8000 : 2500)
   }, [])
 
   // ── handleAddExpense ─────────────────────────────────────────────────────────
   const handleAddExpense = async () => {
+    if (addInFlight.current) return
     setFormError('')
     const parsedAmount = parseInt(amount, 10)
     if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
@@ -179,9 +182,16 @@ export default function Expenses() {
       isRecurring,
     }
 
+    const draftKey = JSON.stringify(expense)
+    if (addAttempt.current?.key !== draftKey) {
+      addAttempt.current = { key: draftKey, submission: {} }
+    }
+
+    addInFlight.current = true
     setAddLoading(true)
     try {
-      await hookAddExpense(expense)
+      const saved = await hookAddExpense(expense, addAttempt.current.submission)
+      addAttempt.current = null
       // Reset form
       setAmount('')
       setDescription('')
@@ -190,12 +200,21 @@ export default function Expenses() {
       setIsRecurring(false)
       setParsedByAI(false)
       setFormError('')
-      showToast('Expense added ✓', 'success')
+      if (saved.recurringSave.unconfirmed > 0) {
+        const message = `Main expense saved to server. ${saved.recurringSave.unconfirmed} of 3 recurring saves could not be confirmed. Check History before adding them again.`
+        setFormError(message)
+        showToast(message, 'error')
+      } else {
+        showToast('Expense saved to server', 'success')
+      }
       // Reload data for the currently selected month
       loadData()
     } catch {
-      showToast('Failed to save — try again', 'error')
+      const message = 'Server save could not be confirmed. Your form is unchanged. Check History before submitting again to avoid duplicates.'
+      setFormError(message)
+      showToast(message, 'error')
     } finally {
+      addInFlight.current = false
       setAddLoading(false)
     }
   }
@@ -205,9 +224,7 @@ export default function Expenses() {
     setParseLoading(true)
     const result = await api.ai.parseTransaction(smsText)
     if (result === null) {
-      // Offline / error — close silently, no error message
-      setSmsModalOpen(false)
-      setSmsText('')
+      showToast('Could not parse the transaction. Your text is unchanged. Try again shortly or enter the expense manually.', 'error')
       setParseLoading(false)
       return
     }
@@ -244,7 +261,7 @@ export default function Expenses() {
       showToast('Expense deleted', 'success')
     } catch {
       setDeletingId(null)
-      showToast('Could not delete — please try again', 'error')
+      showToast('Deletion could not be confirmed. Check your connection and refresh History before trying again.', 'error')
     }
   }
 
@@ -283,8 +300,9 @@ export default function Expenses() {
       {/* ── Toast ─────────────────────────────────────────────────────────── */}
       {toast && (
         <div
+          role={toast.type === 'error' ? 'alert' : 'status'}
           className={`fixed bottom-20 left-1/2 -translate-x-1/2 z-50 rounded-2xl px-5 py-3 text-sm
-            font-medium shadow-xl flex items-center gap-2 whitespace-nowrap
+            font-medium shadow-xl flex items-center gap-2 w-max max-w-[calc(100vw-2rem)] whitespace-normal
             ${toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}`}
         >
           {toast.message}
@@ -418,7 +436,7 @@ export default function Expenses() {
         {activeTab === 'add' && (
           <div className="lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
             <div>
-          <div className="flex flex-col gap-4">
+          <fieldset disabled={addLoading} className="flex flex-col gap-4">
 
             {/* Amount + SMS parser */}
             <div>
@@ -569,6 +587,11 @@ export default function Expenses() {
             </div>
 
             {/* Submit */}
+            {formError && (
+              <p role="alert" className="text-sm text-red-700 bg-red-50 rounded-lg px-3 py-2">
+                {formError}
+              </p>
+            )}
             <Button
               variant="primary"
               size="lg"
@@ -578,7 +601,7 @@ export default function Expenses() {
             >
               Add Expense
             </Button>
-          </div>
+          </fieldset>
           </div>
           
           {/* Second column for recent expenses preview on desktop */}

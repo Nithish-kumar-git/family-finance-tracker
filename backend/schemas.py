@@ -34,6 +34,7 @@ class UserResponse(BaseModel):
 # ── Expense ───────────────────────────────────────────────────────────────────
 
 class ExpenseCreate(BaseModel):
+    id: Optional[str] = None
     userId: str
     amount: float
     category: str

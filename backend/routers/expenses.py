@@ -4,6 +4,7 @@ import uuid
 import pandas as pd
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from typing import Optional
 
 from database import get_db
@@ -51,9 +52,30 @@ def create_expense(body: ExpenseCreate, db: Session = Depends(get_db)):
     """Create a new expense record."""
     if body.category not in VALID_CATEGORIES:
         raise HTTPException(status_code=400, detail=f"Invalid category: {body.category}")
-    expense = Expense(id=str(uuid.uuid4()), **body.model_dump())
+    values = body.model_dump(exclude={'id'})
+    expense_id = body.id or str(uuid.uuid4())
+
+    def existing_submission():
+        existing = db.query(Expense).filter(Expense.id == expense_id).first()
+        if existing and any(getattr(existing, key) != value for key, value in values.items()):
+            raise HTTPException(status_code=409, detail='Submission ID already used for a different expense')
+        return existing
+
+    if body.id:
+        existing = existing_submission()
+        if existing:
+            return existing
+    expense = Expense(id=expense_id, **values)
     db.add(expense)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        # The primary key also guards overlapping retries from separate requests.
+        existing = existing_submission() if body.id else None
+        if existing:
+            return existing
+        raise
     db.refresh(expense)
     return expense
 

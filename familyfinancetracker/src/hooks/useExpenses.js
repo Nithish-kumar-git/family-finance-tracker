@@ -93,11 +93,11 @@ export const useExpenses = () => {
   // On success: stores via Zustand and handles recurring expansion.
   // On failure: throws so the caller (Expenses.jsx) can show a toast.
 
-  const addExpense = async (expenseData) => {
+  const addExpense = async (expenseData, submission = {}) => {
     // Build the full, normalised expense object
     const today = new Date().toISOString().split('T')[0]
     const fullExpense = {
-      id: generateId(),
+      id: submission.id ?? (submission.id = generateId()),
       userId: expenseData.userId ?? null,
       amount: typeof expenseData.amount === 'string'
         ? parseInt(expenseData.amount, 10)
@@ -108,32 +108,44 @@ export const useExpenses = () => {
       isRecurring: Boolean(expenseData.isRecurring),
     }
 
-    // Save primary expense — throw on failure so caller shows toast
-    await api.expenses.add(fullExpense)
-    useStore.getState().addExpense(fullExpense)
+    // Only a matching server acknowledgement may enter the local cache.
+    const saveConfirmed = async expense => {
+      const saved = await api.expenses.add(expense)
+      if (!saved || typeof saved.id !== 'string' || !saved.id.trim()
+          || saved.date !== expense.date || saved.userId !== expense.userId
+          || saved.amount !== expense.amount || saved.category !== expense.category) {
+        throw new Error('Expense save could not be confirmed')
+      }
+      useStore.getState().addExpense(saved)
+      return saved
+    }
+    const savedExpense = await saveConfirmed(fullExpense)
+    const recurringSave = { requested: fullExpense.isRecurring ? 3 : 0, confirmed: 0, unconfirmed: 0 }
 
     // If recurring, save 3 more on the 1st of the next 3 months
     if (fullExpense.isRecurring) {
       for (let i = 1; i <= 3; i++) {
-        const nextDate = format(
-          startOfMonth(addMonths(new Date(fullExpense.date), i)),
-          'yyyy-MM-dd'
-        )
-        const recurringExpense = {
-          ...fullExpense,
-          id: generateId(),
-          date: nextDate,
-        }
         try {
-          await api.expenses.add(recurringExpense)
-          useStore.getState().addExpense(recurringExpense)
+          const nextDate = format(
+            startOfMonth(addMonths(new Date(fullExpense.date), i)),
+            'yyyy-MM-dd'
+          )
+          const recurringExpense = {
+            ...fullExpense,
+            id: generateId(),
+            date: nextDate,
+          }
+          await saveConfirmed(recurringExpense)
+          recurringSave.confirmed++
         } catch {
-          // Silently skip — do not roll back the primary expense
+          // Primary save stays confirmed; ambiguous child saves are never retried.
+          recurringSave.unconfirmed++
         }
       }
     }
 
-    return fullExpense
+    // This status is returned to the UI only, not persisted in financial records.
+    return { ...savedExpense, recurringSave }
   }
 
   // ── deleteExpense ──────────────────────────────────────────────────────────
@@ -144,7 +156,7 @@ export const useExpenses = () => {
   const deleteExpense = async (id) => {
     const result = await api.expenses.remove(id)
     // The API returns { deleted: true } on success, or throws
-    if (result && (result.deleted === true || result)) {
+    if (result?.deleted === true) {
       useStore.getState().deleteExpense(id)
       return true
     }

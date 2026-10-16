@@ -13,14 +13,22 @@ from schemas import (
 router = APIRouter()
 
 
+def _failure(error):
+    if not isinstance(error, ai_service.AIServiceError):
+        error = ai_service.AIServiceError('AI_UNAVAILABLE', 'AI is temporarily unavailable. Please try again shortly.', True)
+    headers = {'Retry-After': '60'} if error.code == 'AI_RATE_LIMITED' else None
+    return JSONResponse(status_code=error.status_code, headers=headers, content={
+        'error': {'code': error.code, 'message': error.message, 'retryable': error.retryable}})
+
+
 @router.post("/ai/parse-transaction", response_model=ParseTransactionResponse)
 def parse_transaction(body: ParseTransactionRequest):
     """Parse a raw UPI/SMS text into structured expense fields using Gemini."""
     try:
         result = ai_service.parse_transaction(body.raw_text)
         return ParseTransactionResponse(**result)
-    except Exception:
-        return JSONResponse(status_code=503, content={"error": "AI unavailable"})
+    except Exception as error:
+        return _failure(error)
 
 
 @router.post("/ai/monthly-insights", response_model=MonthlyInsightsResponse)
@@ -29,8 +37,8 @@ def monthly_insights(body: MonthlyInsightsRequest):
     try:
         insights = ai_service.get_monthly_insights(body.report)
         return MonthlyInsightsResponse(insights=insights)
-    except Exception:
-        return JSONResponse(status_code=503, content={"error": "AI unavailable"})
+    except Exception as error:
+        return _failure(error)
 
 
 @router.post("/ai/chat", response_model=ChatResponse)
@@ -39,5 +47,5 @@ def chat(body: ChatRequest):
     try:
         answer = ai_service.chat(body.question, body.context, body.history)
         return ChatResponse(answer=answer)
-    except Exception:
-        return JSONResponse(status_code=503, content={"error": "AI unavailable"})
+    except Exception as error:
+        return _failure(error)

@@ -4,7 +4,8 @@ sqlalchemy
 psycopg2-binary
 psycopg[binary]
 pydantic
-google-genai==1.16.0
+google-genai==1.16.1
+httpx==0.28.1
 pandas
 python-dotenv
 python-multipart

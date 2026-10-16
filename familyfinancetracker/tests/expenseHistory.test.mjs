@@ -256,6 +256,7 @@ test('History API has no store writes; legacy Dashboard contract and body are un
   await module.link(specifier => {
     if (specifier.includes('useStore')) return new vm.SyntheticModule(['default'], function () { this.setExport('default', { getState: () => store }) }, { context })
     if (specifier.includes('expenseHistory')) return new vm.SyntheticModule(['readHistoryMonth'], function () { this.setExport('readHistoryMonth', history.readHistoryMonth) }, { context })
+    if (specifier.includes('ammaChat')) return new vm.SyntheticModule(['readChat'], function () { this.setExport('readChat', () => { throw Error('Chat blocked in History fixture') }) }, { context })
     throw new Error('Unexpected application import blocked')
   })
   await module.evaluate()
@@ -452,8 +453,8 @@ test('deletions suppress pending fallback copies too, without adding persistent 
   assert.equal(states.at(-1).categoryTotals.other, 1)
 })
 
-test('actual existing offline Add reproduces duplicate storage; History reads preserve it without writes', async () => {
-  const rows = []; let writes = 0
+test('failed Add does not append rows; History preserves pre-existing local duplicates without writes', async () => {
+  const rows = [row(), row()]; let writes = 0
   const store = { expenses: rows, setIsOffline: () => { writes++ }, addExpense: item => { rows.push(item); writes++ } }
   const context = vm.createContext({ URLSearchParams, crypto: { randomUUID: () => 'synthetic-offline-id' }, fetch: async () => { throw Error('Synthetic offline') } })
   const storeModule = new vm.SyntheticModule(['default'], function () { this.setExport('default', { getState: () => store }) }, { context })
@@ -464,6 +465,7 @@ test('actual existing offline Add reproduces duplicate storage; History reads pr
   await apiModule.link(specifier => {
     if (specifier.includes('useStore')) return storeModule
     if (specifier.includes('expenseHistory')) return historyModule
+    if (specifier.includes('ammaChat')) return new vm.SyntheticModule(['readChat'], function () { this.setExport('readChat', () => { throw Error('Chat blocked in History fixture') }) }, { context })
     throw Error('Unexpected application import blocked')
   })
   await apiModule.evaluate()
@@ -479,7 +481,7 @@ test('actual existing offline Add reproduces duplicate storage; History reads pr
   })
   await hookModule.evaluate()
   const hook = hookModule.namespace.useExpenses()
-  await hook.addExpense(row())
+  await assert.rejects(hook.addExpense(row()), /Network error/)
   assert.equal(rows.length, 2)
   assert.equal(rows[0].id, rows[1].id)
   const snapshot = JSON.stringify(rows), previousWrites = writes

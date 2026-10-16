@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useStore from '../store/useStore'
 import { api } from '../utils/api'
+import { getChatErrorMessage } from '../utils/ammaChat'
 import {
   formatCurrency, formatDeficit, formatDate, daysUntil,
   getGreeting, formatMonth,
@@ -36,7 +37,7 @@ const SUGGESTIONS = [
 export default function Dashboard() {
   const navigate = useNavigate()
   const state = useStore()
-  const { currentUser, users, monthlySnapshots, emergencyFund, monthlyIncome, isOffline } = state
+  const { currentUser, users, monthlySnapshots, emergencyFund, monthlyIncome } = state
 
   const user = users.find(u => u.id === currentUser)
   const now = new Date()
@@ -53,7 +54,17 @@ export default function Dashboard() {
   const [chatHistory, setChatHistory] = useState([])
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
+  const [chatError, setChatError] = useState(null)
+  const [chatRetryable, setChatRetryable] = useState(false)
+  const chatRequestRef = useRef(null)
+  const retryAttemptRef = useRef(null)
   const messagesEndRef = useRef(null)
+
+  useEffect(() => () => {
+    const pending = chatRequestRef.current
+    chatRequestRef.current = null
+    pending?.abort()
+  }, [])
 
   // ── Derive expenses from Zustand store reactively ─────────────────────
   const allExpenses = useStore(state => state.expenses)
@@ -106,7 +117,7 @@ export default function Dashboard() {
   // ── Scroll chat to bottom ─────────────────────────────────────────────
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [chatHistory])
+  }, [chatHistory, chatLoading, chatError])
 
   // ── Computed values ───────────────────────────────────────────────────
   const income = getMonthlyIncome(state)
@@ -170,9 +181,36 @@ export default function Dashboard() {
   }
 
   // ── Send chat message ─────────────────────────────────────────────────
+  const sendChatAttempt = async (attempt) => {
+    if (chatRequestRef.current) return
+    const request = new AbortController()
+    chatRequestRef.current = request
+    setChatError(null)
+    setChatRetryable(false)
+    setChatLoading(true)
+    try {
+      const result = await api.ai.chat(attempt.question, attempt.context, attempt.history, {
+        signal: request.signal,
+      })
+      if (chatRequestRef.current !== request) return
+      setChatHistory(prev => [...prev, { role: 'ai', content: result.answer }])
+      retryAttemptRef.current = null
+    } catch (error) {
+      if (chatRequestRef.current === request) {
+        setChatError(getChatErrorMessage(error))
+        setChatRetryable(error?.retryable === true)
+      }
+    } finally {
+      if (chatRequestRef.current === request) {
+        chatRequestRef.current = null
+        setChatLoading(false)
+      }
+    }
+  }
+
   const handleSend = async (text) => {
     const question = (text ?? chatInput).trim()
-    if (!question) return
+    if (!question || chatRequestRef.current) return
 
     const trimmed = chatHistory.length >= 10
       ? chatHistory.slice(chatHistory.length - 9)
@@ -181,17 +219,19 @@ export default function Dashboard() {
     const newHistory = [...trimmed, { role: 'user', content: question }]
     setChatHistory(newHistory)
     setChatInput('')
-    setChatLoading(true)
 
     const apiHistory = trimmed.slice(-6).map(h => ({
       role: h.role === 'user' ? 'user' : 'model',
       content: h.content,
     }))
 
-    const result = await api.ai.chat(question, buildContext(), apiHistory)
-    const answer = result?.answer ?? "I'm unable to answer right now. Please try again in a moment."
-    setChatHistory(prev => [...prev, { role: 'ai', content: answer }])
-    setChatLoading(false)
+    const attempt = { question, context: buildContext(), history: apiHistory }
+    retryAttemptRef.current = attempt
+    await sendChatAttempt(attempt)
+  }
+
+  const handleChatRetry = () => {
+    if (retryAttemptRef.current) return sendChatAttempt(retryAttemptRef.current)
   }
 
   // ── Loading skeleton ──────────────────────────────────────────────────
@@ -531,7 +571,7 @@ export default function Dashboard() {
         aria-label="Ask Amma AI"
       >
         <MessageCircle size={20} />
-        {isOffline && (
+        {chatError && (
           <span className="absolute top-0 right-0 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-white" />
         )}
       </button>
@@ -551,17 +591,6 @@ export default function Dashboard() {
               </button>
             </div>
 
-            {isOffline && (
-              <div className="flex-1 flex items-center justify-center p-6">
-                <div className="text-center">
-                  <AlertCircle size={32} className="text-slate-400 mx-auto mb-2" />
-                  <p className="text-sm text-slate-600 font-medium">Ask Amma AI is unavailable offline.</p>
-                  <p className="text-xs text-slate-400 mt-1">Your data is safe.</p>
-                </div>
-              </div>
-            )}
-
-            {!isOffline && (
               <>
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
                   {chatHistory.length === 0 && (
@@ -571,6 +600,7 @@ export default function Dashboard() {
                         <button
                           key={i}
                           onClick={() => handleSend(s)}
+                          disabled={chatLoading}
                           className="w-full text-left text-xs bg-indigo-50 border border-indigo-100 text-indigo-700 rounded-xl px-3 py-2.5 hover:bg-indigo-100 transition-colors"
                         >
                           {s}
@@ -592,12 +622,21 @@ export default function Dashboard() {
                   ))}
 
                   {chatLoading && (
-                    <div className="flex justify-start">
+                    <div className="flex justify-start" role="status" aria-label="Amma AI is replying">
                       <div className="bg-slate-100 rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1">
                         <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                         <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                         <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                       </div>
+                    </div>
+                  )}
+
+                  {chatError && (
+                    <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                      <p className="flex items-start gap-2"><AlertCircle size={18} className="flex-shrink-0" aria-hidden="true" />{chatError}</p>
+                      {chatRetryable && <button onClick={handleChatRetry} disabled={chatLoading} className="mt-2 rounded-lg border border-amber-300 px-3 py-2 font-medium disabled:opacity-50">
+                        Retry
+                      </button>}
                     </div>
                   )}
 
@@ -616,19 +655,20 @@ export default function Dashboard() {
                       }
                     }}
                     placeholder="Ask about your finances..."
+                    aria-label="Message Amma AI"
                     disabled={chatLoading}
                     className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50"
                   />
                   <button
                     onClick={() => handleSend()}
                     disabled={chatLoading || !chatInput.trim()}
+                    aria-label="Send message"
                     className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
                   >
                     <Send size={16} />
                   </button>
                 </div>
               </>
-            )}
           </div>
         </>
       )}

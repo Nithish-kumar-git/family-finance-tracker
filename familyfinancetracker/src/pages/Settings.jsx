@@ -286,7 +286,7 @@ export default function Settings() {
       // Step 3b: error path — do NOT clear localStorage, do NOT update store
       setResetLoading(false)
       setResetModal(false)
-      showToast('Reset failed — your data is safe. Try again.', 'error')
+      showToast('Reset is unavailable. Your local data is unchanged. Contact the app administrator.', 'error')
     }
   }
 

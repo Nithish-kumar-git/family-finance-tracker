@@ -3,6 +3,7 @@
 
 import useStore from '../store/useStore.js'
 import { readHistoryMonth } from './expenseHistory.js'
+import { readChat } from './ammaChat.js'
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
@@ -79,24 +80,20 @@ export const api = {
     },
 
     async add(expense) {
-      try {
-        return await apiFetch('/api/expenses', {
-          method: 'POST',
-          body: JSON.stringify(expense),
-        })
-      } catch {
-        useStore.getState().addExpense(expense)
-        return expense
-      }
+      // A failed/unconfirmed POST must not masquerade as a server save.
+      // Keep the draft in the form; never retry or upload old local rows here.
+      return await apiFetch('/api/expenses', {
+        method: 'POST',
+        body: JSON.stringify(expense),
+      })
     },
 
     async remove(id) {
-      try {
-        return await apiFetch(`/api/expenses/${id}`, { method: 'DELETE' })
-      } catch {
-        useStore.getState().deleteExpense(id)
-        return { deleted: true }
+      const result = await apiFetch(`/api/expenses/${encodeURIComponent(id)}`, { method: 'DELETE' })
+      if (result?.deleted !== true) {
+        throw new Error('Server deletion could not be confirmed')
       }
+      return result
     },
   },
 
@@ -418,15 +415,9 @@ export const api = {
       }
     },
 
-    async chat(question, context, history) {
-      try {
-        return await apiFetch('/api/ai/chat', {
-          method: 'POST',
-          body: JSON.stringify({ question, context, history }),
-        })
-      } catch {
-        return null
-      }
+    async chat(question, context, history, { signal } = {}) {
+      // Keep the wire contract; surface chat failures to its own UI, not isOffline.
+      return readChat({ baseUrl: BASE_URL, question, context, history, signal })
     },
   },
 }

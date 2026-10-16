@@ -4,6 +4,8 @@ __pycache__/
 *.pyc
 *.pyo
 node_modules/
+.venv/
+.verification/
 dist/
 *.db
 .DS_Store

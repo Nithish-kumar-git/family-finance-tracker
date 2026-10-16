@@ -2,14 +2,61 @@
 
 import json
 import os
+import math
+import httpx
+from functools import lru_cache
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# Single client instance — new SDK uses Client object, not module-level configure()
-_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+class AIServiceError(Exception):
+    """Public, sanitized failure contract shared by all AI operations."""
+
+    def __init__(self, code, message, retryable, status_code=503):
+        super().__init__(message)
+        self.code = code
+        self.message = message
+        self.retryable = retryable
+        self.status_code = status_code
+
+
+def _invalid_response():
+    return AIServiceError('AI_INVALID_RESPONSE', 'AI returned an incomplete response. Please try again.', True)
+
+
+@lru_cache(maxsize=1)
+def _get_client(key):
+    # Reuse the SDK's connection pool. This pinned SDK has no public close API.
+    return genai.Client(api_key=key, vertexai=False, http_options=types.HttpOptions(timeout=20_000))
+
+
+def _generate(**kwargs):
+    # Optional AI configuration must never prevent non-AI routes from starting.
+    key = os.getenv('GEMINI_API_KEY', '').strip()
+    if not key or key.lower() in {'your_gemini_api_key_here', 'your_api_key', 'changeme'}:
+        raise AIServiceError('AI_NOT_CONFIGURED', 'AI is not configured. Ask the app administrator to configure it.', False)
+    try:
+        # One bounded attempt; retries are explicit user actions. No household
+        # prompts, credentials or raw provider exceptions are logged or returned.
+        client = _get_client(key)
+        response = client.models.generate_content(**kwargs)
+        text = response.text
+        if not isinstance(text, str) or not text.strip():
+            raise _invalid_response()
+        return text.strip()
+    except AIServiceError:
+        raise
+    except Exception as error:
+        code = getattr(error, 'code', None)
+        if code == 429:
+            raise AIServiceError('AI_RATE_LIMITED', 'AI is busy. Wait a minute before trying again.', True, 429) from None
+        if code in {400, 401, 403, 404} or isinstance(error, ValueError):
+            raise AIServiceError('AI_CONFIGURATION', 'AI configuration needs attention. Contact the app administrator.', False) from None
+        if isinstance(error, (TimeoutError, httpx.TimeoutException)):
+            raise AIServiceError('AI_TIMEOUT', 'AI took too long to respond. Please try again.', True) from None
+        raise AIServiceError('AI_UNAVAILABLE', 'AI is temporarily unavailable. Please try again shortly.', True) from None
 
 _PARSER_MODEL  = "gemini-2.5-flash-lite"
 _INSIGHT_MODEL = "gemini-2.5-flash-lite"
@@ -36,21 +83,27 @@ def parse_transaction(raw_text: str) -> dict:
         f"Input: {raw_text}"
     )
     try:
-        response = _client.models.generate_content(
+        text = _generate(
             model=_PARSER_MODEL,
             contents=prompt,
             config=types.GenerateContentConfig(temperature=0.0),
         )
-        text = response.text.strip()
         if text.startswith("```"):
             lines = text.split("\n")
             text = "\n".join(lines[1:-1]) if len(lines) > 2 else text
-        return json.loads(text)
-    except Exception as e:
-        err = str(e).lower()
-        if "429" in err or "quota" in err or "too many" in err:
-            return {"amount": 0, "category": "other", "description": "Rate limit — retry in 60s", "confidence": 0.0}
-        return {"amount": 0, "category": "other", "description": "", "confidence": 0.0}
+        result = json.loads(text)
+        if (not isinstance(result, dict)
+                or result.get('category') not in {'groceries', 'utilities', 'medical', 'transport',
+                    'household', 'lic_premium', 'chit_contribution', 'personal', 'education', 'other'}
+                or type(result.get('amount')) not in {int, float}
+                or not math.isfinite(result['amount']) or result['amount'] <= 0
+                or type(result.get('confidence')) not in {int, float}
+                or not 0 <= result['confidence'] <= 1
+                or not isinstance(result.get('description'), str)):
+            raise _invalid_response()
+        return result
+    except (ValueError, TypeError):
+        raise _invalid_response() from None
 
 
 def get_monthly_insights(report_json: dict) -> list:
@@ -68,33 +121,20 @@ def get_monthly_insights(report_json: dict) -> list:
         f"Report data: {json.dumps(report_json)}"
     )
     try:
-        response = _client.models.generate_content(
+        text = _generate(
             model=_INSIGHT_MODEL,
             contents=prompt,
             config=types.GenerateContentConfig(temperature=0.3),
         )
-        text = response.text.strip()
         if text.startswith("```"):
             lines = text.split("\n")
             text = "\n".join(lines[1:-1]) if len(lines) > 2 else text
-        return json.loads(text.strip())
-    except Exception as e:
-        err = str(e).lower()
-        if "429" in err or "quota" in err or "too many" in err:
-            return [
-                "Rate limit reached — please wait 60 seconds and try again.",
-                "Your financial data is saved and accurate.",
-                "Review the report cards above for current month summary.",
-                "Use the Copy for Claude Analysis button to get detailed feedback.",
-                "Gemini free tier allows ~15 requests per minute.",
-            ]
-        return [
-            "Unable to generate AI insights at this time.",
-            "Please check your internet connection and try again.",
-            "Your financial data is saved and accurate.",
-            "Review the report cards above for current month summary.",
-            "Use the Copy for Claude Analysis button to get detailed feedback.",
-        ]
+        result = json.loads(text)
+        if not isinstance(result, list) or len(result) != 5 or not all(isinstance(item, str) and item.strip() for item in result):
+            raise _invalid_response()
+        return result
+    except (ValueError, TypeError):
+        raise _invalid_response() from None
 
 
 def chat(question: str, context: dict, history: list) -> str:
@@ -115,18 +155,11 @@ def chat(question: str, context: dict, history: list) -> str:
         contents.append(types.Content(role=role, parts=[types.Part(text=h.get("content", ""))]))
     contents.append(types.Content(role="user", parts=[types.Part(text=question)]))
 
-    try:
-        response = _client.models.generate_content(
-            model=_CHAT_MODEL,
-            contents=contents,
-            config=types.GenerateContentConfig(
-                system_instruction=system_instruction,
-                temperature=0.3,
-            ),
-        )
-        return response.text.strip()
-    except Exception as e:
-        err = str(e).lower()
-        if "429" in err or "quota" in err or "too many" in err:
-            return "Rate limit reached — please wait 60 seconds and try again."
-        return "I'm unable to answer right now. Please try again in a moment."
+    return _generate(
+        model=_CHAT_MODEL,
+        contents=contents,
+        config=types.GenerateContentConfig(
+            system_instruction=system_instruction,
+            temperature=0.3,
+        ),
+    )

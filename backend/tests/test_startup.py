@@ -95,6 +95,14 @@ class StartupTests(unittest.TestCase):
         self.assertIn('psycopg[binary]', dependencies)
         self.assertIn('psycopg2-binary', dependencies, 'Existing driver compatibility must remain')
 
+    def test_entrypoint_import_without_gemini_credentials(self):
+        self.run_isolated("""
+            os.environ.pop('GEMINI_API_KEY', None)
+            import main
+            assert '/api/expenses' in main.app.openapi()['paths']
+            ai_constructor.assert_not_called()
+        """)
+
     def test_exact_reported_failure_when_psycopg_module_is_missing(self):
         self.run_isolated("""
             import builtins
@@ -137,7 +145,7 @@ class StartupTests(unittest.TestCase):
             assert database.engine.dialect.driver == 'psycopg'
             paths = set(main.app.openapi()['paths'])
             assert {'/health', '/api/expenses', '/api/ai/chat'} <= paths
-            ai_constructor.assert_called_once_with(api_key='synthetic-not-a-real-key')
+            ai_constructor.assert_not_called()
         """)
 
     def test_existing_psycopg2_entrypoint_still_imports_without_service_calls(self):
@@ -146,7 +154,7 @@ class StartupTests(unittest.TestCase):
             import database
             assert database.engine.dialect.driver == 'psycopg2'
             assert database.engine.url == sqlalchemy.engine.make_url(os.environ['SUPABASE_DATABASE_URL'])
-            ai_constructor.assert_called_once_with(api_key='synthetic-not-a-real-key')
+            ai_constructor.assert_not_called()
         """, driver='psycopg2')
 
     def test_default_postgresql_driver_also_imports_without_service_calls(self):
@@ -157,7 +165,7 @@ class StartupTests(unittest.TestCase):
             import database
             assert database.engine.dialect.driver in {'psycopg', 'psycopg2'}
             assert database.engine.url == sqlalchemy.engine.make_url(os.environ['SUPABASE_DATABASE_URL'])
-            ai_constructor.assert_called_once_with(api_key='synthetic-not-a-real-key')
+            ai_constructor.assert_not_called()
         """, driver=None)
 
 
