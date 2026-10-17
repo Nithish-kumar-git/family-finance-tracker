@@ -14,11 +14,12 @@ PROFILE_IDS = {'mother', 'nithish', 'abeerami'}
 def _configuration():
     url = os.getenv('SUPABASE_URL', '').rstrip('/')
     key = os.getenv('SUPABASE_PUBLISHABLE_KEY', '')
-    parsed = urlsplit(url)
     try:
+        parsed = urlsplit(url)
         profiles = json.loads(os.getenv('FAMILY_EMAIL_PROFILES', '{}'))
     except (ValueError, TypeError):
-        profiles = None
+        raise HTTPException(503, detail={'code': 'AUTH_NOT_CONFIGURED',
+                            'message': 'Family sign-in needs configuration by the app administrator.'}) from None
     if (parsed.scheme != 'https' or not (parsed.hostname or '').endswith('.supabase.co')
             or parsed.username or parsed.password or parsed.path or parsed.query or parsed.fragment
             or not key or not isinstance(profiles, dict) or not profiles

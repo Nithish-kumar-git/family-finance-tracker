@@ -3,6 +3,9 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "test": "node --jitless --experimental-vm-modules --test tests/*.test.mjs",
     "dev": "vite",
@@ -15,7 +18,7 @@
     "lucide-react": "^0.383.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.22.3",
+    "react-router-dom": "7.18.4",
     "recharts": "^2.12.2",
     "zustand": "^4.5.2"
   },
@@ -24,7 +27,7 @@
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
-    "vite": "^5.2.0",
-    "vite-plugin-pwa": "^0.19.8"
+    "vite": "6.4.3",
+    "vite-plugin-pwa": "0.21.2"
   }
 }

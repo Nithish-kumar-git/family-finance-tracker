@@ -1,5 +1,10 @@
 # Coordinated security release — 17 October 2026
 
+Follow-up verification and the current release blockers are recorded in
+[security/RELEASE_READINESS.md](security/RELEASE_READINESS.md). The evidence below
+describes the original aee36c95 candidate; the follow-up adds authorization
+regressions and dependency fixes without changing production.
+
 ## Source and scope
 
 These changes build on verified fix commit b5dfa08397ada9681f3985db6df6c90865880691.
