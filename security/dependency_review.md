@@ -57,6 +57,19 @@ Removing them requires a deliberate Tailwind 4/postcss pipeline migration and
 visual regression checks. No forced overrides or stylesheet migration was
 performed as part of this authentication release.
 
+Follow-up registry check on this review: braces is still 3.0.3 and the latest
+selector-parser 6 release is 6.1.4. Tailwind 3.4.19 requires selector-parser
+^6.1.2 and postcss-nested ^6.2.0, so the parser's fixed 7.1.6 is outside the
+declared compatible range. Full audit remains 5 high / 2 moderate;
+production-only audit remains zero. No additional compatible patch was found
+for these outstanding advisories. A reviewed parent upgrade is the supported
+remediation path; an override across major versions would need separate
+compatibility and visual checks.
+
+The new migration rehearsal has a separate dev-only PGlite 0.5.10 dependency
+under `security/tests`, pinned by its own lockfile; its installation audit
+reports zero findings. It is not installed by the application production build.
+
 Upstream evidence:
 - https://github.com/remix-run/react-router/security/advisories/GHSA-wrjc-x8rr-h8h6
 - https://github.com/remix-run/react-router/blob/v7/docs/upgrading/v6.md

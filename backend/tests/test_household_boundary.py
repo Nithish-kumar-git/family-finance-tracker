@@ -81,6 +81,20 @@ class HouseholdBoundaryTests(unittest.TestCase):
                     self.assertEqual(response.status_code, 401)
         self.assertEqual(self.acquisitions, 0)
 
+    def test_auth_outage_or_redirect_never_allows_any_protected_operation(self):
+        import httpx
+        for failure in [302, 500, httpx.ReadTimeout('Synthetic private provider details')]:
+            self.provider.side_effect = failure if isinstance(failure, Exception) else None
+            self.provider.return_value = Mock(status_code=failure, text='Synthetic private provider details')
+            for method, path in self.protected_requests():
+                with self.subTest(failure=failure if isinstance(failure, int) else type(failure).__name__,
+                                  method=method, path=path):
+                    response = self.client.request(method, path, headers=self.headers)
+                    self.assertEqual(response.status_code, 503)
+                    self.assertEqual(response.json()['detail']['code'], 'AUTH_UNAVAILABLE')
+                    self.assertNotIn('private', response.text)
+        self.assertEqual(self.acquisitions, 0)
+
     def test_approved_members_share_household_expenses_and_retries_do_not_duplicate(self):
         body = {'id': 'synthetic-submission', 'userId': 'mother', 'amount': 1,
                 'category': 'other', 'date': '2099-01-01', 'description': 'Synthetic test only'}

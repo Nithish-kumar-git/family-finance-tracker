@@ -51,6 +51,9 @@ The prepared SQL alternative/defense in depth is `lockdown_data_api.sql`:
 enable RLS on the 13 tables and revoke table grants from PUBLIC, anon and
 authenticated, while retaining owner/service-role privileges. It adds bounded
 lock/statement timeouts and no broad authenticated policy. It is NOT APPLIED.
+Backend access also requires independent surviving CRUD/schema privileges;
+BYPASSRLS alone is insufficient. The statement-by-statement review and isolated
+PostgreSQL rehearsal are in `MIGRATION_REVIEW.md` and `security/tests`.
 Default grants from postgres and supabase_admin also expose future tables;
 future-default hardening is documented separately in SQL comments for review.
 
@@ -74,8 +77,11 @@ configured username with proof of the deployed role.
 `check_backend_role.py` runs SELECT-only catalog queries in a read-only
 transaction using the backend's actual environment. It reports login/effective
 roles, BYPASSRLS and each CRUD privilege without printing credentials. The owner
-must confirm the deployed role using the original connection configuration or
-run this check in that environment before applying the prepared RLS script.
+must verify the effective role before applying the prepared RLS script.
+`VERIFY_BACKEND_ROLE.md` supplies the minimal operator procedure: execute only
+`SELECT current_user;` through a private connection using the exact backend
+login. The optional broader script is not a substitute for that identity check
+and must not be run using the rejected local credentials or management login.
 A dedicated backend role with only required permissions is preferable as a
 separate approved change; no production roles or grants were changed here.
 
@@ -103,7 +109,13 @@ save acknowledgements, retry deduplication, deletion/missing deletion, reset
 denial and retryable sanitized AI failures. Fixed a malformed Auth URL previously
 raising an internal configuration exception; it now gives a sanitized 503.
 
-- Backend: 34 passed, 0 failed, 0 skipped.
+- Backend: 35 passed, 0 failed, 0 skipped. The additional regression rejects
+  Auth timeouts, upstream errors and redirects on every protected operation
+  before acquiring a database, without exposing provider error details.
+- Migration: 5 passed, 0 failed, 0 skipped against local in-memory PostgreSQL
+  18.6, including anon/authenticated denial, surviving backend/owner access,
+  unsafe role assumptions and rollback. The full migration is also executed
+  under a non-superuser table-owner identity. No production migration was run.
 - Frontend: 139 passed, 0 failed, 0 skipped, including existing draft-preservation,
   duplicate-submit and deletion-error tests and new actual-router gate tests.
 - Production build: passes with Vite 6.4.3 / PWA 0.21.2 and service-worker
@@ -134,6 +146,12 @@ submission, AI failure or signed-in cross-user workflow is claimed verified.
 Real expired signed-token behavior also remains untested live; local tests
 simulate rejection by Supabase. No test user was created and no provider request
 containing real household data was sent.
+
+`PREVIEW_TEST_RUNBOOK.md` now defines the synthetic fixture, setup access,
+ordered checks, limited cleanup and evidence classifications for that work.
+The provider branch inventory returned no development branches in this review.
+No isolated database was provisioned and no environment setting was changed.
+All authenticated live workflow checks remain blocked, not passed.
 
 ## Frontend blocker and required release sequence
 

@@ -1,13 +1,18 @@
 -- REVIEW ONLY: not applied. No records are inserted, changed, or deleted.
 -- This application accesses financial tables through its authenticated FastAPI
 -- server. Browser Supabase credentials are for Auth, never for the Data API.
--- Before applying, verify the deployed SQLAlchemy database role owns these
--- tables or has BYPASSRLS. Do not use FORCE ROW LEVEL SECURITY here.
+-- Before applying, verify the deployed SQLAlchemy database role retains schema
+-- USAGE and independent SELECT/INSERT/UPDATE/DELETE grants after this REVOKE,
+-- AND owns these tables or has BYPASSRLS. BYPASSRLS alone grants no table access.
+-- Grants inherited only from PUBLIC/anon/authenticated will be lost, including
+-- for a BYPASSRLS backend role. Do not use FORCE ROW LEVEL SECURITY here.
 -- Existing Data API consumers using anon/authenticated would lose access.
 -- Verified 2026-10-17: all 13 tables are owned by postgres, have RLS off,
 -- no policies, and ALL table privileges granted to anon/authenticated.
--- Local backend configuration names postgres (BYPASSRLS); the deployed
--- connection role still needs confirmation because Vercel hides sensitive envs.
+-- The deployed connection role is UNVERIFIED. Table ownership and the provider
+-- management connection do not prove which role the backend actually uses.
+-- Any approved execution must use the verified table-owner/grantor identity
+-- (postgres in the reviewed catalog); REVOKE is grantor-specific.
 BEGIN;
 SET LOCAL lock_timeout = '5s';
 SET LOCAL statement_timeout = '30s';

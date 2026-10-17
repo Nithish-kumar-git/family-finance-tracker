@@ -1,0 +1,11 @@
+{
+  "name": "finance-database-security-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test lockdown.test.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.10"
+  }
+}
