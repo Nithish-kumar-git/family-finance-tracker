@@ -1,3 +1,4 @@
+import { useFamilySession } from '../FamilySession.jsx'
 import { useLocation, useNavigate } from 'react-router-dom'
 import useStore from '../../store/useStore.js'
 import { PWAInstallButton } from '../ui/PWAInstallButton'
@@ -14,6 +15,7 @@ const ROUTE_TITLES = {
 }
 
 export default function Header() {
+  const session = useFamilySession()
   const location = useLocation()
   const navigate = useNavigate()
   const currentUser = useStore(s => s.currentUser)
@@ -34,10 +36,10 @@ export default function Header() {
         <div className="flex items-center gap-2">
           <PWAInstallButton />
           <button
-            onClick={() => navigate('/')}
+            onClick={async () => { await session.signOut(); navigate('/') }}
             className="relative w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
             style={{ backgroundColor: color }}
-            aria-label="Switch user"
+            aria-label="Sign out"
           >
             <span className="text-sm font-bold text-white">{initial}</span>
             {isOffline && (

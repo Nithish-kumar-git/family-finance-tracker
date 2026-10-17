@@ -1,134 +1,45 @@
-import { useState, useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import useStore from '../store/useStore.js'
-import { ChevronRight } from 'lucide-react'
-
-const USER_ROLES = {
-  mother:   'Head of Household',
-  nithish:  'Job Hunting',
-  abeerami: 'Govt Employee',
-}
+import { useRef, useState } from 'react'
+import { Navigate } from 'react-router-dom'
+import { authClient } from '../utils/authClient.js'
+import { useFamilySession } from '../components/FamilySession.jsx'
 
 export default function Auth() {
-  const navigate = useNavigate()
-  const users = useStore(s => s.users)
-  const setCurrentUser = useStore(s => s.setCurrentUser)
-
-  const [selectedUser, setSelectedUser] = useState(null)
-  const [pin, setPin] = useState('')
-  const [shake, setShake] = useState(false)
-  const inputRef = useRef(null)
-
-  // Focus hidden input when a user is selected
-  useEffect(() => {
-    if (selectedUser) {
-      setTimeout(() => inputRef.current?.focus(), 50)
-    }
-  }, [selectedUser])
-
-  // Auto-validate when 4 digits entered
-  useEffect(() => {
-    if (pin.length === 4 && selectedUser) {
-      const user = users.find(u => u.id === selectedUser)
-      if (user && pin === user.pin) {
-        setCurrentUser(selectedUser)
-        navigate('/dashboard')
-      } else {
-        // Wrong PIN — shake and clear
-        setShake(true)
-        setTimeout(() => {
-          setShake(false)
-          setPin('')
-          inputRef.current?.focus()
-        }, 600)
-      }
-    }
-  }, [pin, selectedUser, users, setCurrentUser, navigate])
-
-  const handleCardClick = (userId) => {
-    setSelectedUser(prev => prev === userId ? null : userId)
-    setPin('')
+  const session = useFamilySession()
+  const [email, setEmail] = useState('')
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const inFlight = useRef(false)
+  if (session.member) return <Navigate to="/dashboard" replace />
+  async function sendLink(event) {
+    event.preventDefault()
+    if (inFlight.current || !authClient) return
+    inFlight.current = true; setBusy(true); setError(''); setMessage('')
+    try {
+      const { error: failure } = await authClient.auth.signInWithOtp({
+        email: email.trim(),
+        options: { shouldCreateUser: false, emailRedirectTo: window.location.origin + '/' },
+      })
+      if (failure) throw Error('unavailable')
+      setMessage('If your email is enrolled, a sign-in link is on its way. Open it in this browser. Contact the app administrator if it does not arrive.')
+    } catch {
+      setError('The sign-in email could not be sent. Wait a minute and try again, or contact the app administrator.')
+    } finally { inFlight.current = false; setBusy(false) }
   }
-
-  return (
-    <div className="min-h-screen bg-slate-900">
-      <div className="max-w-sm mx-auto px-6 flex flex-col justify-center min-h-screen">
-        
-        {/* Top */}
-        <div className="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center mx-auto mb-6">
-          <span className="text-2xl font-bold text-white">₹</span>
-        </div>
-        <h1 className="text-2xl font-bold text-white text-center">FamilyFinanceTracker</h1>
-        <p className="text-sm text-slate-400 text-center mt-1 mb-8">Family finances, in one place.</p>
-
-        {/* User cards */}
-        <div className="flex flex-col">
-          {users.map(user => {
-            const isSelected = selectedUser === user.id
-
-            return (
-              <div key={user.id}>
-                <button
-                  onClick={() => handleCardClick(user.id)}
-                  className={`w-full flex items-center justify-between rounded-2xl p-4 mb-3 cursor-pointer border transition-colors
-                    ${isSelected ? 'border-indigo-500 bg-slate-800' : 'bg-slate-800 border-slate-700 hover:border-indigo-500'}
-                  `}
-                >
-                  <div className="text-left">
-                    <p className="text-base font-semibold text-white">{user.name}</p>
-                    <p className="text-xs text-slate-400">{USER_ROLES[user.id]}</p>
-                  </div>
-                  <ChevronRight size={18} className="text-slate-500" />
-                </button>
-
-                {isSelected && (
-                  <div className="mb-4">
-                    <div className={`mt-4 flex justify-center gap-3 ${shake ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}>
-                      {[0, 1, 2, 3].map(i => (
-                        <div
-                          key={i}
-                          onClick={() => inputRef.current?.focus()}
-                          className={`w-3 h-3 rounded-full ${i < pin.length ? (shake ? 'bg-red-500' : 'bg-indigo-500') : 'bg-slate-600'}`}
-                        />
-                      ))}
-                    </div>
-
-                    <input
-                      ref={inputRef}
-                      type="password"
-                      inputMode="numeric"
-                      maxLength={4}
-                      value={pin}
-                      onChange={e => {
-                        const val = e.target.value.replace(/\D/g, '').slice(0, 4)
-                        setPin(val)
-                      }}
-                      className="absolute opacity-0 w-0 h-0 pointer-events-none"
-                      aria-label="Enter PIN"
-                      autoComplete="off"
-                    />
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-
-        {/* Version */}
-        <p className="text-xs text-slate-600 text-center mt-8">v1.0.0</p>
-
-        <style>{`
-          @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            15%       { transform: translateX(-8px); }
-            30%       { transform: translateX(8px); }
-            45%       { transform: translateX(-8px); }
-            60%       { transform: translateX(8px); }
-            75%       { transform: translateX(-4px); }
-            90%       { transform: translateX(4px); }
-          }
-        `}</style>
-      </div>
-    </div>
-  )
+  return <div className="min-h-screen bg-slate-900 flex items-center justify-center px-6">
+    <form onSubmit={sendLink} className="w-full max-w-sm space-y-5 text-white">
+      <h1 className="text-2xl font-bold text-center">FamilyFinanceTracker</h1>
+      <p className="text-sm text-slate-300">Sign in with an enrolled family email to access your household.</p>
+      <label className="block text-sm">Family email
+        <input type="email" autoComplete="email" required value={email} onChange={event => setEmail(event.target.value)}
+          disabled={busy} className="mt-2 w-full rounded-xl border border-slate-500 bg-slate-800 px-4 py-3 text-white" />
+      </label>
+      <button type="submit" disabled={busy || !session.configured} className="w-full rounded-xl bg-indigo-600 px-4 py-3 font-semibold disabled:opacity-50">
+        {busy ? 'Sending…' : 'Email me a sign-in link'}
+      </button>
+      {!session.configured && <p role="alert" className="text-sm text-amber-200">Email sign-in needs configuration by the app administrator.</p>}
+      {(error || session.error) && <p role="alert" className="text-sm text-amber-200">{error || session.error}</p>}
+      {message && <p role="status" className="text-sm text-emerald-200">{message}</p>}
+    </form>
+  </div>
 }

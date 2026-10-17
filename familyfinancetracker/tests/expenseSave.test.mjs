@@ -33,6 +33,7 @@ async function harness(reply) {
   const api = new vm.SourceTextModule(source('../src/utils/api.js'), { context,
     initializeImportMeta: meta => { meta.env = { VITE_API_URL: 'https://synthetic.invalid' } } })
   await api.link(name => {
+    if (name.includes('authorizedFetch')) return stub({ authorizedFetch: (...args) => context.fetch(...args) })
     if (name.includes('useStore')) return stub({ default: { getState: () => store } })
     if (name.includes('expenseHistory')) return stub({ readHistoryMonth() { throw Error('History blocked') } })
     if (name.includes('ammaChat')) return stub({ readChat() { throw Error('Chat blocked') } })

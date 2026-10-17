@@ -21,6 +21,7 @@ async function harness(reply) {
   const api = new vm.SourceTextModule(source('../src/utils/api.js'), { context,
     initializeImportMeta: meta => { meta.env = { VITE_API_URL: 'https://synthetic.invalid' } } })
   await api.link(name => {
+    if (name.includes('authorizedFetch')) return stub({ authorizedFetch: (...args) => context.fetch(...args) })
     if (name.includes('useStore')) return storeModule
     if (name.includes('expenseHistory')) return stub({ readHistoryMonth() {} })
     if (name.includes('ammaChat')) return stub({ readChat() {} })

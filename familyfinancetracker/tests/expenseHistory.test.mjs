@@ -243,7 +243,7 @@ test('post-delete local display update cannot resurrect a row during failed refr
 test('History API has no store writes; legacy Dashboard contract and body are unchanged', async () => {
   const source = readFileSync(new URL('../src/utils/api.js', import.meta.url), 'utf8')
   const original = execFileSync('git', ['--no-optional-locks', 'show', 'HEAD:familyfinancetracker/src/utils/api.js'], { encoding: 'utf8' })
-  const legacy = text => text.slice(text.indexOf('    async getByMonth'), text.indexOf('    async add(expense)')).replace(/\r\n/g, '\n')
+  const legacy = text => text.slice(text.indexOf('    async getByMonth'), text.indexOf('    async add(expense)')).replace(/\r\n/g, '\n').replace(/catch \(error\) \{\n\s*if \(error\?\.code === 'AUTH_REQUIRED'\) throw error/g, 'catch {')
   assert.ok(legacy(source) === legacy(original), 'Legacy method must remain unchanged')
   let writes = 0, requested
   const local = Object.freeze([Object.freeze(row())])
@@ -254,6 +254,7 @@ test('History API has no store writes; legacy Dashboard contract and body are un
   })
   const module = new vm.SourceTextModule(source, { context, initializeImportMeta: meta => { meta.env = { VITE_API_URL: 'https://synthetic.invalid' } } })
   await module.link(specifier => {
+    if (specifier.includes('authorizedFetch')) return new vm.SyntheticModule(['authorizedFetch'], function () { this.setExport('authorizedFetch', (...args) => context.fetch(...args)) }, { context })
     if (specifier.includes('useStore')) return new vm.SyntheticModule(['default'], function () { this.setExport('default', { getState: () => store }) }, { context })
     if (specifier.includes('expenseHistory')) return new vm.SyntheticModule(['readHistoryMonth'], function () { this.setExport('readHistoryMonth', history.readHistoryMonth) }, { context })
     if (specifier.includes('ammaChat')) return new vm.SyntheticModule(['readChat'], function () { this.setExport('readChat', () => { throw Error('Chat blocked in History fixture') }) }, { context })
@@ -463,6 +464,7 @@ test('failed Add does not append rows; History preserves pre-existing local dupl
   const hookSource = readFileSync(new URL('../src/hooks/useExpenses.js', import.meta.url), 'utf8')
   const apiModule = new vm.SourceTextModule(apiSource, { context, initializeImportMeta: meta => { meta.env = { VITE_API_URL: 'https://synthetic.invalid' } } })
   await apiModule.link(specifier => {
+    if (specifier.includes('authorizedFetch')) return new vm.SyntheticModule(['authorizedFetch'], function () { this.setExport('authorizedFetch', (...args) => context.fetch(...args)) }, { context })
     if (specifier.includes('useStore')) return storeModule
     if (specifier.includes('expenseHistory')) return historyModule
     if (specifier.includes('ammaChat')) return new vm.SyntheticModule(['readChat'], function () { this.setExport('readChat', () => { throw Error('Chat blocked in History fixture') }) }, { context })

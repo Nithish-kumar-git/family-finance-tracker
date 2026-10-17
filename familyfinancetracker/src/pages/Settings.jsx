@@ -1,5 +1,5 @@
-// Settings page — income, PINs, emergency fund, delete ops, reset, app info
-// Sections: A (Income) | B (PINs) | C (Emergency Fund) | D (Delete) | E (Reset) | F (App Info)
+import { authorizedFetch } from '../utils/authorizedFetch.js'
+// Settings page — income, sign-in, emergency fund, delete ops, reset, app info
 
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -99,8 +99,6 @@ export default function Settings() {
   }, [monthlyIncome.pension, monthlyIncome.nithish, monthlyIncome.abeerami])
 
   const totalIncome = (parseFloat(pension) || 0) + (parseFloat(nithish) || 0) + (parseFloat(abeerami) || 0)
-  const PENSION_BASELINE = 37604
-  const HOUSEHOLD_UPPER  = 85800
 
   async function handleSaveIncome() {
     const body = {
@@ -111,7 +109,7 @@ export default function Settings() {
     // UNCERTAIN: api.js has no settings.updateIncome — using direct fetch as documented fallback
     const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
     try {
-      await fetch(`${BASE_URL}/api/settings/income`, {
+      await authorizedFetch(`${BASE_URL}/api/settings/income`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -124,44 +122,6 @@ export default function Settings() {
     updateMonthlyIncome('nithish',  body.nithish)
     updateMonthlyIncome('abeerami', body.abeerami)
     showToast('Income updated')
-  }
-
-  // ── Section B: PIN Management ─────────────────────────────────────────────
-  const [pinModal,     setPinModal]    = useState(false)
-  const [pinUser,      setPinUser]     = useState(null)   // { id, name, color }
-  const [newPin,       setNewPin]      = useState('')
-  const [confirmPin,   setConfirmPin]  = useState('')
-  const [pinError,     setPinError]    = useState('')
-
-  function openPinModal(user) {
-    setPinUser(user)
-    setNewPin('')
-    setConfirmPin('')
-    setPinError('')
-    setPinModal(true)
-  }
-
-  function handleSavePin() {
-    if (!newPin || !confirmPin) {
-      setPinError('Please fill both fields.')
-      return
-    }
-    if (!/^\d{4}$/.test(newPin)) {
-      setPinError('PIN must be exactly 4 digits.')
-      return
-    }
-    if (newPin !== confirmPin) {
-      setPinError('PINs do not match')
-      return
-    }
-    // Update store.users by mapping over users array
-    useStore.setState(state => ({
-      users: state.users.map(u =>
-        u.id === pinUser.id ? { ...u, pin: newPin } : u
-      ),
-    }))
-    setPinModal(false)
-    showToast(`PIN updated for ${pinUser.name}`)
   }
 
   // ── Section C: Emergency Fund ─────────────────────────────────────────────
@@ -212,7 +172,7 @@ export default function Settings() {
     const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
     // api.js has no expenses.deleteBulk — using direct fetch as documented fallback
     try {
-      await fetch(`${BASE_URL}/api/expenses/bulk?month=${month}`, { method: 'DELETE' })
+      await authorizedFetch(`${BASE_URL}/api/expenses/bulk?month=${month}`, { method: 'DELETE' })
     } catch {
       // Silent fail — store update below always runs
     }
@@ -244,7 +204,7 @@ export default function Settings() {
     const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
     // employment.py line 66–79 confirms DELETE /api/employment/bulk?status= exists
     try {
-      await fetch(`${BASE_URL}/api/employment/bulk?status=${status}`, { method: 'DELETE' })
+      await authorizedFetch(`${BASE_URL}/api/employment/bulk?status=${status}`, { method: 'DELETE' })
     } catch {
       // Silent fail — store update below always runs
     }
@@ -266,7 +226,7 @@ export default function Settings() {
     const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
     // api.js has no reset function — using direct fetch as documented fallback
     try {
-      const res = await fetch(`${BASE_URL}/api/reset`, {
+      const res = await authorizedFetch(`${BASE_URL}/api/reset`, {
         method: 'DELETE',
         headers: { 'X-Confirm-Reset': 'DELETE-ALL-DATA' },
       })
@@ -294,7 +254,7 @@ export default function Settings() {
   async function handleCheckConnection() {
     const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
     try {
-      const res = await fetch(`${BASE_URL}/health`)
+      const res = await authorizedFetch(`${BASE_URL}/health`)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       setIsOffline(false)
       showToast('Backend is online.')
@@ -356,18 +316,6 @@ export default function Settings() {
           <span className="font-semibold text-slate-800">{formatCurrency(totalIncome)}</span>
         </div>
 
-        {/* Threshold notes */}
-        {totalIncome > 0 && totalIncome < PENSION_BASELINE && (
-          <p className="mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-            ⚠ Below current pension baseline ({formatCurrency(PENSION_BASELINE)})
-          </p>
-        )}
-        {totalIncome > HOUSEHOLD_UPPER && (
-          <p className="mt-2 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
-            ✓ Surplus: {formatCurrency(totalIncome - HOUSEHOLD_UPPER)}/month
-          </p>
-        )}
-
         <Button
           variant="primary"
           className="mt-4 w-full"
@@ -379,37 +327,9 @@ export default function Settings() {
       </div>
       <hr className="border-slate-100 mb-8" />
 
-      {/* ── Section B: User PINs ───────────────────────────────────────────── */}
       <div className="mb-8">
-        <SectionHeader icon={User} title="User PINs" />
-
-        <div className="space-y-3">
-          {users.map(user => (
-            <div
-              key={user.id}
-              className="flex items-center justify-between bg-white rounded-xl border border-slate-100 shadow-sm px-4 py-3"
-            >
-              <div className="flex items-center gap-3">
-                <span
-                  className="w-3 h-3 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: user.color }}
-                />
-                <div>
-                  <p className="text-sm font-medium text-slate-800">{user.name}</p>
-                  <p className="text-xs text-slate-400 tracking-widest">••••</p>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => openPinModal(user)}
-                id={`btn-change-pin-${user.id}`}
-              >
-                Change PIN
-              </Button>
-            </div>
-          ))}
-        </div>
+        <SectionHeader icon={User} title="Family sign-in" />
+        <p className="text-sm text-slate-600">Access is verified with your family email account. Ask the app administrator to add another family member.</p>
       </div>
       <hr className="border-slate-100 mb-8" />
 
@@ -664,47 +584,6 @@ export default function Settings() {
           Settings accessible at <span className="font-mono text-slate-500">/settings</span>
         </p>
       </div>
-
-      {/* ══════════════════════════════════════════════════════════════════════ */}
-      {/* MODAL: Change PIN                                                      */}
-      {/* ══════════════════════════════════════════════════════════════════════ */}
-      <Modal show={pinModal} onClose={() => setPinModal(false)}>
-        <h3 className="text-lg font-semibold text-slate-800 mb-4 pr-6">
-          Change PIN — {pinUser?.name}
-        </h3>
-        <div className="space-y-3">
-          <Input
-            id="pin-new"
-            label="New PIN"
-            type="password"
-            inputMode="numeric"
-            maxLength={4}
-            value={newPin}
-            onChange={e => { setNewPin(e.target.value); setPinError('') }}
-            autoFocus
-          />
-          <Input
-            id="pin-confirm"
-            label="Confirm PIN"
-            type="password"
-            inputMode="numeric"
-            maxLength={4}
-            value={confirmPin}
-            onChange={e => { setConfirmPin(e.target.value); setPinError('') }}
-          />
-          {pinError && (
-            <p className="text-sm text-red-600">{pinError}</p>
-          )}
-        </div>
-        <div className="flex gap-3 mt-5">
-          <Button variant="secondary" className="flex-1" onClick={() => setPinModal(false)} id="btn-pin-cancel">
-            Cancel
-          </Button>
-          <Button variant="primary" className="flex-1" onClick={handleSavePin} id="btn-pin-save">
-            Save PIN
-          </Button>
-        </div>
-      </Modal>
 
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {/* MODAL: Delete Expenses by Month                                        */}

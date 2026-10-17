@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { INITIAL_DATA } from '../data/seedData.js'
+import { INITIAL_DATA } from '../data/emptyData.js'
 
 // Load persisted state from localStorage, fall back to INITIAL_DATA
 function loadState() {

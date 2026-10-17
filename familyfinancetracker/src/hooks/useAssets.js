@@ -1,3 +1,4 @@
+import { authorizedFetch } from '../utils/authorizedFetch.js'
 /**
  * useAssets — store-first asset loading.
  * Uses localStorage data if available so user edits survive refresh.
@@ -57,10 +58,10 @@ export function useAssets() {
     // Store is empty — first time load. Fetch from Supabase.
     try {
       const [fds, mfs, lics, chits] = await Promise.all([
-        fetch(`${BASE}/api/assets/fixeddeposits`).then(r => r.json()),
-        fetch(`${BASE}/api/assets/mutualfunds`).then(r => r.json()),
-        fetch(`${BASE}/api/assets/lic`).then(r => r.json()),
-        fetch(`${BASE}/api/assets/chitfunds`).then(r => r.json()),
+        authorizedFetch(`${BASE}/api/assets/fixeddeposits`).then(r => r.json()),
+        authorizedFetch(`${BASE}/api/assets/mutualfunds`).then(r => r.json()),
+        authorizedFetch(`${BASE}/api/assets/lic`).then(r => r.json()),
+        authorizedFetch(`${BASE}/api/assets/chitfunds`).then(r => r.json()),
       ])
       const result = {
         fixedDeposits: toCamel(Array.isArray(fds)   ? fds   : []),

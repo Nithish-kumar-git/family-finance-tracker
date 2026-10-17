@@ -1,3 +1,4 @@
+import FamilySession, { useFamilySession } from './components/FamilySession.jsx'
 import { BrowserRouter, Routes, Route, Navigate, NavLink } from 'react-router-dom'
 import useStore from './store/useStore.js'
 import Header from './components/layout/Header.jsx'
@@ -18,10 +19,11 @@ import {
 
 // Protected layout — redirects to Auth if no user is selected
 function ProtectedLayout({ children }) {
+  const session = useFamilySession()
   const currentUser = useStore(s => s.currentUser)
   const users = useStore(s => s.users)
   
-  if (!currentUser) return <Navigate to="/" replace />
+  if (!session?.member || !currentUser) return <Navigate to="/" replace />
   
   const user = users.find(u => u.id === currentUser)
   
@@ -140,7 +142,9 @@ function ProtectedLayout({ children }) {
   )
 }
 
-export default function App() {
+function AuthenticatedApp() {
+  const session = useFamilySession()
+  if (session.loading) return <p role="status" className="p-8 text-center">Verifying family access…</p>
   return (
     <BrowserRouter>
       <Routes>
@@ -218,4 +222,8 @@ export default function App() {
       </Routes>
     </BrowserRouter>
   )
+}
+
+export default function App() {
+  return <FamilySession><AuthenticatedApp /></FamilySession>
 }

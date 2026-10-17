@@ -35,16 +35,9 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
-            // API calls: network-first so live data is always preferred
+            // Authenticated financial requests must never use shared API caches.
             urlPattern: /^https:\/\/.*\/api\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-cache',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24, // 24 hours
-              },
-            },
+            handler: 'NetworkOnly',
           },
           {
             // Google Fonts: cache-first for fast loads

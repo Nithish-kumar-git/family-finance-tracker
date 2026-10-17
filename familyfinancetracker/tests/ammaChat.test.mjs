@@ -177,10 +177,11 @@ async function dashboardHarness(fetchImpl) {
     for (const [key, value] of Object.entries(values)) this.setExport(key, value)
   }, { context })
   const chat = new vm.SourceTextModule(chatSource, { context })
-  await chat.link(() => { throw Error('Chat transport must have no store dependency') })
+  await chat.link(() => stubModule({ authorizedFetch: (...args) => context.fetch(...args) }))
   await chat.evaluate()
   const apiModule = new vm.SourceTextModule(apiSource, { context, initializeImportMeta: meta => { meta.env = { VITE_API_URL: fixture.baseUrl } } })
   await apiModule.link(specifier => {
+    if (specifier.includes('authorizedFetch')) return stubModule({ authorizedFetch: (...args) => context.fetch(...args) })
     if (specifier === './ammaChat.js') return chat
     if (specifier === '../store/useStore.js') return stubModule({ default: store })
     if (specifier === './expenseHistory.js') return stubModule({ readHistoryMonth: blocked })

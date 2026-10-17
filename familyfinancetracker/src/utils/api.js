@@ -4,6 +4,7 @@
 import useStore from '../store/useStore.js'
 import { readHistoryMonth } from './expenseHistory.js'
 import { readChat } from './ammaChat.js'
+import { authorizedFetch } from './authorizedFetch.js'
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
@@ -23,8 +24,9 @@ async function apiFetch(path, options = {}) {
 
   let response
   try {
-    response = await fetch(url, config)
-  } catch {
+    response = await authorizedFetch(url, config)
+  } catch (error) {
+    if (error?.code === 'AUTH_REQUIRED') throw error
     // Network error — backend unreachable
     useStore.getState().setIsOffline(true)
     throw new Error('Network error')
@@ -54,7 +56,7 @@ export const api = {
       return readHistoryMonth({
         month: prefix,
         url: `${BASE_URL}/api/expenses?${params}`,
-        fetchResponse: url => fetch(url),
+        fetchResponse: url => authorizedFetch(url),
         getLocalExpenses: () => useStore.getState().expenses,
       })
     },
@@ -66,7 +68,8 @@ export const api = {
         const params = new URLSearchParams({ month: prefix })
         if (userId) params.append('userId', userId)
         return await apiFetch(`/api/expenses?${params}`)
-      } catch {
+      } catch (error) {
+        if (error?.code === 'AUTH_REQUIRED') throw error
         const store = useStore.getState()
         const filtered = store.expenses.filter(e => e.date.startsWith(prefix))
         const byUserId = userId ? filtered.filter(e => e.userId === userId) : filtered
@@ -106,7 +109,8 @@ export const api = {
     async getSummary() {
       try {
         return await apiFetch('/api/assets/summary')
-      } catch {
+      } catch (error) {
+        if (error?.code === 'AUTH_REQUIRED') throw error
         const s = useStore.getState()
         const fds = s.fixedDeposits.reduce((sum, fd) => sum + fd.principal, 0)
         const mutual_funds = s.mutualFunds.reduce((sum, mf) => sum + mf.currentValue, 0)
@@ -125,7 +129,8 @@ export const api = {
             apiFetch('/api/assets/chitfunds'),
           ])
         return { fixedDeposits, mutualFunds, licPolicies, chitFunds }
-      } catch {
+      } catch (error) {
+        if (error?.code === 'AUTH_REQUIRED') throw error
         const s = useStore.getState()
         return {
           fixedDeposits: s.fixedDeposits,
@@ -239,7 +244,8 @@ export const api = {
           params.append('upcoming_days', filters.upcoming_days)
         const qs = params.toString()
         return await apiFetch(`/api/milestones${qs ? '?' + qs : ''}`)
-      } catch {
+      } catch (error) {
+        if (error?.code === 'AUTH_REQUIRED') throw error
         const milestones = useStore.getState().milestones
         if (filters.status) {
           return milestones.filter(m => m.status === filters.status)
@@ -254,7 +260,8 @@ export const api = {
           method: 'PATCH',
           body: JSON.stringify({ status }),
         })
-      } catch {
+      } catch (error) {
+        if (error?.code === 'AUTH_REQUIRED') throw error
         useStore.getState().updateMilestoneStatus(id, status)
         return useStore.getState().milestones.find(m => m.id === id)
       }
@@ -266,7 +273,8 @@ export const api = {
           method: 'POST',
           body: JSON.stringify(milestone),
         })
-      } catch {
+      } catch (error) {
+        if (error?.code === 'AUTH_REQUIRED') throw error
         const newMilestone = { ...milestone, id: milestone.id ?? crypto.randomUUID() }
         useStore.getState().updateMilestoneStatus // no direct add action — push via store workaround
         // Fallback: use store subscribe to add via setState manually
@@ -280,7 +288,8 @@ export const api = {
     async remove(id) {
       try {
         return await apiFetch(`/api/milestones/${id}`, { method: 'DELETE' })
-      } catch {
+      } catch (error) {
+        if (error?.code === 'AUTH_REQUIRED') throw error
         useStore.setState(state => ({
           milestones: state.milestones.filter(m => m.id !== id),
         }))
@@ -295,7 +304,8 @@ export const api = {
     async getAll() {
       try {
         return await apiFetch('/api/employment')
-      } catch {
+      } catch (error) {
+        if (error?.code === 'AUTH_REQUIRED') throw error
         return useStore.getState().jobApplications
       }
     },
@@ -306,7 +316,8 @@ export const api = {
           method: 'POST',
           body: JSON.stringify(application),
         })
-      } catch {
+      } catch (error) {
+        if (error?.code === 'AUTH_REQUIRED') throw error
         useStore.getState().addJobApplication(application)
         return application
       }
@@ -318,7 +329,8 @@ export const api = {
           method: 'PATCH',
           body: JSON.stringify({ status }),
         })
-      } catch {
+      } catch (error) {
+        if (error?.code === 'AUTH_REQUIRED') throw error
         useStore.getState().updateJobStatus(id, status)
         return useStore.getState().jobApplications.find(j => j.id === id)
       }
@@ -327,7 +339,8 @@ export const api = {
     async getStats() {
       try {
         return await apiFetch('/api/employment/stats')
-      } catch {
+      } catch (error) {
+        if (error?.code === 'AUTH_REQUIRED') throw error
         const apps = useStore.getState().jobApplications
         const total = apps.length
         const sevenDaysAgo = new Date()
@@ -361,7 +374,8 @@ export const api = {
     async getSnapshot(month) {
       try {
         return await apiFetch(`/api/reports/snapshot?month=${month}`)
-      } catch {
+      } catch (error) {
+        if (error?.code === 'AUTH_REQUIRED') throw error
         return useStore.getState().monthlySnapshots.find(s => s.month === month) ?? null
       }
     },
@@ -372,7 +386,8 @@ export const api = {
           method: 'POST',
           body: JSON.stringify(snapshot),
         })
-      } catch {
+      } catch (error) {
+        if (error?.code === 'AUTH_REQUIRED') throw error
         useStore.getState().addMonthlySnapshot(snapshot)
         return snapshot
       }
@@ -381,7 +396,8 @@ export const api = {
     async getAllSnapshots() {
       try {
         return await apiFetch('/api/reports/snapshots')
-      } catch {
+      } catch (error) {
+        if (error?.code === 'AUTH_REQUIRED') throw error
         return [...useStore.getState().monthlySnapshots].sort((a, b) =>
           b.month.localeCompare(a.month)
         )
@@ -398,7 +414,8 @@ export const api = {
           method: 'POST',
           body: JSON.stringify({ raw_text: rawText }),
         })
-      } catch {
+      } catch (error) {
+        if (error?.code === 'AUTH_REQUIRED') throw error
         // AI requires network — do not fall back to local data
         return null
       }
@@ -410,7 +427,8 @@ export const api = {
           method: 'POST',
           body: JSON.stringify({ report: reportJson }),
         })
-      } catch {
+      } catch (error) {
+        if (error?.code === 'AUTH_REQUIRED') throw error
         return null
       }
     },

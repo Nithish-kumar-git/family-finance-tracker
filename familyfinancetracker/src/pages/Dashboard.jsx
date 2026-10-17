@@ -136,7 +136,7 @@ export default function Dashboard() {
 
   const nithishSalary = monthlyIncome.nithish
   const isEmployed = nithishSalary > 0
-  const currentDeficit = 48196
+  const currentDeficit = Math.max(0, totalExpenses - income + nithishSalary)
   const newDeficit = currentDeficit - nithishSalary
   const thisWeek = employmentStats?.this_week ?? 0
   const totalApps = employmentStats?.total ?? 0

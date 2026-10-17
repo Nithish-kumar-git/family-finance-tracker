@@ -10,15 +10,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from database import get_db
+from auth import require_family_member
+from routers.auth import router as auth_router
 from routers import expenses, assets, milestones, employment, reports, ai, reset
 from routers.settings import router as settings_router
 
 app = FastAPI(title="FamilyFinanceTracker API", version="1.0.0")
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
-# TEMPORARY FIX: Allow all origins until Vercel env is properly configured
-# TODO: Restrict to specific origins in production
-allowed_origins = ["*"]
+allowed_origins = [origin.strip().rstrip('/') for origin in os.getenv(
+    'FRONTEND_URL', 'https://scintillating-donut-a597ff.netlify.app').split(',')
+    if origin.strip() and origin.strip() != '*']
 
 app.add_middleware(
     CORSMiddleware,
@@ -29,14 +31,16 @@ app.add_middleware(
 )
 
 # ── Routers ───────────────────────────────────────────────────────────────────
-app.include_router(expenses.router, prefix="/api")
-app.include_router(assets.router, prefix="/api")
-app.include_router(milestones.router, prefix="/api")
-app.include_router(employment.router, prefix="/api")
-app.include_router(reports.router, prefix="/api")
-app.include_router(ai.router, prefix="/api")
+protected = [Depends(require_family_member)]
+app.include_router(expenses.router, prefix="/api", dependencies=protected)
+app.include_router(assets.router, prefix="/api", dependencies=protected)
+app.include_router(milestones.router, prefix="/api", dependencies=protected)
+app.include_router(employment.router, prefix="/api", dependencies=protected)
+app.include_router(reports.router, prefix="/api", dependencies=protected)
+app.include_router(ai.router, prefix="/api", dependencies=protected)
 app.include_router(reset.router, prefix="/api")
-app.include_router(settings_router, prefix="/api")
+app.include_router(settings_router, prefix="/api", dependencies=protected)
+app.include_router(auth_router, prefix="/api")
 
 
 # ── Health check ──────────────────────────────────────────────────────────────

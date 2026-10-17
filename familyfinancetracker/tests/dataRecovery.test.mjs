@@ -120,6 +120,7 @@ test('actual Settings recovery control and actual Button are disabled with no ha
   }
   const settings = new vm.SourceTextModule(jsx(settingsSource), { context })
   await settings.link(specifier => {
+    if (specifier.includes('authorizedFetch')) return new vm.SyntheticModule(['authorizedFetch'], function () { this.setExport('authorizedFetch', () => { throw Error('Unexpected recovery network call') }) }, { context })
     if (specifier === '../utils/dataRecovery') return recovery
     const values = exports[specifier]
     if (!values) throw Error('Unexpected Settings import')

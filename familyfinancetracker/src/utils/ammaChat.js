@@ -1,3 +1,4 @@
+import { authorizedFetch } from './authorizedFetch.js'
 // Chat-only transport: no shared offline flag, persistence or local fallback.
 export const CHAT_TIMEOUT_MS = 30_000
 
@@ -20,6 +21,8 @@ export function getChatErrorMessage(error) {
       return 'Amma AI returned an unreadable or incomplete response. Please try again.'
     case 'NETWORK':
       return 'Amma AI could not reach the service. Check your connection and try again.'
+    case 'AUTH_REQUIRED':
+      return 'Please sign in again to use Amma AI.'
     case 'HTTP':
       if (error.status === 401 || error.status === 403) {
         return `Amma AI access was rejected (HTTP ${error.status}). Retry after checking your access.`
@@ -37,7 +40,7 @@ export function getChatErrorMessage(error) {
 // Injectable dependencies are used only by isolated, network-blocked tests.
 export async function readChat({
   baseUrl, question, context, history, signal,
-  fetchImpl = fetch, timeoutMs = CHAT_TIMEOUT_MS,
+  fetchImpl = authorizedFetch, timeoutMs = CHAT_TIMEOUT_MS,
   setTimer = setTimeout, clearTimer = clearTimeout,
 }) {
   const controller = new AbortController()
@@ -68,7 +71,8 @@ export async function readChat({
         body: JSON.stringify({ question, context, history }),
         signal: controller.signal,
       })
-    } catch {
+    } catch (error) {
+      if (error?.code === 'AUTH_REQUIRED') throw Object.assign(error, { retryable: false })
       throw chatError('NETWORK')
     }
     if (!response.ok) {
