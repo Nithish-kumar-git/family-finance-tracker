@@ -33,9 +33,12 @@ def guarded_connect(sock, address):
 class AIAndResetTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        from sqlalchemy.engine import Engine
         cls.guards = [patch.dict(os.environ, {'GEMINI_API_KEY': 'synthetic-key',
                       'SUPABASE_DATABASE_URL': 'sqlite://'}),
                       patch('dotenv.load_dotenv', return_value=False),
+                      patch.object(Engine, 'connect', side_effect=AssertionError('Database access forbidden')),
+                      patch.object(Engine, 'raw_connection', side_effect=AssertionError('Database access forbidden')),
                       patch.object(socket.socket, 'connect', guarded_connect),
                       patch('socket.getaddrinfo', forbidden)]
         for guard in cls.guards:

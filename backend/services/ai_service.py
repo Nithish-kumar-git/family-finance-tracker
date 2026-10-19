@@ -150,7 +150,8 @@ def chat(question: str, context: dict, history: list) -> str:
 
     # Build conversation contents list for new SDK multi-turn format
     contents = []
-    for h in history[-6:]:
+    # The HTTP request schema bounds history; forward every accepted message.
+    for h in history:
         role = "user" if h.get("role") == "user" else "model"
         contents.append(types.Content(role=role, parts=[types.Part(text=h.get("content", ""))]))
     contents.append(types.Content(role="user", parts=[types.Part(text=question)]))

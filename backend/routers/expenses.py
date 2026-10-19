@@ -13,6 +13,12 @@ from schemas import ExpenseCreate, ExpenseResponse
 
 router = APIRouter()
 
+# ASCII calendar years 0001-9999 and months 01-12; no LIKE wildcards.
+EXPENSE_MONTH_PATTERN = (
+    r"^(?:[1-9][0-9]{3}|0[1-9][0-9]{2}|00[1-9][0-9]|000[1-9])"
+    r"-(?:0[1-9]|1[0-2])$"
+)
+
 VALID_CATEGORIES = [
     "groceries", "utilities", "medical", "transport", "household",
     "lic_premium", "chit_contribution", "personal", "education", "other"
@@ -21,7 +27,8 @@ VALID_CATEGORIES = [
 
 @router.get("/expenses")
 def get_expenses(
-    month: str = Query(..., description="Format: YYYY-MM"),
+    month: str = Query(..., min_length=7, max_length=7,
+                       pattern=EXPENSE_MONTH_PATTERN, description="Format: YYYY-MM"),
     userId: Optional[str] = Query(None),
     db: Session = Depends(get_db)
 ):
@@ -82,7 +89,8 @@ def create_expense(body: ExpenseCreate, db: Session = Depends(get_db)):
 
 @router.delete("/expenses/bulk")
 def bulk_delete_expenses(
-    month: str = Query(..., description="Format: YYYY-MM"),
+    month: str = Query(..., min_length=7, max_length=7,
+                       pattern=EXPENSE_MONTH_PATTERN, description="Format: YYYY-MM"),
     userId: Optional[str] = Query(None),
     db: Session = Depends(get_db)
 ):

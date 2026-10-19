@@ -32,6 +32,19 @@ class HouseholdBoundaryTests(unittest.TestCase):
         cls.addClassCleanup(cls.engine.dispose)
 
     def setUp(self):
+        # Each case probes many routes. Keep real rate enforcement enabled,
+        # but do not carry a previous case's burst budget into another test.
+        from request_protection import RequestProtectionMiddleware
+        def reset_budgets():
+            middleware = self.app.middleware_stack
+            while middleware is not None:
+                if isinstance(middleware, RequestProtectionMiddleware):
+                    with middleware.limiter.lock:
+                        for events in middleware.limiter.events.values():
+                            events.clear()
+                middleware = getattr(middleware, 'app', None)
+        reset_budgets()
+        self.addCleanup(reset_budgets)
         env = patch.dict(os.environ, {'SUPABASE_URL': 'https://synthetic.supabase.co',
             'SUPABASE_PUBLISHABLE_KEY': 'synthetic-public',
             'FAMILY_EMAIL_PROFILES': json.dumps({'member@example.invalid': 'nithish'})})

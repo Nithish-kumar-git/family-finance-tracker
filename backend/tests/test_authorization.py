@@ -12,6 +12,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 class AuthorizationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        # This suite must remain usable when all SQL execution is forbidden.
+        # Fail before any SQLAlchemy database connection, including SQLite.
+        from sqlalchemy.engine import Engine
+        cls.connection_attempts = Mock(side_effect=AssertionError('Database connections are forbidden'))
+        for method in ['connect', 'raw_connection']:
+            guard = patch.object(Engine, method, cls.connection_attempts)
+            guard.start()
+            cls.addClassCleanup(guard.stop)
         with patch.dict(os.environ, {'SUPABASE_DATABASE_URL': 'sqlite://'}), patch('dotenv.load_dotenv'):
             import main
             import auth
@@ -24,6 +32,7 @@ class AuthorizationTests(unittest.TestCase):
         cls.addClassCleanup(cls.client.close)
 
     def setUp(self):
+        self.addCleanup(self.connection_attempts.assert_not_called)
         self.env = patch.dict(os.environ, {'SUPABASE_URL': 'https://synthetic.supabase.co',
             'SUPABASE_PUBLISHABLE_KEY': 'synthetic-publishable',
             'FAMILY_EMAIL_PROFILES': json.dumps({'synthetic@example.invalid': 'nithish'})})
@@ -89,6 +98,42 @@ class AuthorizationTests(unittest.TestCase):
         response = self.client.delete('/api/reset', headers={'Authorization': 'Bearer synthetic',
                                                             'X-Confirm-Reset': 'DELETE-ALL-DATA'})
         self.assertEqual(response.status_code, 403)
+        self.database.assert_not_called()
+
+    def test_same_token_is_reverified_when_account_authorization_changes(self):
+        headers = {'Authorization': 'Bearer synthetic-token'}
+        response = self.client.get('/api/auth/me', headers=headers)
+        self.assertEqual(response.status_code, 200)
+        self.get_user.return_value = Mock(status_code=200, json=lambda: {
+            'id': 'synthetic-auth-user', 'email': 'outsider@example.invalid',
+            'email_confirmed_at': 'synthetic-confirmed', 'aud': 'authenticated',
+            'user_metadata': {'profileId': 'nithish'},
+        })
+        response = self.client.get('/api/auth/me', headers=headers)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.get_user.call_count, 2)
+        self.database.assert_not_called()
+
+    def test_malformed_provider_identity_and_json_fail_closed(self):
+        for payload in [None, [], 'synthetic-invalid', {'email': None},
+                        {'id': 'synthetic', 'email': 123}]:
+            with self.subTest(payload_type=type(payload).__name__):
+                self.get_user.return_value = Mock(status_code=200, json=lambda: payload)
+                response = self.client.get('/api/auth/me', headers={'Authorization': 'Bearer synthetic'})
+                self.assertEqual(response.status_code, 403)
+                self.assertEqual(response.json()['detail']['code'], 'FAMILY_ACCESS_DENIED')
+        self.get_user.return_value = Mock(status_code=200)
+        self.get_user.return_value.json.side_effect = ValueError('Synthetic private provider details')
+        response = self.client.get('/api/auth/me', headers={'Authorization': 'Bearer synthetic'})
+        self.assertEqual(response.status_code, 403)
+        self.assertNotIn('private', response.text)
+        self.database.assert_not_called()
+
+    def test_wrong_scheme_or_oversized_token_never_reaches_provider(self):
+        for authorization in ['Basic synthetic', 'Bearer', 'Bearer ' + 'x' * 8193]:
+            response = self.client.get('/api/auth/me', headers={'Authorization': authorization})
+            self.assertEqual(response.status_code, 401)
+        self.get_user.assert_not_called()
         self.database.assert_not_called()
 
 

@@ -1,8 +1,9 @@
 """Pydantic request/response schemas for all API endpoints."""
 
 from __future__ import annotations
+import json
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from datetime import datetime
 
 
@@ -473,18 +474,67 @@ class ResetResponse(BaseModel):
 
 # ── AI request schemas ────────────────────────────────────────────────────────
 
+# Application budgets, not model token limits. See security/AI_INPUT_LIMITS.md.
+AI_QUESTION_MAX_CHARS = 4_000
+AI_HISTORY_MAX_MESSAGES = 6
+AI_HISTORY_MESSAGE_MAX_CHARS = 8_000
+AI_HISTORY_MAX_BYTES = 48 * 1024
+AI_CONTEXT_MAX_BYTES = 32 * 1024
+AI_TRANSACTION_MAX_CHARS = 8_000
+AI_REPORT_MAX_BYTES = 64 * 1024
+
+
+def _bounded_ai_json(value: Any, limit: int) -> Any:
+    # Match the provider prompt's json.dumps defaults, including ASCII escaping
+    # and whitespace. Counting only raw string characters undercounts Unicode,
+    # nested values, keys and escaped characters. Never truncate client data.
+    try:
+        size = len(json.dumps(value).encode('utf-8'))
+    except (TypeError, ValueError, RecursionError):
+        raise ValueError('AI input must be serializable JSON') from None
+    if size > limit:
+        raise ValueError(f'AI input must not exceed {limit} serialized JSON bytes')
+    return value
+
+
 class ParseTransactionRequest(BaseModel):
-    raw_text: str
+    raw_text: str = Field(max_length=AI_TRANSACTION_MAX_CHARS)
 
 
 class MonthlyInsightsRequest(BaseModel):
     report: Dict[str, Any]
 
+    @field_validator('report')
+    @classmethod
+    def bounded_report(cls, value: Dict[str, Any]) -> Dict[str, Any]:
+        return _bounded_ai_json(value, AI_REPORT_MAX_BYTES)
+
 
 class ChatRequest(BaseModel):
-    question: str
+    question: str = Field(min_length=1, max_length=AI_QUESTION_MAX_CHARS)
     context: Dict[str, Any]
-    history: List[Dict[str, Any]]
+    history: List[Dict[str, Any]] = Field(max_length=AI_HISTORY_MAX_MESSAGES)
+
+    @field_validator('question')
+    @classmethod
+    def nonblank_question(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError('Question must contain non-whitespace text')
+        return value
+
+    @field_validator('context')
+    @classmethod
+    def bounded_context(cls, value: Dict[str, Any]) -> Dict[str, Any]:
+        return _bounded_ai_json(value, AI_CONTEXT_MAX_BYTES)
+
+    @field_validator('history')
+    @classmethod
+    def bounded_history(cls, value: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        for message in value:
+            content = message.get('content', '')
+            if not isinstance(content, str) or len(content) > AI_HISTORY_MESSAGE_MAX_CHARS:
+                raise ValueError(f'History content must be a string of at most {AI_HISTORY_MESSAGE_MAX_CHARS} characters')
+        return _bounded_ai_json(value, AI_HISTORY_MAX_BYTES)
 
 
 # ── Status update schemas ─────────────────────────────────────────────────────
