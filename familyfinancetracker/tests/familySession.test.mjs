@@ -24,7 +24,7 @@ async function componentHarness(file, dependencies, globals = {}) {
     useEffect(callback, deps) {
       const index = cursor++, previous = slots[index]
       if (!previous || deps.some((value, i) => value !== previous.deps[i])) effects.push(() => {
-        previous?.cleanup?.(); slots[index] = { deps, cleanup: callback() }
+        previous?.cleanup?.(); slots[index] = { deps, callback, cleanup: callback() }
       })
     },
   }
@@ -42,17 +42,18 @@ async function componentHarness(file, dependencies, globals = {}) {
   return {
     render() { cursor = 0; const tree = module.namespace.default({ children: 'synthetic-child' }); while (effects.length) effects.shift()(); return tree },
     unmount() { slots.forEach(slot => slot?.cleanup?.()) },
+    replayEffects() { for (const slot of slots) if (slot?.callback) { slot.cleanup?.(); slot.cleanup = slot.callback() } },
   }
 }
 
-async function sessionHarness(fetchImpl) {
+async function sessionHarness(fetchImpl, initialize) {
   const writes = [], listeners = new Map()
   const auth = { getSession: async () => ({ data: { session: { access_token: 'synthetic-token' } } }),
     onAuthStateChange: callback => { auth.changed = callback; return { data: { subscription: { unsubscribe() {} } } } },
     signOut: async () => {},
   }
   const h = await componentHarness('../src/components/FamilySession.jsx', {
-    '../utils/authClient.js': { authClient: { auth } },
+    '../utils/authClient.js': { authClient: { auth }, initializeAuthSession: initialize ?? (() => auth.getSession()) },
     '../store/useStore.js': { default: { getState: () => ({ setCurrentUser: id => writes.push(id) }) } },
   }, { fetch: fetchImpl, window: { addEventListener: (name, callback) => listeners.set(name, callback), removeEventListener() {} } })
   return { ...h, auth, writes, listeners }
@@ -65,8 +66,8 @@ test('cached local identity cannot grant household access when the server denies
     const value = h.render().props.value
     assert.equal(value.member, null)
     assert.equal(value.loading, false)
-    assert.match(value.error, /Access could not be verified/)
-    assert.deepEqual(h.writes, [])
+    assert.match(value.error, /not authorized for this household/)
+    assert.deepEqual(h.writes, [null])
   } finally { h.unmount() }
 })
 
@@ -94,7 +95,7 @@ test('sign-out invalidates a pending authorization response so it cannot reopen 
     h.auth.changed('SIGNED_OUT', null); h.render()
     pending.resolve({ ok: true, json: async () => ({ profileId: 'nithish' }) }); await flush()
     assert.equal(h.render().props.value.member, null)
-    assert.deepEqual(h.writes, [])
+    assert.deepEqual(h.writes, [null])
   } finally { h.unmount() }
 })
 
@@ -130,7 +131,7 @@ test('authorization failure cancels an outstanding response before the next rend
     h.listeners.get('fft-auth-required')()
     pending.resolve({ ok: true, json: async () => ({ profileId: 'nithish' }) }); await flush()
     assert.equal(h.render().props.value.member, null)
-    assert.deepEqual(h.writes, [])
+    assert.deepEqual(h.writes, [null])
   } finally { h.unmount() }
 })
 
@@ -189,4 +190,107 @@ test('provider rate limits stop subsequent email sends without automatic retries
     assert.match(message, /reload this page/)
     assert.doesNotMatch(message, /private|minute|60/)
   }
+})
+
+test('callback initialization and server verification finish before any unauthenticated routing decision', async () => {
+  const callback = deferred(), verified = deferred()
+  let requests = 0
+  const h = await sessionHarness(() => { requests++; return verified.promise }, () => callback.promise)
+  try {
+    assert.equal(h.render().props.value.loading, true)
+    h.auth.changed('INITIAL_SESSION', null)
+    // Restoring an expired old session may emit this before exchanging a new link.
+    h.auth.changed('SIGNED_OUT', null)
+    h.auth.changed('SIGNED_IN', { access_token: 'synthetic-token' })
+    assert.equal(h.render().props.value.loading, true)
+    assert.equal(requests, 0)
+    // React StrictMode repeats setup/cleanup; the shared initializer is pending.
+    h.replayEffects()
+    callback.resolve({ data: { session: { access_token: 'synthetic-token' } } }); await flush()
+    assert.equal(h.render().props.value.loading, true)
+    assert.equal(requests, 1)
+    assert.equal(h.render().props.value.member, null)
+    verified.resolve({ ok: true, json: async () => ({ profileId: 'nithish' }) }); await flush()
+    const value = h.render().props.value
+    assert.equal(value.loading, false); assert.equal(value.member.profileId, 'nithish')
+    assert.deepEqual(h.writes, ['nithish'])
+  } finally { h.unmount() }
+})
+
+test('callback failure shows a useful error without sending household requests', async () => {
+  let requests = 0
+  const h = await sessionHarness(async () => { requests++ }, async () => { throw Error('This sign-in link is invalid, expired, or already used.') })
+  try {
+    h.render(); await flush()
+    const value = h.render().props.value
+    assert.equal(value.loading, false); assert.equal(value.member, null)
+    assert.match(value.error, /invalid, expired/); assert.equal(requests, 0)
+  } finally { h.unmount() }
+})
+
+test('explicit sign-out during callback processing cannot be undone by its late result', async () => {
+  const callback = deferred()
+  let requests = 0
+  const h = await sessionHarness(async () => { requests++ }, () => callback.promise)
+  try {
+    h.render()
+    await h.render().props.value.signOut()
+    callback.resolve({ data: { session: { access_token: 'synthetic-token' } } }); await flush()
+    const value = h.render().props.value
+    assert.equal(value.loading, false); assert.equal(value.member, null)
+    assert.equal(requests, 0); assert.deepEqual(h.writes, [null])
+  } finally { h.unmount() }
+})
+
+test('session events revalidate refreshed tokens, ignore duplicate sign-ins, and clear identity on sign-out', async () => {
+  const tokens = []
+  const h = await sessionHarness(async (_url, config) => {
+    tokens.push(config.headers.Authorization)
+    return { ok: true, json: async () => ({ profileId: 'mother' }) }
+  })
+  try {
+    h.render(); await flush(); h.render(); await flush()
+    h.auth.changed('INITIAL_SESSION', null)
+    h.auth.changed('SIGNED_IN', { access_token: 'synthetic-token' })
+    h.render(); await flush()
+    assert.equal(tokens.length, 1)
+    h.auth.changed('TOKEN_REFRESHED', { access_token: 'synthetic-refreshed' })
+    assert.equal(h.render().props.value.member, null)
+    await flush()
+    assert.equal(h.render().props.value.member.profileId, 'mother')
+    assert.deepEqual(tokens, ['Bearer synthetic-token', 'Bearer synthetic-refreshed'])
+    await h.render().props.value.signOut()
+    h.auth.changed('SIGNED_OUT', null)
+    assert.equal(h.render().props.value.member, null)
+    assert.equal(h.writes.at(-1), null)
+    h.auth.changed('SIGNED_IN', { access_token: 'synthetic-returning' })
+    h.render(); await flush()
+    assert.equal(h.render().props.value.member.profileId, 'mother')
+  } finally { h.unmount() }
+})
+
+test('expired server sessions and unrecognized profiles never activate the dashboard', async () => {
+  for (const response of [{ ok: false, status: 401 }, { ok: true, json: async () => ({ profileId: 'outsider' }) }]) {
+    const h = await sessionHarness(async () => response)
+    try {
+      h.render(); await flush(); h.render(); await flush()
+      assert.equal(h.render().props.value.member, null)
+      assert.equal(h.render().props.value.loading, false)
+      assert.ok(h.render().props.value.error)
+      assert.equal(h.writes.some(Boolean), false)
+    } finally { h.unmount() }
+  }
+})
+
+test('verified membership navigates to the existing dashboard route', async () => {
+  const Navigate = () => null
+  const h = await componentHarness('../src/pages/Auth.jsx', {
+    'react-router-dom': { Navigate },
+    '../utils/authClient.js': { authClient: { auth: {} } },
+    '../components/FamilySession.jsx': { useFamilySession: () => ({ member: { profileId: 'nithish' }, configured: true }) },
+  })
+  const result = h.render()
+  assert.equal(result.type, Navigate)
+  assert.equal(result.props.to, '/dashboard')
+  assert.equal(result.props.replace, true)
 })

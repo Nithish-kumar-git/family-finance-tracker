@@ -8,7 +8,7 @@ import React from 'react'
 import { renderToString } from 'react-dom/server'
 import * as router from 'react-router-dom'
 
-async function renderApp(path, member) {
+async function renderApp(path, member, loading = false) {
   const context = vm.createContext({ React })
   const page = name => () => React.createElement('main', { 'data-page': name }, name)
   const store = { currentUser: 'nithish', users: [{ id: 'nithish', name: 'Synthetic family member' }] }
@@ -19,7 +19,7 @@ async function renderApp(path, member) {
     if (name === 'react-router-dom') exports = { ...router,
       BrowserRouter: ({ children }) => React.createElement(router.MemoryRouter, { initialEntries: [path] }, children) }
     else if (name.includes('FamilySession')) exports = { default: ({ children }) => children,
-      useFamilySession: () => ({ member, loading: false }) }
+      useFamilySession: () => ({ member, loading }) }
     else if (name.includes('useStore')) exports = { default: selector => selector(store) }
     else if (name.startsWith('./pages/')) exports = { default: page(name.split('/').pop().replace('.jsx', '')) }
     else if (name.includes('Header') || name.includes('BottomNav')) exports = { default: () => null }
@@ -46,5 +46,13 @@ test('patched router renders every existing authorized route using the actual Ap
 test('a persisted local profile cannot render any protected page through the patched router', async () => {
   for (const name of ['Dashboard','Expenses','Assets','Milestones','Report','Employment','Settings','Budgets']) {
     assert.doesNotMatch(await renderApp('/' + name.toLowerCase(), null), /data-page=/)
+  }
+})
+
+test('callback/session initialization renders only the verification screen, never registration or protected pages', async () => {
+  for (const path of ['/', '/dashboard']) {
+    const html = await renderApp(path, null, true)
+    assert.match(html, /Verifying family access/)
+    assert.doesNotMatch(html, /data-page=/)
   }
 })
