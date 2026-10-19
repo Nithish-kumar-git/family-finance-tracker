@@ -3,9 +3,9 @@
 export const INITIAL_DATA = {
   currentUser: null, isOffline: false,
   users: [
-    { id: 'mother', name: 'Amma', color: '#7C3AED' },
-    { id: 'nithish', name: 'Nithish', color: '#0891B2' },
-    { id: 'abeerami', name: 'Abeerami', color: '#059669' },
+    { id: 'mother', name: 'Amma', color: '#245C46' },
+    { id: 'nithish', name: 'Nithish', color: '#65786B' },
+    { id: 'abeerami', name: 'Abeerami', color: '#788A79' },
   ],
   expenses: [], budgets: {}, fixedDeposits: [], mutualFunds: [], licPolicies: [], chitFunds: [],
   gold: { weightGrams: 0, currentValuePerGram: 0, lastUpdated: null },

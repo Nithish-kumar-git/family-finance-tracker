@@ -4,7 +4,7 @@ import { webcrypto } from 'node:crypto'
 import { create } from 'zustand'
 export function memoryStorage(initial = {}) {
   const values = new Map(Object.entries(initial))
-  return { values, getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, String(value)), removeItem: key => values.delete(key) }
+  return { values, get length() { return values.size }, key: index => [...values.keys()][index] ?? null, getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, String(value)), removeItem: key => values.delete(key) }
 }
 export async function browserHarness({ demo = false, localStorage = memoryStorage(), sessionStorage = memoryStorage() } = {}) {
   const context = vm.createContext({ URL, URLSearchParams, TextEncoder, Uint8Array, crypto: webcrypto, structuredClone, localStorage, sessionStorage,

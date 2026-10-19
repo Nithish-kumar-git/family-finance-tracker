@@ -262,12 +262,12 @@ async function dashboardHarness(fetchImpl) {
   }
   render()
   await flush()
-  find(node => node.props['aria-label'] === 'Ask Amma AI').props.onClick()
+  find(node => node.props['aria-label'] === 'Open local assistant').props.onClick()
   return {
     clock, actualApi, state, offlineUpdates, render,
-    input: () => find(node => node.props['aria-label'] === 'Message Amma AI'),
+    input: () => find(node => node.props['aria-label'] === 'Message local assistant'),
     send(question = 'Synthetic question') {
-      find(node => node.props['aria-label'] === 'Message Amma AI').props.onChange({ target: { value: question } })
+      find(node => node.props['aria-label'] === 'Message local assistant').props.onChange({ target: { value: question } })
       return find(node => node.props['aria-label'] === 'Send message').props.onClick()
     },
     retry: () => find(node => node.type === 'button' && node.props.children.includes('Retry')).props.onClick(),

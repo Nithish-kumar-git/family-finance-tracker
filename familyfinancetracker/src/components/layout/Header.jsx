@@ -6,6 +6,7 @@ import { PWAInstallButton } from '../ui/PWAInstallButton'
 const ROUTE_TITLES = {
   '/dashboard':  'Dashboard',
   '/expenses':   'Expenses',
+  '/budgets': 'Budgets',
   '/assets':     'Assets',
   '/milestones': 'Milestones',
   '/report':     'Report',
@@ -28,9 +29,9 @@ export default function Header() {
   const color = user?.color ?? '#94A3B8'
 
   return (
-    <header className="bg-white border-b border-slate-100 h-14 flex-shrink-0">
+    <header className="bg-white border-b border-line h-14 flex-shrink-0">
       <div className="flex items-center justify-between h-full px-4">
-        <h1 className="text-lg font-semibold text-slate-800">{title}</h1>
+        <h1 className="text-lg font-semibold text-ink">{title}</h1>
 
         {/* Install button + user avatar */}
         <div className="flex items-center gap-2">

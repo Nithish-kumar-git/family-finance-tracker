@@ -60,3 +60,10 @@ export const getBudgetPctUsed = (state, category, year, month) => {
   const spent = getCategorySpent(state, category, year, month)
   return (spent / limit) * 100
 }
+
+// Planning uses editable budgets and income, never a historical hard-coded family deficit.
+export const getEmploymentProjection = (state, salary) => {
+  const budget = Object.values(state.budgets).reduce((sum, value) => sum + value, 0)
+  const otherIncome = state.monthlyIncome.pension + state.monthlyIncome.abeerami
+  return { budget, baselineDeficit: budget - otherIncome, deficit: budget - otherIncome - salary }
+}

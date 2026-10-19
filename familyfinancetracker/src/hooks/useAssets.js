@@ -1,13 +1,11 @@
-import { authorizedFetch } from '../utils/authorizedFetch.js'
 /**
  * useAssets — store-first asset loading.
  * Uses localStorage data if available so user edits survive refresh.
- * Only fetches from API if store is empty (first load or after reset).
+ * Cloud sync is disconnected; an empty browser is not a verified empty database.
  */
 import { useCallback } from 'react'
 import useStore from '../store/useStore'
 
-const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 export const toCamel = (obj) => {
   if (obj === null || obj === undefined) return obj
@@ -38,49 +36,11 @@ export function useAssets() {
   const loadAssets = useCallback(async () => {
     const s = useStore.getState()
 
-    // If store already has data from localStorage, use it.
-    // Never overwrite user-edited data with server seed data.
-    const storeHasData =
-      (s.fixedDeposits?.length ?? 0) > 0 ||
-      (s.mutualFunds?.length ?? 0) > 0 ||
-      (s.licPolicies?.length ?? 0) > 0 ||
-      (s.chitFunds?.length ?? 0) > 0
-
-    if (storeHasData) {
-      return {
-        fixedDeposits: s.fixedDeposits ?? [],
-        mutualFunds:   s.mutualFunds   ?? [],
-        licPolicies:   s.licPolicies   ?? [],
-        chitFunds:     s.chitFunds     ?? [],
-      }
-    }
-
-    // Store is empty — first time load. Fetch from Supabase.
-    try {
-      const [fds, mfs, lics, chits] = await Promise.all([
-        ...['fixeddeposits', 'mutualfunds', 'lic', 'chitfunds'].map(async kind => {
-          const response = await authorizedFetch(`${BASE}/api/assets/${kind}`)
-          if (!response.ok) throw Error('Asset load failed')
-          const rows = await response.json()
-          if (!Array.isArray(rows)) throw Error('Invalid asset response')
-          return rows
-        }),
-      ])
-      const result = {
-        fixedDeposits: toCamel(Array.isArray(fds)   ? fds   : []),
-        mutualFunds:   toCamel(Array.isArray(mfs)   ? mfs   : []),
-        licPolicies:   toCamel(Array.isArray(lics)  ? lics  : []),
-        chitFunds:     toCamel(Array.isArray(chits) ? chits : []),
-      }
-      useStore.setState(result)
-      return result
-    } catch {
-      return {
-        fixedDeposits: [],
-        mutualFunds:   [],
-        licPolicies:   [],
-        chitFunds:     [],
-      }
+    // Both workspaces are browser-local. Reads must never replace persisted collections.
+    return {
+      fixedDeposits: s.fixedDeposits ?? [], mutualFunds: s.mutualFunds ?? [],
+      licPolicies: s.licPolicies ?? [], chitFunds: s.chitFunds ?? [],
+      loadError: s.storageReadError ? 'Existing browser data could not be read. Asset totals are unavailable; open recovery in Settings.' : '',
     }
   }, [])
 

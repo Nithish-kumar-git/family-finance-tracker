@@ -1,3 +1,4 @@
+import { getEmploymentProjection } from '../utils/calculations.js'
 import { workspaceKey } from '../utils/workspace.js'
 import { useState, useEffect, useMemo } from 'react'
 import useStore from '../store/useStore'
@@ -27,7 +28,7 @@ import {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const BASELINE_DEFICIT = 48196 // family's known deficit at pension-only income
+// Employment projections use editable household budgets and income.
 const WEEKLY_TARGET = 25
 
 const PLATFORM_OPTIONS = ['LinkedIn', 'Naukri', 'Indeed', 'Referral', 'Other']
@@ -115,7 +116,7 @@ export default function Employment() {
   // ── Employment status (persisted to localStorage) ──────────────────────────
   const [employmentStatus, setEmploymentStatus] = useState(() => {
     try {
-      return localStorage.getItem(workspaceKey('fft_nithish_status')) ?? 'searching'
+      return localStorage.getItem(workspaceKey('fft_nithish_status')) ?? (useStore.getState().monthlyIncome.nithish > 0 ? 'employed' : 'searching')
     } catch {
       return 'searching'
     }
@@ -230,7 +231,7 @@ export default function Employment() {
   const isEmployed = employmentStatus === 'employed' && nithishSalary > 0
   const inputSalary = parseInt(salaryInput, 10) || 0
   const displaySalary = isEmployed ? nithishSalary : inputSalary
-  const newDeficit = BASELINE_DEFICIT - displaySalary
+  const { baselineDeficit: BASELINE_DEFICIT, deficit: newDeficit } = getEmploymentProjection(state, displaySalary)
   const isSurplus = newDeficit <= 0
 
   const weeklyData = useMemo(() => buildWeeklyData(applications), [applications])
@@ -246,7 +247,7 @@ export default function Employment() {
 
   const weekPct = Math.min((thisWeek / WEEKLY_TARGET) * 100, 100)
   const weekBar =
-    weekPct >= 100 ? 'bg-emerald-500' : weekPct >= 40 ? 'bg-amber-500' : 'bg-red-400'
+    weekPct >= 100 ? 'bg-accent' : weekPct >= 40 ? 'bg-canvas' : 'bg-red-400'
   const weekBadgeColor =
     weekPct >= 100 ? 'green' : weekPct >= 40 ? 'amber' : 'red'
 
@@ -277,7 +278,7 @@ export default function Employment() {
     catch { setSalarySaving(false); showToast('Salary was not saved. Check browser storage.', 'error'); return }
     await new Promise((r) => setTimeout(r, 300))
     setSalarySaving(false)
-    showToast(`Salary of ${formatCurrency(salary)}/month saved ✓`, 'success')
+    showToast(`Salary of ${formatCurrency(salary)}/month saved `, 'success')
   }
 
   // ── Add application handler ────────────────────────────────────────────────
@@ -324,7 +325,7 @@ export default function Employment() {
             }
           : prev
       )
-      showToast('Application saved ✓', 'success')
+      showToast('Application saved ', 'success')
     } catch {
       setAddError('Could not save — check connection and try again.')
     }
@@ -359,19 +360,19 @@ export default function Employment() {
     return (
       <div
         key={app.id}
-        className="bg-white rounded-xl border border-slate-200 p-3.5 mb-2"
+        className="bg-white rounded-lg border border-line p-3.5 mb-2"
       >
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-slate-800 truncate">
+            <p className="text-sm font-semibold text-ink truncate">
               {app.company}
             </p>
-            <p className="text-xs text-slate-500 truncate">{app.role}</p>
+            <p className="text-xs text-muted truncate">{app.role}</p>
             <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
               <Badge color={PLATFORM_COLORS[app.platform] ?? 'slate'}>
                 {app.platform}
               </Badge>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-muted">
                 {formatDate(app.appliedDate)}
               </p>
               {isFollowUpDue && (
@@ -382,7 +383,7 @@ export default function Employment() {
               )}
             </div>
             {app.notes && (
-              <p className="text-xs text-slate-400 mt-1 truncate">
+              <p className="text-xs text-muted mt-1 truncate">
                 {app.notes}
               </p>
             )}
@@ -393,9 +394,9 @@ export default function Employment() {
             value={app.status}
             disabled={updatingStatusId === app.id}
             onChange={(e) => handleUpdateStatus(app.id, e.target.value)}
-            className="text-xs border border-slate-200 rounded-lg px-2 py-1.5
-                       text-slate-600 focus:outline-none focus:ring-2
-                       focus:ring-indigo-500 flex-shrink-0 max-w-[130px]
+            className="text-xs border border-line rounded-lg px-2 py-1.5
+                       text-muted focus:outline-none focus:ring-2
+                       focus:ring-accent flex-shrink-0 max-w-[130px]
                        disabled:opacity-50"
           >
             {STATUS_OPTIONS.map((opt) => (
@@ -418,16 +419,16 @@ export default function Employment() {
 
   // ── Add application form (shared — shown in both loading + loaded states) ──
   const addFormJSX = (
-    <Card className={`mb-4 ${addSuccess ? 'border-emerald-300 bg-emerald-50' : ''}`}>
-      <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-3">
-        {addSuccess ? '✓ Saved! Add another:' : 'Log Application'}
+    <Card className={`mb-4 ${addSuccess ? 'border-line bg-accent-soft' : ''}`}>
+      <p className="text-xs font-medium uppercase tracking-widest text-muted mb-3">
+        {addSuccess ? ' Saved! Add another:' : 'Log Application'}
       </p>
       <div className="space-y-3">
         {/* Company + Role */}
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">
-              Company <span className="text-red-500">*</span>
+            <label className="block text-xs font-medium text-muted mb-1">
+              Company <span className="text-red-700">*</span>
             </label>
             <input
               type="text"
@@ -436,13 +437,13 @@ export default function Employment() {
                 setAddForm((p) => ({ ...p, company: e.target.value }))
               }
               placeholder="Company name"
-              className="w-full rounded-lg border border-slate-200 px-2.5 py-2 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-line px-2.5 py-2 text-sm
+                         focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">
-              Role <span className="text-red-500">*</span>
+            <label className="block text-xs font-medium text-muted mb-1">
+              Role <span className="text-red-700">*</span>
             </label>
             <input
               type="text"
@@ -451,8 +452,8 @@ export default function Employment() {
                 setAddForm((p) => ({ ...p, role: e.target.value }))
               }
               placeholder="Job title"
-              className="w-full rounded-lg border border-slate-200 px-2.5 py-2 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-line px-2.5 py-2 text-sm
+                         focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
         </div>
@@ -460,7 +461,7 @@ export default function Employment() {
         {/* Platform + Date */}
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">
+            <label className="block text-xs font-medium text-muted mb-1">
               Platform
             </label>
             <select
@@ -468,8 +469,8 @@ export default function Employment() {
               onChange={(e) =>
                 setAddForm((p) => ({ ...p, platform: e.target.value }))
               }
-              className="w-full rounded-lg border border-slate-200 px-2.5 py-2 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-line px-2.5 py-2 text-sm
+                         focus:outline-none focus:ring-2 focus:ring-accent"
             >
               {PLATFORM_OPTIONS.map((p) => (
                 <option key={p} value={p}>
@@ -479,7 +480,7 @@ export default function Employment() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">
+            <label className="block text-xs font-medium text-muted mb-1">
               Date applied
             </label>
             <input
@@ -488,15 +489,15 @@ export default function Employment() {
               onChange={(e) =>
                 setAddForm((p) => ({ ...p, appliedDate: e.target.value }))
               }
-              className="w-full rounded-lg border border-slate-200 px-2.5 py-2 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-line px-2.5 py-2 text-sm
+                         focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
         </div>
 
         {/* Follow-up date */}
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">
+          <label className="block text-xs font-medium text-muted mb-1">
             Follow-up date (optional)
           </label>
           <input
@@ -505,14 +506,14 @@ export default function Employment() {
             onChange={(e) =>
               setAddForm((p) => ({ ...p, followUpDate: e.target.value }))
             }
-            className="w-full rounded-lg border border-slate-200 px-2.5 py-2 text-sm
-                       focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full rounded-lg border border-line px-2.5 py-2 text-sm
+                       focus:outline-none focus:ring-2 focus:ring-accent"
           />
         </div>
 
         {/* Notes */}
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">
+          <label className="block text-xs font-medium text-muted mb-1">
             Notes (optional)
           </label>
           <input
@@ -523,8 +524,8 @@ export default function Employment() {
             }
             placeholder="Recruiter name, source, etc."
             maxLength={120}
-            className="w-full rounded-lg border border-slate-200 px-2.5 py-2 text-sm
-                       focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full rounded-lg border border-line px-2.5 py-2 text-sm
+                       focus:outline-none focus:ring-2 focus:ring-accent"
           />
         </div>
 
@@ -551,10 +552,10 @@ export default function Employment() {
       {/* ── Toast ── */}
       {toast && (
         <div
-          className={`fixed bottom-20 left-1/2 -translate-x-1/2 z-50 rounded-2xl px-5 py-3
-                     shadow-xl flex items-center gap-2 text-sm font-medium
+          className={`fixed bottom-20 left-1/2 -translate-x-1/2 z-50 rounded-lg px-5 py-3
+                      flex items-center gap-2 text-sm font-medium
                      text-white whitespace-nowrap
-                     ${toast.type === 'error' ? 'bg-red-600' : 'bg-emerald-600'}`}
+                     ${toast.type === 'error' ? 'bg-red-600' : 'bg-accent'}`}
         >
           {toast.type === 'error' ? (
             <AlertTriangle size={16} />
@@ -568,14 +569,14 @@ export default function Employment() {
       {loading ? (
         <>
           {/* Skeletons for status + weekly card */}
-          <div className="h-40 bg-slate-100 rounded-2xl animate-pulse mb-4" />
-          <div className="h-28 bg-slate-100 rounded-2xl animate-pulse mb-4" />
+          <div className="h-40 bg-canvas rounded-lg animate-pulse mb-4" />
+          <div className="h-28 bg-canvas rounded-lg animate-pulse mb-4" />
           {/* Add form always visible */}
           {addFormJSX}
           {/* App row skeletons */}
-          <div className="h-20 bg-slate-100 rounded-2xl animate-pulse mb-2" />
-          <div className="h-20 bg-slate-100 rounded-2xl animate-pulse mb-2" />
-          <div className="h-20 bg-slate-100 rounded-2xl animate-pulse mb-2" />
+          <div className="h-20 bg-canvas rounded-lg animate-pulse mb-2" />
+          <div className="h-20 bg-canvas rounded-lg animate-pulse mb-2" />
+          <div className="h-20 bg-canvas rounded-lg animate-pulse mb-2" />
         </>
       ) : (
         <>
@@ -585,12 +586,12 @@ export default function Employment() {
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           {/* SECTION 1 — STATUS CARD                                     */}
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-          <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 -mx-4 px-4 pt-4 pb-6 mb-4 lg:mx-0 lg:rounded-2xl">
+          <div className="surface mb-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Briefcase size={18} className="text-slate-700" />
-                <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
-                  Nithish's Job Search
+                <Briefcase size={18} className="text-ink" />
+                <p className="text-xs font-medium uppercase tracking-wider text-muted">
+                  {state.users.find(user => user.id === 'nithish')?.name ?? 'Household'}’s employment
                 </p>
               </div>
               <button
@@ -606,7 +607,7 @@ export default function Employment() {
                 </Badge>
                 <ChevronRight
                   size={14}
-                  className="text-slate-400 group-hover:text-indigo-500"
+                  className="text-muted group-hover:text-accent"
                 />
               </button>
             </div>
@@ -616,22 +617,22 @@ export default function Employment() {
               <>
                 {inputSalary > 0 && (
                   <div
-                    className={`rounded-xl p-3 mb-4 ${
+                    className={`rounded-lg p-3 mb-4 ${
                       isSurplus
-                        ? 'bg-emerald-50 border border-emerald-200'
-                        : 'bg-blue-50 border border-blue-200'
+                        ? 'bg-accent-soft border border-line'
+                        : 'bg-accent-soft border border-line'
                     }`}
                   >
-                    <p className="text-xs font-medium text-slate-600 mb-1">
+                    <p className="text-xs font-medium text-muted mb-1">
                       At {formatCurrency(inputSalary)}/month:
                     </p>
                     {isSurplus ? (
-                      <p className="text-sm font-bold text-emerald-700">
-                        🎉 Family reaches surplus of{' '}
+                      <p className="text-sm font-bold text-accent">
+                         Family reaches surplus of{' '}
                         {formatCurrency(Math.abs(newDeficit))}/month
                       </p>
                     ) : (
-                      <p className="text-sm font-bold text-blue-700">
+                      <p className="text-sm font-bold text-accent">
                         Deficit reduces from {formatCurrency(BASELINE_DEFICIT)}{' '}
                         to {formatCurrency(newDeficit)}/month
                       </p>
@@ -639,11 +640,11 @@ export default function Employment() {
                   </div>
                 )}
                 <div>
-                  <p className="text-xs text-slate-400 mb-1.5">
+                  <p className="text-xs text-muted mb-1.5">
                     Estimate salary to see impact:
                   </p>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-sm">
                       ₹
                     </span>
                     <input
@@ -652,8 +653,8 @@ export default function Employment() {
                       value={salaryInput}
                       onChange={(e) => setSalaryInput(e.target.value)}
                       placeholder="e.g. 30000"
-                      className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm
-                                 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                      className="w-full rounded-lg border border-line pl-7 pr-3 py-2 text-sm
+                                 focus:outline-none focus:ring-2 focus:ring-accent bg-white"
                     />
                   </div>
                 </div>
@@ -663,25 +664,25 @@ export default function Employment() {
             {/* When EMPLOYED: show salary + confirmed impact */}
             {isEmployed && (
               <>
-                <div className="bg-white/15 backdrop-blur-md border border-white/25 rounded-xl p-4 mb-4">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1">Monthly salary</p>
-                  <p className="text-3xl font-bold tracking-tight text-white">
+                <div className="bg-surface  border border-line rounded-lg p-4 mb-4">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted mb-1">Monthly salary</p>
+                  <p className="text-3xl font-bold tracking-tight text-ink">
                     {formatCurrency(nithishSalary)}
                   </p>
                   {newDeficit <= 0 ? (
-                    <p className="text-xs font-semibold text-emerald-400 mt-1">
-                      🎉 Family surplus:{' '}
+                    <p className="text-xs font-semibold text-accent mt-1">
+                       Family surplus:{' '}
                       {formatCurrency(Math.abs(newDeficit))}/month
                     </p>
                   ) : (
-                    <p className="text-xs text-emerald-400 mt-1">
+                    <p className="text-xs text-accent mt-1">
                       Deficit reduced to {formatCurrency(newDeficit)}/month
                     </p>
                   )}
                 </div>
                 <div className="flex gap-2">
                   <div className="flex-1 relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-sm">
                       ₹
                     </span>
                     <input
@@ -689,8 +690,8 @@ export default function Employment() {
                       inputMode="numeric"
                       value={salaryInput}
                       onChange={(e) => setSalaryInput(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm
-                                 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                      className="w-full rounded-lg border border-line pl-7 pr-3 py-2 text-sm
+                                 focus:outline-none focus:ring-2 focus:ring-accent bg-white"
                     />
                   </div>
                   <Button
@@ -705,7 +706,7 @@ export default function Employment() {
               </>
             )}
 
-            <p className="text-xs text-slate-400 mt-3 text-center">
+            <p className="text-xs text-muted mt-3 text-center">
               Tap the status badge to update as your search progresses →
             </p>
           </div>
@@ -716,13 +717,13 @@ export default function Employment() {
           <Card className="mb-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Target size={16} className="text-indigo-600" />
-                <p className="text-xs font-medium uppercase tracking-widest text-slate-400">This Week</p>
+                <Target size={16} className="text-accent" />
+                <p className="text-xs font-medium uppercase tracking-widest text-muted">This Week</p>
               </div>
               {streak > 0 && (
                 <div className="flex items-center gap-1">
-                  <span className="text-base">🔥</span>
-                  <p className="text-xs font-medium text-emerald-700">
+                  <span className="text-base"></span>
+                  <p className="text-xs font-medium text-accent">
                     {streak} week{streak > 1 ? 's' : ''} on target
                   </p>
                 </div>
@@ -731,29 +732,29 @@ export default function Employment() {
 
             <div className="flex items-end justify-between mb-2">
               <div>
-                <p className="text-3xl font-bold tracking-tight text-slate-900">{thisWeek}</p>
-                <p className="text-xs font-medium uppercase tracking-widest text-slate-400">applications</p>
+                <p className="text-3xl font-bold tracking-tight text-ink">{thisWeek}</p>
+                <p className="text-xs font-medium uppercase tracking-widest text-muted">applications</p>
               </div>
               <div className="text-right">
                 <Badge color={weekBadgeColor}>
                   {thisWeek >= WEEKLY_TARGET
-                    ? '✓ On target'
+                    ? ' On target'
                     : `${WEEKLY_TARGET - thisWeek} to go`}
                 </Badge>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-muted mt-1">
                   Target: {WEEKLY_TARGET}/week
                 </p>
               </div>
             </div>
 
-            <div className="h-3 rounded-full bg-slate-100 overflow-hidden">
+            <div className="h-3 rounded-full bg-canvas overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all ${weekBar}`}
                 style={{ width: `${weekPct}%` }}
               />
             </div>
 
-            <p className="text-xs text-slate-400 mt-2">
+            <p className="text-xs text-muted mt-2">
               {Math.round(WEEKLY_TARGET / 5)} per day to hit weekly target
             </p>
           </Card>
@@ -762,7 +763,7 @@ export default function Employment() {
           {/* SECTION 3 — ADD APPLICATION FORM                            */}
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           {addFormJSX}
-          
+
           {/* Close left column, open right column */}
           </div>
           <div className="lg:col-span-3">
@@ -772,22 +773,22 @@ export default function Employment() {
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           <div className="grid grid-cols-2 gap-3 mb-4">
             <Card className="text-center py-3">
-              <p className="text-3xl font-bold tracking-tight text-slate-900">{totalApps}</p>
-              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-0.5">Total sent</p>
+              <p className="text-3xl font-bold tracking-tight text-ink">{totalApps}</p>
+              <p className="text-xs font-medium uppercase tracking-widest text-muted mt-0.5">Total sent</p>
             </Card>
             <Card className="text-center py-3">
-              <p className="text-3xl font-bold tracking-tight text-indigo-700">
+              <p className="text-3xl font-bold tracking-tight text-accent">
                 {interviewCount}
               </p>
-              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-0.5">Interviews</p>
+              <p className="text-xs font-medium uppercase tracking-widest text-muted mt-0.5">Interviews</p>
             </Card>
             <Card className="text-center py-3">
-              <p className="text-3xl font-bold tracking-tight text-emerald-700">{offerCount}</p>
-              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-0.5">Offers</p>
+              <p className="text-3xl font-bold tracking-tight text-accent">{offerCount}</p>
+              <p className="text-xs font-medium uppercase tracking-widest text-muted mt-0.5">Offers</p>
             </Card>
             <Card className="text-center py-3">
-              <p className="text-3xl font-bold tracking-tight text-blue-700">{responseRate}%</p>
-              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-0.5">Response rate</p>
+              <p className="text-3xl font-bold tracking-tight text-accent">{responseRate}%</p>
+              <p className="text-xs font-medium uppercase tracking-widest text-muted mt-0.5">Response rate</p>
             </Card>
           </div>
 
@@ -795,12 +796,12 @@ export default function Employment() {
           {/* SECTION 5 — WEEKLY BAR CHART                                */}
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           <Card className="mb-4">
-            <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">
+            <p className="text-xs font-medium uppercase tracking-widest text-muted mb-1">
               Applications per week
             </p>
-            <p className="text-xs text-slate-400 mb-3">Last 8 weeks</p>
+            <p className="text-xs text-muted mb-3">Last 8 weeks</p>
             {applications.length === 0 ? (
-              <p className="text-xs text-slate-400 text-center py-6">
+              <p className="text-xs text-muted text-center py-6">
                 No applications yet — log your first one above
               </p>
             ) : (
@@ -819,7 +820,7 @@ export default function Employment() {
                   />
                   <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
                   <Tooltip formatter={(v) => [v, 'Applications']} />
-                  <Bar dataKey="count" fill="#4F46E5" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="count" fill="#245C46" radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -831,18 +832,18 @@ export default function Employment() {
 
           {/* Group 1 — Active */}
           <div className="flex items-center justify-between mb-2 mt-5">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">
+            <p className="text-xs font-bold text-muted uppercase tracking-wide">
               Active ({activeApps.length})
             </p>
           </div>
 
           {activeApps.length === 0 ? (
             <div className="text-center py-8">
-              <Briefcase size={28} className="text-slate-300 mx-auto mb-2" />
-              <p className="text-sm text-slate-400 font-medium">
+              <Briefcase size={28} className="text-muted mx-auto mb-2" />
+              <p className="text-sm text-muted font-medium">
                 No applications yet
               </p>
-              <p className="text-xs text-slate-300 mt-1">
+              <p className="text-xs text-muted mt-1">
                 Use the form above to log your first application
               </p>
             </div>
@@ -854,7 +855,7 @@ export default function Employment() {
           {interviewedApps.length > 0 && (
             <>
               <div className="flex items-center justify-between mb-2 mt-5">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">
+                <p className="text-xs font-bold text-muted uppercase tracking-wide">
                   Interviewed ({interviewedApps.length})
                 </p>
               </div>
@@ -866,7 +867,7 @@ export default function Employment() {
           {offeredApps.length > 0 && (
             <>
               <div className="flex items-center justify-between mb-2 mt-5">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">
+                <p className="text-xs font-bold text-muted uppercase tracking-wide">
                   Offers ({offeredApps.length})
                 </p>
               </div>
@@ -878,10 +879,10 @@ export default function Employment() {
           <button
             onClick={() => setShowRejected((p) => !p)}
             className="w-full flex items-center justify-between py-2.5 px-3
-                       rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors
+                       rounded-lg bg-canvas hover:bg-canvas transition-colors
                        mt-5 mb-2"
           >
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">
+            <p className="text-xs font-bold text-muted uppercase tracking-wide">
               Rejected ({rejectedApps.length})
             </p>
             {showRejected ? (
@@ -904,33 +905,32 @@ export default function Employment() {
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           {/* SECTION 7 — MOTIVATION CARD (non-dismissible)               */}
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-          <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <div className="mt-6 rounded-lg border border-line bg-canvas p-4">
             <div className="flex items-start gap-3">
               <TrendingUp
                 size={20}
-                className="text-amber-600 flex-shrink-0 mt-0.5"
+                className="text-ink flex-shrink-0 mt-0.5"
               />
               <div>
-                <p className="text-sm font-bold text-amber-800 mb-2">
+                <p className="text-sm font-bold text-ink mb-2">
                   Why this matters most
                 </p>
-                <p className="text-sm text-amber-700 leading-relaxed">
-                  A ₹30,000 job reduces this family's monthly deficit from{' '}
-                  {formatCurrency(BASELINE_DEFICIT)} to{' '}
-                  {formatCurrency(BASELINE_DEFICIT - 30000)}/month. That is
-                  worth more than any investment optimisation.
+                <p className="text-sm text-ink leading-relaxed">
+                  An additional ₹30,000 monthly income changes the budget-based balance from{' '}
+                  {formatCurrency(-BASELINE_DEFICIT)} to {formatCurrency(30000 - BASELINE_DEFICIT)}.
+                  This illustration uses your editable monthly budget and other household income, not a guaranteed forecast.
                 </p>
                 <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                  <div className="bg-amber-100 rounded-lg py-2">
-                    <p className="text-lg font-bold text-amber-800">5</p>
-                    <p className="text-xs text-amber-600">per day</p>
+                  <div className="bg-canvas rounded-lg py-2">
+                    <p className="text-lg font-bold text-ink">5</p>
+                    <p className="text-xs text-ink">per day</p>
                   </div>
-                  <div className="bg-amber-100 rounded-lg py-2">
-                    <p className="text-lg font-bold text-amber-800">25</p>
-                    <p className="text-xs text-amber-600">per week</p>
+                  <div className="bg-canvas rounded-lg py-2">
+                    <p className="text-lg font-bold text-ink">25</p>
+                    <p className="text-xs text-ink">per week</p>
                   </div>
-                  <div className="bg-amber-100 rounded-lg py-2">
-                    <p className="text-xs font-bold text-amber-800 leading-tight">
+                  <div className="bg-canvas rounded-lg py-2">
+                    <p className="text-xs font-bold text-ink leading-tight">
                       No exceptions.
                     </p>
                   </div>

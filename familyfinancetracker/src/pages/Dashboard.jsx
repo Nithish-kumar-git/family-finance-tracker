@@ -31,7 +31,7 @@ const iconMap = {
 const SUGGESTIONS = [
   'How much did we spend on groceries this month?',
   'When is the next LIC premium due?',
-  'What happens if Nithish gets a ₹35,000 job?',
+  'What happens if household income increases?',
 ]
 
 export default function Dashboard() {
@@ -70,7 +70,7 @@ export default function Dashboard() {
   const allExpenses = useStore(state => state.expenses)
   const prefix = `${year}-${String(month).padStart(2, '0')}`
   const currentMonthExpenses = allExpenses.filter(e => e.date.startsWith(prefix))
-  
+
   // Compute category totals from current month expenses
   const categoryTotals = {}
   Object.keys(EXPENSE_CATEGORIES).forEach(k => { categoryTotals[k] = 0 })
@@ -138,8 +138,7 @@ export default function Dashboard() {
 
   const nithishSalary = monthlyIncome.nithish
   const isEmployed = nithishSalary > 0
-  const currentDeficit = Math.max(0, totalExpenses - income + nithishSalary)
-  const newDeficit = currentDeficit - nithishSalary
+  const newDeficit = totalExpenses - income
   const thisWeek = employmentStats?.this_week ?? 0
   const totalApps = employmentStats?.total ?? 0
   const weekTarget = 25
@@ -240,74 +239,67 @@ export default function Dashboard() {
   if (loading) {
     return (
       <>
-        <div className="h-28 bg-slate-200 rounded-2xl animate-pulse mb-5" />
-        <div className="h-48 bg-slate-200 rounded-2xl animate-pulse mb-5" />
-        <div className="h-20 bg-slate-200 rounded-2xl animate-pulse" />
+        <div className="h-28 bg-canvas rounded-lg animate-pulse mb-5" />
+        <div className="h-48 bg-canvas rounded-lg animate-pulse mb-5" />
+        <div className="h-20 bg-canvas rounded-lg animate-pulse" />
       </>
     )
   }
 
+  if (state.storageReadError) return <div role="alert" className="surface"><h2>Existing browser data could not be safely opened</h2><p className="text-muted my-3">The original storage has not been overwritten. Balances are unavailable.</p><button className="action" onClick={() => navigate('/settings')}>Open recovery</button></div>
+
   // ── Main render ───────────────────────────────────────────────────────
   return (
     <>
-      {/* ── Hero: Dark gradient with glass cards ─────────────────────────── */}
-      <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-6 lg:p-8 mb-5">
+      {/* ── Overview ─────────────────────────── */}
+      <div className="surface p-6 lg:p-8 mb-5">
         {/* Greeting */}
         <div className="flex items-start justify-between mb-5">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-indigo-300 mb-1">
+            <p className="text-xs font-medium uppercase tracking-wider text-accent mb-1">
               {getGreeting()}
             </p>
-            <p className="text-3xl lg:text-4xl font-bold text-white tracking-tight">
+            <p className="text-3xl lg:text-4xl font-bold text-ink tracking-tight">
               {user?.name ?? 'Friend'}
             </p>
           </div>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted">
             {now.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}
           </p>
         </div>
 
-        {/* Net position */}
         <div className="mb-6">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-2">
-            This Month
-          </p>
-          <p className={`text-4xl lg:text-5xl font-bold tracking-tight ${
-            netPosition >= 0 ? 'text-emerald-400' : 'text-red-400'
-          }`}>
-            {formatDeficit(netPosition)}
-          </p>
-          <p className="text-sm text-slate-400 mt-1.5">
-            Income {formatCurrency(income, true)} · Spent {formatCurrency(totalExpenses, true)}
-          </p>
+          <p className="eyebrow">Net worth</p>
+          <p className="text-4xl lg:text-5xl font-semibold tracking-tight text-ink">{formatCurrency(totalCorpusWithSavings)}</p>
+          <p className="text-sm text-muted mt-2">Recorded assets and cash · {formatMonth(`${prefix}-01`)}</p>
         </div>
 
-        {/* Glass stat cards — 3 columns */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-white/15 backdrop-blur-md border border-white/25 rounded-xl p-3 lg:p-4 text-center">
-            <p className="text-xs font-semibold uppercase tracking-widest text-white/60 mb-1.5">
+        {/* Monthly summary — 3 columns */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="bg-surface  border border-line rounded-lg p-3 lg:p-4 text-center">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted mb-1.5">
               Income
             </p>
-            <p className="text-lg lg:text-xl font-bold text-emerald-400">
-              {formatCurrency(income, true)}
+            <p className="text-base sm:text-xl font-semibold text-accent">
+              {formatCurrency(income)}
             </p>
           </div>
-          
-          <div className="bg-white/15 backdrop-blur-md border border-white/25 rounded-xl p-3 lg:p-4 text-center">
-            <p className="text-xs font-semibold uppercase tracking-widest text-white/60 mb-1.5">
+
+          <div className="bg-surface  border border-line rounded-lg p-3 lg:p-4 text-center">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted mb-1.5">
               Spent
             </p>
-            <p className="text-lg lg:text-xl font-bold text-red-400">
-              {formatCurrency(totalExpenses, true)}
+            <p className="text-base sm:text-xl font-semibold text-ink">
+              {formatCurrency(totalExpenses)}
             </p>
           </div>
-          
-          <div className="bg-white/15 backdrop-blur-md border border-white/25 rounded-xl p-3 lg:p-4 text-center">
-            <p className="text-xs font-semibold uppercase tracking-widest text-white/60 mb-1.5">
+
+          <div className="bg-surface  border border-line rounded-lg p-3 lg:p-4 text-center">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted mb-1.5">
               Saved
             </p>
-            <p className="text-lg lg:text-xl font-bold text-white">
-              {formatCurrency(Math.max(0, income - totalExpenses), true)}
+            <p className={`text-base sm:text-xl font-semibold ${income - totalExpenses < 0 ? 'text-red-700' : 'text-ink'}`}>
+              {formatCurrency(income - totalExpenses)}
             </p>
           </div>
         </div>
@@ -318,13 +310,8 @@ export default function Dashboard() {
         {/* LEFT COLUMN */}
         <div className="space-y-5">
           {/* Corpus card */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1">
-              Total Savings
-            </p>
-            <p className="text-3xl font-bold text-slate-900 tracking-tight mb-5">
-              {formatCurrency(totalCorpusWithSavings, true)}
-            </p>
+          <div className="bg-white rounded-lg border border-line  p-5">
+            <h2 className="mb-5">Assets & reserves</h2>
 
             <div className="grid grid-cols-2 gap-3 mb-4">
               {[
@@ -336,58 +323,58 @@ export default function Dashboard() {
                 <button
                   key={item.label}
                   onClick={() => navigate(item.to)}
-                  className="text-left bg-slate-50 hover:bg-slate-100 transition-colors rounded-xl p-3"
+                  className="text-left bg-canvas hover:bg-canvas transition-colors rounded-lg p-3"
                 >
-                  <p className="text-xs font-medium text-slate-400 mb-1 uppercase tracking-wide">
+                  <p className="text-xs font-medium text-muted mb-1 uppercase tracking-wide">
                     {item.label}
                   </p>
-                  <p className="text-base font-semibold text-slate-800">
+                  <p className="text-base font-semibold text-ink">
                     {formatCurrency(item.value, true)}
                   </p>
-                  <p className="text-xs text-indigo-500 mt-0.5">Edit →</p>
+                  <p className="text-xs text-accent mt-0.5">Edit →</p>
                 </button>
               ))}
             </div>
 
             {/* Emergency fund bar */}
-            <div className={`rounded-xl p-3 ${
+            <div className={`rounded-lg p-3 ${
               efIntact
-                ? 'bg-emerald-50 border border-emerald-100'
+                ? 'bg-accent-soft border border-line'
                 : 'bg-red-50 border border-red-100'
             }`}>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
-                  <Lock size={13} className={efIntact ? 'text-emerald-600' : 'text-red-400'} />
-                  <p className="text-xs font-medium text-slate-700">Emergency Fund</p>
+                  <Lock size={13} className={efIntact ? 'text-accent' : 'text-red-700'} />
+                  <p className="text-xs font-medium text-ink">Emergency Fund</p>
                 </div>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-muted">
                   {formatCurrency(efBalance, true)} / {formatCurrency(efTarget, true)}
                 </p>
               </div>
-              <div className="h-1.5 rounded-full bg-white/70 overflow-hidden">
+              <div className="h-1.5 rounded-full bg-canvas overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all ${
-                    efIntact ? 'bg-emerald-500' : 'bg-red-400'
+                    efIntact ? 'bg-accent' : 'bg-red-400'
                   }`}
                   style={{ width: `${efPct}%` }}
                 />
               </div>
               {!efIntact && (
-                <p className="text-xs text-red-500 mt-1.5 font-medium">
-                  {emergencyFund.isIsolated ? '⚠ Below emergency-fund target' : '⚠ Not yet isolated'}
+                <p className="text-xs text-red-700 mt-1.5 font-medium">
+                  {emergencyFund.isIsolated ? ' Below emergency-fund target' : ' Not yet isolated'}
                 </p>
               )}
             </div>
           </div>
 
           {/* Upcoming milestones */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">
+          <div className="bg-white rounded-lg border border-line  p-5">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted mb-3">
               Upcoming
             </p>
             {upcomingMilestones.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-4">
-                All milestones up to date ✓
+              <p className="text-sm text-muted text-center py-4">
+                All milestones up to date
               </p>
             ) : (
               <div className="space-y-2">
@@ -396,23 +383,23 @@ export default function Dashboard() {
                   return (
                     <div
                       key={m.id}
-                      className={`flex items-center justify-between p-3 rounded-xl ${
+                      className={`flex items-center justify-between p-3 rounded-lg ${
                         m.isDangerous
                           ? 'bg-red-50 border border-red-100'
-                          : 'bg-slate-50'
+                          : 'bg-canvas'
                       }`}
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         {m.isDangerous && (
                           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
                         )}
-                        <p className="text-sm font-medium text-slate-800 truncate">
+                        <p className="text-sm font-medium text-ink truncate">
                           {m.title}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                         {m.amount != null && (
-                          <p className="text-xs text-slate-400 hidden sm:block">
+                          <p className="text-xs text-muted hidden sm:block">
                             {formatCurrency(m.amount, true)}
                           </p>
                         )}
@@ -420,8 +407,8 @@ export default function Dashboard() {
                           days < 0
                             ? 'bg-red-100 text-red-600'
                             : days < 14
-                            ? 'bg-amber-100 text-amber-700'
-                            : 'bg-slate-100 text-slate-500'
+                            ? 'bg-canvas text-ink'
+                            : 'bg-canvas text-muted'
                         }`}>
                           {days < 0 ? 'Overdue' : days === 0 ? 'Today' : `${days}d`}
                         </span>
@@ -437,8 +424,8 @@ export default function Dashboard() {
         {/* RIGHT COLUMN */}
         <div className="space-y-5">
           {/* Budget card */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">
+          <div className="bg-white rounded-lg border border-line  p-5">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted mb-3">
               Budget
             </p>
             <div className="grid grid-cols-2 gap-2">
@@ -449,30 +436,30 @@ export default function Dashboard() {
                 const pct = limit > 0 ? Math.min((spent / limit) * 100, 100) : 0
                 const barColor =
                   pct < 75
-                    ? 'bg-emerald-500'
+                    ? 'bg-accent'
                     : pct < 100
-                    ? 'bg-amber-500'
+                    ? 'bg-canvas'
                     : 'bg-red-500'
                 return (
-                  <div key={key} className="bg-slate-50 rounded-xl p-3">
+                  <div key={key} className="bg-canvas rounded-lg p-3">
                     <div className="flex items-center gap-1.5 mb-2">
                       {IconComponent && (
                         <IconComponent size={13} style={{ color: cat.color }} />
                       )}
-                      <p className="text-xs font-medium text-slate-600 truncate">
+                      <p className="text-xs font-medium text-muted truncate">
                         {cat.label.split(' ')[0]}
                       </p>
                     </div>
-                    <p className="text-sm font-semibold text-slate-800 mb-1.5">
+                    <p className="text-sm font-semibold text-ink mb-1.5">
                       {formatCurrency(spent, true)}
                     </p>
-                    <div className="h-1 rounded-full bg-slate-200 overflow-hidden">
+                    <div className="h-1 rounded-full bg-canvas overflow-hidden">
                       <div
                         className={`h-full rounded-full ${barColor}`}
                         style={{ width: `${pct}%` }}
                       />
                     </div>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-xs text-muted mt-1">
                       of {formatCurrency(limit, true)}
                     </p>
                   </div>
@@ -482,18 +469,18 @@ export default function Dashboard() {
           </div>
 
           {/* Employment card */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+          <div className="bg-white rounded-lg border border-line  p-5">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+              <p className="text-xs font-medium uppercase tracking-wider text-muted">
                 Job Search
               </p>
               <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
                 isEmployed
-                  ? 'bg-emerald-100 text-emerald-700'
+                  ? 'bg-accent-soft text-accent'
                   : thisWeek >= 25
-                  ? 'bg-emerald-100 text-emerald-700'
+                  ? 'bg-accent-soft text-accent'
                   : thisWeek >= 10
-                  ? 'bg-amber-100 text-amber-700'
+                  ? 'bg-canvas text-ink'
                   : 'bg-red-100 text-red-600'
               }`}>
                 {isEmployed ? 'Employed' : 'Searching'}
@@ -503,35 +490,35 @@ export default function Dashboard() {
             {!isEmployed ? (
               <>
                 <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-sm text-slate-500">This week</p>
-                  <p className="text-sm font-semibold text-slate-800">
+                  <p className="text-sm text-muted">This week</p>
+                  <p className="text-sm font-semibold text-ink">
                     {thisWeek} / 25 applications
                   </p>
                 </div>
-                <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                <div className="h-2 rounded-full bg-canvas overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all ${
                       weekPct >= 100
-                        ? 'bg-emerald-500'
+                        ? 'bg-accent'
                         : weekPct >= 40
-                        ? 'bg-amber-500'
+                        ? 'bg-canvas'
                         : 'bg-red-400'
                     }`}
                     style={{ width: `${weekPct}%` }}
                   />
                 </div>
-                <p className="text-xs text-slate-400 mt-2">
+                <p className="text-xs text-muted mt-2">
                   {totalApps} total applications sent
                 </p>
               </>
             ) : (
-              <div className="bg-emerald-50 rounded-xl p-3">
-                <p className="text-sm font-semibold text-emerald-800">
+              <div className="bg-accent-soft rounded-lg p-3">
+                <p className="text-sm font-semibold text-accent">
                   {formatCurrency(nithishSalary)}/month
                 </p>
-                <p className="text-xs text-emerald-600 mt-0.5">
+                <p className="text-xs text-accent mt-0.5">
                   {newDeficit <= 0
-                    ? `🎉 Surplus ${formatCurrency(Math.abs(newDeficit))}/month`
+                    ? ` Surplus ${formatCurrency(Math.abs(newDeficit))}/month`
                     : `Deficit reduced to ${formatCurrency(newDeficit)}/month`}
                 </p>
               </div>
@@ -540,8 +527,8 @@ export default function Dashboard() {
 
           {/* SparkLine — only if enough data */}
           {sparkData.length >= 2 && (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-              <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">
+            <div className="bg-white rounded-lg border border-line  p-5">
+              <p className="text-xs font-medium uppercase tracking-wider text-muted mb-3">
                 Corpus Trend
               </p>
               <SparkLine data={sparkData} height={60} />
@@ -554,8 +541,8 @@ export default function Dashboard() {
       <button
         onClick={() => navigate('/expenses')}
         className="fixed bottom-40 right-4 z-50 w-14 h-14 rounded-full
-                   bg-indigo-600 text-white shadow-xl flex items-center
-                   justify-center hover:bg-indigo-700 active:scale-95
+                   bg-accent text-white  flex items-center
+                   justify-center hover:bg-accent active:scale-95
                    transition-all lg:bottom-8 lg:right-6"
         aria-label="Add expense"
       >
@@ -565,12 +552,12 @@ export default function Dashboard() {
       {/* ── Ask Amma AI button ────────────────────────────────────────── */}
       <button
         onClick={() => setChatOpen(true)}
-        className="fixed bottom-24 right-4 z-50 rounded-full bg-indigo-600
-                   text-white shadow-xl flex items-center justify-center
-                   hover:bg-indigo-700 active:scale-95 transition-all
+        className="fixed bottom-24 right-4 z-50 rounded-full bg-accent
+                   text-white flex items-center justify-center
+                   hover:bg-accent active:scale-95 transition-all
                    lg:bottom-8 lg:right-24"
         style={{ width: 52, height: 52 }}
-        aria-label="Ask Amma AI"
+        aria-label="Open local assistant"
       >
         <MessageCircle size={20} />
         {chatError && (
@@ -583,13 +570,13 @@ export default function Dashboard() {
         <>
           <div className="fixed inset-0 bg-black/40 z-50" onClick={() => setChatOpen(false)} />
           <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 flex flex-col" style={{ height: '80vh' }}>
-            <div className="flex items-center justify-between p-4 border-b border-slate-100 flex-shrink-0">
+            <div className="flex items-center justify-between p-4 border-b border-line flex-shrink-0">
               <div className="flex items-center gap-2">
-                <Sparkles size={18} className="text-indigo-600" />
-                <p className="text-base font-semibold text-slate-800">Ask Amma AI</p>
+                <Sparkles size={18} className="text-accent" />
+                <p className="text-base font-semibold text-ink">Local assistant</p>
               </div>
-              <button onClick={() => setChatOpen(false)} className="p-1 rounded-lg hover:bg-slate-100">
-                <X size={20} className="text-slate-500" />
+              <button onClick={() => setChatOpen(false)} className="p-1 rounded-lg hover:bg-canvas">
+                <X size={20} className="text-muted" />
               </button>
             </div>
 
@@ -597,13 +584,13 @@ export default function Dashboard() {
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
                   {chatHistory.length === 0 && (
                     <div className="space-y-2">
-                      <p className="text-xs text-slate-400 text-center">Ask me anything about your finances</p>
+                      <p className="text-xs text-muted text-center">Ask me anything about your finances</p>
                       {SUGGESTIONS.map((s, i) => (
                         <button
                           key={i}
                           onClick={() => handleSend(s)}
                           disabled={chatLoading}
-                          className="w-full text-left text-xs bg-indigo-50 border border-indigo-100 text-indigo-700 rounded-xl px-3 py-2.5 hover:bg-indigo-100 transition-colors"
+                          className="w-full text-left text-xs bg-accent-soft border border-line text-accent rounded-lg px-3 py-2.5 hover:bg-accent-soft transition-colors"
                         >
                           {s}
                         </button>
@@ -613,10 +600,10 @@ export default function Dashboard() {
 
                   {chatHistory.map((msg, i) => (
                     <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-xs rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
+                      <div className={`max-w-xs rounded-lg px-3.5 py-2.5 text-sm leading-relaxed ${
                         msg.role === 'user'
-                          ? 'bg-indigo-600 text-white rounded-br-sm'
-                          : 'bg-slate-100 text-slate-800 rounded-bl-sm'
+                          ? 'bg-accent text-white rounded-br-sm'
+                          : 'bg-canvas text-ink rounded-bl-sm'
                       }`}>
                         {msg.content}
                       </div>
@@ -624,19 +611,19 @@ export default function Dashboard() {
                   ))}
 
                   {chatLoading && (
-                    <div className="flex justify-start" role="status" aria-label="Amma AI is replying">
-                      <div className="bg-slate-100 rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1">
-                        <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <div className="flex justify-start" role="status" aria-label="Local assistant is replying">
+                      <div className="bg-canvas rounded-lg rounded-bl-sm px-4 py-3 flex gap-1">
+                        <span className="w-1.5 h-1.5 bg-surface rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-1.5 h-1.5 bg-surface rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-1.5 h-1.5 bg-surface rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                       </div>
                     </div>
                   )}
 
                   {chatError && (
-                    <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                    <div role="alert" className="rounded-lg border border-line bg-canvas p-3 text-sm text-ink">
                       <p className="flex items-start gap-2"><AlertCircle size={18} className="flex-shrink-0" aria-hidden="true" />{chatError}</p>
-                      {chatRetryable && <button onClick={handleChatRetry} disabled={chatLoading} className="mt-2 rounded-lg border border-amber-300 px-3 py-2 font-medium disabled:opacity-50">
+                      {chatRetryable && <button onClick={handleChatRetry} disabled={chatLoading} className="mt-2 rounded-lg border border-line px-3 py-2 font-medium disabled:opacity-50">
                         Retry
                       </button>}
                     </div>
@@ -645,7 +632,7 @@ export default function Dashboard() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                <div className="p-4 border-t border-slate-100 flex gap-2 flex-shrink-0">
+                <div className="p-4 border-t border-line flex gap-2 flex-shrink-0">
                   <input
                     type="text"
                     value={chatInput}
@@ -657,15 +644,15 @@ export default function Dashboard() {
                       }
                     }}
                     placeholder="Ask about your finances..."
-                    aria-label="Message Amma AI"
+                    aria-label="Message local assistant"
                     disabled={chatLoading}
-                    className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50"
+                    className="flex-1 rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50"
                   />
                   <button
                     onClick={() => handleSend()}
                     disabled={chatLoading || !chatInput.trim()}
                     aria-label="Send message"
-                    className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+                    className="w-10 h-10 rounded-lg bg-accent text-white flex items-center justify-center hover:bg-accent disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
                   >
                     <Send size={16} />
                   </button>

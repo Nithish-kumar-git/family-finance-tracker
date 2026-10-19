@@ -45,6 +45,7 @@ export default function Assets() {
   const [licPolicies, setLicPolicies] = useState([])
   const [chitFunds, setChitFunds] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
 
   // ── Expanded card state ────────────────────────────────────────────────────
   const [expandedId, setExpandedId] = useState(null)
@@ -77,6 +78,7 @@ export default function Assets() {
   useEffect(() => {
     setLoading(true)
     loadAssets().then((data) => {
+      setLoadError(data.loadError || '')
       setFixedDeposits(data.fixedDeposits ?? [])
       setMutualFunds(data.mutualFunds ?? [])
       setLicPolicies(data.licPolicies ?? [])
@@ -121,7 +123,7 @@ export default function Assets() {
       fixedDeposits: state.fixedDeposits.filter(fd => fd.id !== id),
     }))
     setExpandedId(null)
-    showToast('FD removed ✓', 'success')
+    showToast('FD removed ', 'success')
   }
 
   const handleSaveFD = async () => {
@@ -133,7 +135,7 @@ export default function Assets() {
     }
     setModalLoading(true)
     const body = {
-      bank: modalForm.bank || 'Canara Bank',
+      bank: modalForm.bank || '',
       principal,
       rate,
       startDate: modalForm.startDate || null,
@@ -158,7 +160,7 @@ export default function Assets() {
     }))
     setModalLoading(false)
     closeModal()
-    showToast('FD added ✓', 'success')
+    showToast('FD added ', 'success')
   }
 
   // ── MF handlers ────────────────────────────────────────────────────────────
@@ -185,7 +187,7 @@ export default function Assets() {
     }))
     setModalLoading(false)
     closeModal()
-    showToast('Fund updated ✓', 'success')
+    showToast('Fund updated ', 'success')
   }
 
   // ── LIC handlers ──────────────────────────────────────────────────────────
@@ -196,7 +198,7 @@ export default function Assets() {
       setLicPolicies((prev) =>
         prev.map((l) => (l.id === id ? { ...updated, id } : l))
       )
-      showToast(`Payment of ${formatCurrency(amount)} recorded ✓`, 'success')
+      showToast(`Payment of ${formatCurrency(amount)} recorded `, 'success')
     } catch {
       showToast('Could not record payment — try again', 'error')
     }
@@ -232,7 +234,7 @@ export default function Assets() {
     saveLocalChanges(state => ({
       chitFunds: state.chitFunds.filter(c => c.id !== id),
     }))
-    showToast('Chit removed ✓', 'success')
+    showToast('Chit removed ', 'success')
   }
 
   const handleSaveChit = async () => {
@@ -264,7 +266,7 @@ export default function Assets() {
     }))
     setModalLoading(false)
     closeModal()
-    showToast('Chit added ✓', 'success')
+    showToast('Chit added ', 'success')
   }
 
   // ── FD edit handler ────────────────────────────────────────────────────────
@@ -309,7 +311,7 @@ export default function Assets() {
     }))
     setModalLoading(false)
     closeModal()
-    showToast('FD updated ✓', 'success')
+    showToast('FD updated ', 'success')
   }
 
   // ── LIC edit handler ───────────────────────────────────────────────────────
@@ -347,7 +349,7 @@ export default function Assets() {
     }))
     setModalLoading(false)
     closeModal()
-    showToast('LIC updated ✓', 'success')
+    showToast('LIC updated ', 'success')
   }
 
   // ── Chit edit handler ──────────────────────────────────────────────────────
@@ -385,7 +387,7 @@ export default function Assets() {
     }))
     setModalLoading(false)
     closeModal()
-    showToast('Chit updated ✓', 'success')
+    showToast('Chit updated ', 'success')
   }
 
   // ── Gold handler ───────────────────────────────────────────────────────────
@@ -407,7 +409,7 @@ export default function Assets() {
       return
     }
     useStore.getState().updateGold(goldData)
-    showToast('Gold updated ✓', 'success')
+    showToast('Gold updated ', 'success')
     setGoldSaving(false)
   }
 
@@ -429,15 +431,17 @@ export default function Assets() {
   const calculatedValue = parsedWeight * parsedPrice
 
   // ── Render ─────────────────────────────────────────────────────────────────
+  if (loadError) return <div role="alert" className="surface"><h2>Assets unavailable</h2><p className="text-muted mt-2">{loadError}</p><a className="text-accent underline" href="/settings">Open recovery</a></div>
+
   return (
     <>
       {/* ── Toast ── */}
       {toast && (
         <div
-          className={`fixed bottom-20 left-1/2 -translate-x-1/2 z-50 rounded-2xl px-5 py-3
-                     shadow-xl flex items-center gap-2 text-sm font-medium
+          className={`fixed bottom-20 left-1/2 -translate-x-1/2 z-50 rounded-lg px-5 py-3
+                      flex items-center gap-2 text-sm font-medium
                      text-white whitespace-nowrap
-                     ${toast.type === 'error' ? 'bg-red-600' : 'bg-emerald-600'}`}
+                     ${toast.type === 'error' ? 'bg-red-600' : 'bg-accent'}`}
         >
           {toast.type === 'error' ? (
             <AlertTriangle size={16} />
@@ -449,17 +453,17 @@ export default function Assets() {
       )}
 
       {/* ── Tab bar ── */}
-      <a href="/settings" className="block mb-4 text-sm text-indigo-700 underline">Add or edit any asset type in Settings → Edit household & financial records</a>
-      <div className="sticky top-14 z-10 -mx-4 px-4 bg-slate-100 pt-2 pb-2 lg:mx-0 lg:rounded-xl lg:mb-4">
-        <div className="flex items-center bg-white rounded-full p-1 shadow-sm">
+      <a href="/settings" className="block mb-4 text-sm text-accent underline">Add or edit any asset type in Settings → Edit household & financial records</a>
+      <div className="sticky top-14 z-10 -mx-4 px-4 bg-canvas pt-2 pb-2 lg:mx-0 lg:rounded-lg lg:mb-4">
+        <div className="flex items-center bg-white rounded-full p-1 ">
           {TABS.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={`flex-1 text-center py-2 text-sm font-medium transition-colors rounded-full ${
                 activeTab === tab.key
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-slate-500 hover:text-slate-700'
+                  ? 'bg-accent text-white'
+                  : 'text-muted hover:text-ink'
               }`}
             >
               {tab.label}
@@ -484,12 +488,12 @@ export default function Assets() {
                 setMutualFunds(data.mutualFunds)
                 setLicPolicies(data.licPolicies)
                 setChitFunds(data.chitFunds)
-                showToast('Refreshed from this workspace ✓', 'success')
+                showToast('Refreshed from this workspace ', 'success')
               } catch {
                 showToast('Could not refresh this workspace.', 'error')
               }
             }}
-            className="text-xs text-slate-400 underline"
+            className="text-xs text-muted underline"
           >
             ↺ Refresh workspace
           </button>
@@ -498,9 +502,9 @@ export default function Assets() {
         {/* ── Loading skeleton ── */}
         {loading && activeTab !== 'gold' && (
           <div className="space-y-3">
-            <div className="h-24 bg-slate-100 rounded-2xl animate-pulse" />
-            <div className="h-24 bg-slate-100 rounded-2xl animate-pulse" />
-            <div className="h-24 bg-slate-100 rounded-2xl animate-pulse" />
+            <div className="h-24 bg-canvas rounded-lg animate-pulse" />
+            <div className="h-24 bg-canvas rounded-lg animate-pulse" />
+            <div className="h-24 bg-canvas rounded-lg animate-pulse" />
           </div>
         )}
 
@@ -510,32 +514,21 @@ export default function Assets() {
         {activeTab === 'fd' && !loading && (
           <>
             {/* Total FD card */}
-            <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 -mx-4 px-4 pt-4 pb-8 mb-5 lg:mx-0 lg:rounded-2xl">
+            <div className="surface mb-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Fixed Deposits</p>
-                  <p className="text-3xl font-bold tracking-tight text-white mt-0.5">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted">Fixed Deposits</p>
+                  <p className="text-3xl font-bold tracking-tight text-ink mt-0.5">
                     {formatCurrency(fdTotal)}
                   </p>
                 </div>
-                <Landmark size={28} className="text-slate-700" />
+                <Landmark size={28} className="text-ink" />
               </div>
-              <p className="text-xs text-slate-400 mt-2">
+              <p className="text-xs text-muted mt-2">
                 {fixedDeposits.length} deposit
-                {fixedDeposits.length !== 1 ? 's' : ''} · All in Canara Bank
+                {fixedDeposits.length !== 1 ? 's' : ''} across {new Set(fixedDeposits.map(fd => fd.bank)).size} banks
               </p>
-              
-              {/* Glass sub-stats */}
-              <div className="grid grid-cols-2 gap-2 mt-4">
-                <div className="bg-white/15 backdrop-blur-md border border-white/25 rounded-xl px-3 py-2 text-center">
-                  <p className="text-xs text-white/60 mb-0.5">Count</p>
-                  <p className="text-base font-bold text-white">{fixedDeposits.length}</p>
-                </div>
-                <div className="bg-white/15 backdrop-blur-md border border-white/25 rounded-xl px-3 py-2 text-center">
-                  <p className="text-xs text-white/60 mb-0.5">Total</p>
-                  <p className="text-base font-bold text-white">{formatCurrency(fdTotal, true)}</p>
-                </div>
-              </div>
+
             </div>
 
             {/* Add FD button */}
@@ -572,7 +565,7 @@ export default function Assets() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm font-semibold text-slate-800">
+                        <p className="text-sm font-semibold text-ink">
                           {fd.bank}
                         </p>
                         <Badge color={purposeColor}>
@@ -586,23 +579,23 @@ export default function Assets() {
                           </Badge>
                         )}
                       </div>
-                      <p className="text-xs text-slate-400 mt-0.5">
+                      <p className="text-xs text-muted mt-0.5">
                         Holder{fd.holders?.length > 1 ? 's' : ''}:{' '}
                         {fd.holders?.join(', ')}
                       </p>
                     </div>
                     <div className="text-right flex-shrink-0 ml-3">
-                      <p className="text-base font-bold text-slate-800">
+                      <p className="text-base font-bold text-ink">
                         {formatCurrency(fd.principal, true)}
                       </p>
-                      <p className="text-xs text-slate-400">{fd.rate}% p.a.</p>
+                      <p className="text-xs text-muted">{fd.rate}% p.a.</p>
                     </div>
                   </div>
 
                   {/* Maturity countdown */}
                   <div className="flex items-center justify-between mt-3">
                     <div className="flex items-center gap-1.5">
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-muted">
                         Matures: {formatDate(fd.maturityDate)}
                       </p>
                     </div>
@@ -627,15 +620,15 @@ export default function Assets() {
 
                   {/* Expanded detail */}
                   {expandedId === fd.id && (
-                    <div className="mt-3 pt-3 border-t border-slate-100">
+                    <div className="mt-3 pt-3 border-t border-line">
                       {fd.startDate && (
-                        <p className="text-xs text-slate-500 mb-1">
+                        <p className="text-xs text-muted mb-1">
                           Start date: {formatDate(fd.startDate)}
                         </p>
                       )}
                       {fd.notes && (
-                        <div className="bg-amber-50 rounded-lg p-2.5 mb-3">
-                          <p className="text-xs text-amber-700 leading-relaxed">
+                        <div className="bg-canvas rounded-lg p-2.5 mb-3">
+                          <p className="text-xs text-ink leading-relaxed">
                             {fd.notes}
                           </p>
                         </div>
@@ -668,9 +661,9 @@ export default function Assets() {
                   {/* Expand chevron */}
                   <div className="flex justify-center mt-2">
                     {expandedId === fd.id ? (
-                      <ChevronUp size={16} className="text-slate-300" />
+                      <ChevronUp size={16} className="text-muted" />
                     ) : (
-                      <ChevronDown size={16} className="text-slate-300" />
+                      <ChevronDown size={16} className="text-muted" />
                     )}
                   </div>
                 </Card>
@@ -679,7 +672,7 @@ export default function Assets() {
             </div>
 
             {fixedDeposits.length === 0 && (
-              <p className="text-sm text-slate-400 text-center py-8">
+              <p className="text-sm text-muted text-center py-8">
                 No fixed deposits yet
               </p>
             )}
@@ -692,17 +685,17 @@ export default function Assets() {
         {activeTab === 'mf' && !loading && (
           <>
             {/* Total MF card */}
-            <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 -mx-4 px-4 pt-4 pb-8 mb-5 lg:mx-0 lg:rounded-2xl">
+            <div className="surface mb-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Mutual Funds</p>
-                  <p className="text-3xl font-bold tracking-tight text-white mt-0.5">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted">Mutual Funds</p>
+                  <p className="text-3xl font-bold tracking-tight text-ink mt-0.5">
                     {formatCurrency(mfTotal)}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-slate-400">Invested</p>
-                  <p className="text-sm font-medium text-slate-400">
+                  <p className="text-xs text-muted">Invested</p>
+                  <p className="text-sm font-medium text-muted">
                     {formatCurrency(mfInvested, true)}
                   </p>
                 </div>
@@ -710,7 +703,7 @@ export default function Assets() {
               {mfInvested > 0 && (
                 <div
                   className={`flex items-center gap-1 mt-2 ${
-                    mfGain >= 0 ? 'text-emerald-400' : 'text-red-400'
+                    mfGain >= 0 ? 'text-accent' : 'text-red-700'
                   }`}
                 >
                   {mfGain >= 0 ? (
@@ -743,16 +736,16 @@ export default function Assets() {
               return (
                 <div
                   key={mf.id}
-                  className={`bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-3 ${
+                  className={`bg-white rounded-lg border border-line  p-4 mb-3 ${
                     isRegular ? 'border-t-2 border-red-400 bg-red-50' : ''
-                  } ${isEmergencyFund ? 'border-t-2 border-emerald-500 bg-emerald-50' : ''}`}
+                  } ${isEmergencyFund ? 'border-t-2 border-line bg-accent-soft' : ''}`}
                 >
                   {/* Regular plan warning banner */}
                   {isRegular && (
                     <div className="flex items-center gap-2 bg-red-50 rounded-lg px-3 py-2 mb-3">
                       <AlertTriangle
                         size={14}
-                        className="text-red-500 flex-shrink-0"
+                        className="text-red-700 flex-shrink-0"
                       />
                       <p className="text-xs font-semibold text-red-700">
                         Regular Plan — Switch to Direct
@@ -763,13 +756,13 @@ export default function Assets() {
 
                   {/* Emergency fund banner */}
                   {isEmergencyFund && (
-                    <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-3">
+                    <div className="flex items-center gap-2 bg-accent-soft border border-line rounded-lg px-3 py-2 mb-3">
                       <Lock
                         size={14}
-                        className="text-green-600 flex-shrink-0"
+                        className="text-accent flex-shrink-0"
                       />
-                      <p className="text-xs font-semibold text-green-700">
-                        🔒 Emergency Fund — Do Not Redeem
+                      <p className="text-xs font-semibold text-accent">
+                         Emergency Fund — Do Not Redeem
                       </p>
                     </div>
                   )}
@@ -777,7 +770,7 @@ export default function Assets() {
                   {/* Fund name and badges */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-slate-800 leading-snug">
+                      <p className="text-sm font-semibold text-ink leading-snug">
                         {mf.name}
                       </p>
                       <div className="flex items-center gap-1.5 mt-1 flex-wrap">
@@ -805,34 +798,34 @@ export default function Assets() {
                   {/* Value row */}
                   <div className="grid grid-cols-3 gap-2 mt-3 text-center">
                     <div>
-                      <p className="text-xs text-slate-400">Invested</p>
-                      <p className="text-sm font-medium text-slate-700">
+                      <p className="text-xs text-muted">Invested</p>
+                      <p className="text-sm font-medium text-ink">
                         {mf.investedAmount > 0
                           ? formatCurrency(mf.investedAmount, true)
                           : '—'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-400">Current</p>
-                      <p className="text-sm font-bold text-slate-800">
+                      <p className="text-xs text-muted">Current</p>
+                      <p className="text-sm font-bold text-ink">
                         {mf.currentValue > 0
                           ? formatCurrency(mf.currentValue, true)
                           : '—'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-400">Gain/Loss</p>
+                      <p className="text-xs text-muted">Gain/Loss</p>
                       {mf.investedAmount > 0 && mf.currentValue > 0 ? (
                         <p
                           className={`text-sm font-medium ${
-                            gain >= 0 ? 'text-emerald-600' : 'text-red-500'
+                            gain >= 0 ? 'text-accent' : 'text-red-700'
                           }`}
                         >
                           {gain >= 0 ? '+' : ''}
                           {formatCurrency(gain, true)}
                         </p>
                       ) : (
-                        <p className="text-sm text-slate-300">—</p>
+                        <p className="text-sm text-muted">—</p>
                       )}
                     </div>
                   </div>
@@ -867,7 +860,7 @@ export default function Assets() {
             })}
 
             {mutualFunds.length === 0 && (
-              <p className="text-sm text-slate-400 text-center py-8">
+              <p className="text-sm text-muted text-center py-8">
                 No mutual funds yet
               </p>
             )}
@@ -881,17 +874,17 @@ export default function Assets() {
         {activeTab === 'lic' && !loading && (
           <>
             {/* Total annual outflow card */}
-            <div className="-mx-4 px-4 pt-4 pb-6 bg-slate-900 mb-4">
+            <div className="surface mb-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-widest text-slate-400">LIC Annual Outflow</p>
-                  <p className="text-3xl font-bold tracking-tight text-white mt-0.5">
+                  <p className="text-xs font-medium uppercase tracking-widest text-muted">LIC Annual Outflow</p>
+                  <p className="text-3xl font-bold tracking-tight text-ink mt-0.5">
                     {formatCurrency(annualTotal)}
                   </p>
                 </div>
-                <Shield size={28} className="text-slate-700" />
+                <Shield size={28} className="text-ink" />
               </div>
-              <p className="text-xs text-slate-400 mt-2">
+              <p className="text-xs text-muted mt-2">
                 {formatCurrency(Math.round(annualTotal / 12))}/month ·{' '}
                 {licPolicies.length} polic
                 {licPolicies.length !== 1 ? 'ies' : 'y'}
@@ -901,7 +894,7 @@ export default function Assets() {
             {/* Upcoming dues mini-timeline */}
             {upcomingDues.length > 0 && (
               <div className="mb-4">
-                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-2">
+                <p className="text-xs font-medium uppercase tracking-widest text-muted mb-2">
                   Upcoming Premiums
                 </p>
                 {upcomingDues.map((lic) => {
@@ -909,13 +902,13 @@ export default function Assets() {
                   return (
                     <div
                       key={lic.id + '-upcoming'}
-                      className="flex items-center justify-between py-2 border-b border-slate-50"
+                      className="flex items-center justify-between py-2 border-b border-line"
                     >
-                      <p className="text-sm text-slate-700">
+                      <p className="text-sm text-ink">
                         {lic.insured} — {lic.plan}
                       </p>
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-slate-800">
+                        <p className="text-sm font-medium text-ink">
                           {formatCurrency(lic.annualPremium, true)}
                         </p>
                         <Badge color={days <= 30 ? 'red' : 'amber'}>
@@ -941,42 +934,42 @@ export default function Assets() {
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-slate-800 capitalize">
+                      <p className="text-sm font-semibold text-ink capitalize">
                         {lic.insured}
                       </p>
-                      <p className="text-xs text-slate-500 mt-0.5">{lic.plan}</p>
+                      <p className="text-xs text-muted mt-0.5">{lic.plan}</p>
                     </div>
                     <div className="text-right flex-shrink-0 ml-3">
-                      <p className="text-base font-bold text-slate-800">
+                      <p className="text-base font-bold text-ink">
                         {formatCurrency(lic.annualPremium, true)}
                       </p>
-                      <p className="text-xs text-slate-400">per year</p>
+                      <p className="text-xs text-muted">per year</p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 mt-3">
                     <div>
-                      <p className="text-xs text-slate-400">Next due</p>
-                      <p className="text-sm font-medium text-slate-700">
+                      <p className="text-xs text-muted">Next due</p>
+                      <p className="text-sm font-medium text-ink">
                         {formatDate(lic.nextDueDate)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-400">Premiums paid</p>
-                      <p className="text-sm font-medium text-slate-700">
+                      <p className="text-xs text-muted">Premiums paid</p>
+                      <p className="text-sm font-medium text-ink">
                         {lic.premiumsPaid > 0 ? lic.premiumsPaid : '—'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-400">Paid-up eligible</p>
-                      <p className="text-sm font-medium text-slate-700">
+                      <p className="text-xs text-muted">Paid-up eligible</p>
+                      <p className="text-sm font-medium text-ink">
                         {lic.paidUpEligibleDate
                           ? formatDate(lic.paidUpEligibleDate)
                           : 'Verify'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-400">Days until due</p>
+                      <p className="text-xs text-muted">Days until due</p>
                       <Badge
                         color={
                           isDueSoon
@@ -996,7 +989,7 @@ export default function Assets() {
                   </div>
 
                   {lic.notes && (
-                    <p className="text-xs text-slate-400 mt-3 leading-relaxed">
+                    <p className="text-xs text-muted mt-3 leading-relaxed">
                       {lic.notes}
                     </p>
                   )}
@@ -1026,7 +1019,7 @@ export default function Assets() {
             })}
 
             {licPolicies.length === 0 && (
-              <p className="text-sm text-slate-400 text-center py-8">
+              <p className="text-sm text-muted text-center py-8">
                 No LIC policies yet
               </p>
             )}
@@ -1039,20 +1032,20 @@ export default function Assets() {
         {activeTab === 'chit' && !loading && (
           <>
             {/* Total monthly outflow card */}
-            <div className="-mx-4 px-4 pt-4 pb-6 bg-slate-900 mb-4">
+            <div className="surface mb-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-widest text-slate-400">Monthly Chit Outflow</p>
-                  <p className="text-3xl font-bold tracking-tight text-white mt-0.5">
+                  <p className="text-xs font-medium uppercase tracking-widest text-muted">Monthly Chit Outflow</p>
+                  <p className="text-3xl font-bold tracking-tight text-ink mt-0.5">
                     {totalMonthly > 0 ? formatCurrency(totalMonthly) : '—'}
                   </p>
                 </div>
-                <Users size={28} className="text-slate-700" />
+                <Users size={28} className="text-ink" />
               </div>
               {hasUnknown && (
                 <div className="flex items-center gap-1.5 mt-2">
-                  <AlertTriangle size={13} className="text-amber-500" />
-                  <p className="text-xs text-amber-500">
+                  <AlertTriangle size={13} className="text-ink" />
+                  <p className="text-xs text-ink">
                     Some chit amounts unverified — call Nadar Sangam
                   </p>
                 </div>
@@ -1086,7 +1079,7 @@ export default function Assets() {
                 <Card key={chit.id} className="mb-3">
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="text-sm font-semibold text-slate-800">
+                      <p className="text-sm font-semibold text-ink">
                         {chit.organizer}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
@@ -1105,8 +1098,8 @@ export default function Assets() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-slate-400">Expected prize</p>
-                      <p className="text-base font-bold text-slate-800">
+                      <p className="text-xs text-muted">Expected prize</p>
+                      <p className="text-base font-bold text-ink">
                         {formatCurrency(chit.expectedPrize, true)}
                       </p>
                     </div>
@@ -1114,37 +1107,37 @@ export default function Assets() {
 
                   <div className="grid grid-cols-2 gap-3 mt-3">
                     <div>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-muted">
                         Monthly contribution
                       </p>
                       {chit.monthlyContribution > 0 ? (
-                        <p className="text-sm font-medium text-slate-700">
+                        <p className="text-sm font-medium text-ink">
                           {formatCurrency(chit.monthlyContribution)}
                         </p>
                       ) : (
                         <div className="flex items-center gap-1 mt-0.5">
-                          <AlertTriangle size={12} className="text-amber-500" />
-                          <p className="text-xs text-amber-600 font-medium">
+                          <AlertTriangle size={12} className="text-ink" />
+                          <p className="text-xs text-ink font-medium">
                             Unverified
                           </p>
                         </div>
                       )}
                     </div>
                     <div>
-                      <p className="text-xs text-slate-400">Completion</p>
-                      <p className="text-sm font-medium text-slate-700">
+                      <p className="text-xs text-muted">Completion</p>
+                      <p className="text-sm font-medium text-ink">
                         {formatDate(chit.completionDate)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-400">Months left</p>
-                      <p className="text-sm font-medium text-slate-700">
+                      <p className="text-xs text-muted">Months left</p>
+                      <p className="text-sm font-medium text-ink">
                         {monthsLeft}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-400">Still to pay</p>
-                      <p className="text-sm font-medium text-slate-700">
+                      <p className="text-xs text-muted">Still to pay</p>
+                      <p className="text-sm font-medium text-ink">
                         {totalLocked > 0
                           ? formatCurrency(totalLocked, true)
                           : '—'}
@@ -1153,7 +1146,7 @@ export default function Assets() {
                   </div>
 
                   {chit.notes && (
-                    <p className="text-xs text-slate-400 mt-3">{chit.notes}</p>
+                    <p className="text-xs text-muted mt-3">{chit.notes}</p>
                   )}
 
                   <div className="mt-3 flex gap-2 flex-wrap">
@@ -1170,8 +1163,8 @@ export default function Assets() {
                         handleUpdateChitStatus(chit.id, e.target.value)
                       }
                       onClick={(e) => e.stopPropagation()}
-                      className="text-xs border border-slate-200 rounded-lg px-2 py-1.5
-                                 text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="text-xs border border-line rounded-lg px-2 py-1.5
+                                 text-muted focus:outline-none focus:ring-2 focus:ring-accent"
                     >
                       <option value="active">Active</option>
                       <option value="completed">Completed</option>
@@ -1190,7 +1183,7 @@ export default function Assets() {
             })}
 
             {chitFunds.length === 0 && (
-              <p className="text-sm text-slate-400 text-center py-8">
+              <p className="text-sm text-muted text-center py-8">
                 No chit funds yet
               </p>
             )}
@@ -1203,32 +1196,32 @@ export default function Assets() {
         {activeTab === 'gold' && (
           <>
             {/* Current value card */}
-            <div className="-mx-4 px-4 pt-4 pb-6 bg-slate-900 mb-4">
+            <div className="surface mb-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-widest text-slate-400">Physical Gold</p>
-                  <p className="text-3xl font-bold tracking-tight text-amber-500 mt-0.5">
+                  <p className="text-xs font-medium uppercase tracking-widest text-muted">Physical Gold</p>
+                  <p className="text-3xl font-bold tracking-tight text-ink mt-0.5">
                     {formatCurrency(calculatedValue)}
                   </p>
                 </div>
-                <Coins size={28} className="text-slate-700" />
+                <Coins size={28} className="text-ink" />
               </div>
-              <p className="text-xs text-slate-400 mt-2">
+              <p className="text-xs text-muted mt-2">
                 {parsedWeight}g × {formatCurrency(parsedPrice)}/g
               </p>
               {gold.lastUpdated && (
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-muted mt-1">
                   Last updated: {formatDate(gold.lastUpdated)}
                 </p>
               )}
             </div>
 
             {/* Physical gold warning */}
-            <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 mb-4">
-              <p className="text-xs text-amber-700 font-medium mb-1">
-                ⚠ Physical gold note
+            <div className="rounded-lg bg-canvas border border-line p-4 mb-4">
+              <p className="text-xs text-ink font-medium mb-1">
+                 Physical gold note
               </p>
-              <p className="text-xs text-amber-600 leading-relaxed">
+              <p className="text-xs text-ink leading-relaxed">
                 No yield — gold earns nothing while held. Selling incurs 5–10% in
                 deductions (making charges, GST, jeweller margin). Do not liquidate
                 unless absolutely necessary.
@@ -1237,12 +1230,12 @@ export default function Assets() {
 
             {/* Edit form */}
             <Card>
-              <p className="text-sm font-semibold text-slate-700 mb-3">
+              <p className="text-sm font-semibold text-ink mb-3">
                 Update Gold Details
               </p>
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                  <label className="block text-xs font-medium text-muted mb-1">
                     Weight (grams)
                   </label>
                   <input
@@ -1255,17 +1248,17 @@ export default function Assets() {
                         weightGrams: e.target.value,
                       }))
                     }
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm
+                               focus:outline-none focus:ring-2 focus:ring-accent"
                     placeholder="e.g. 8"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                  <label className="block text-xs font-medium text-muted mb-1">
                     Current price per gram (22K, Chennai)
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-sm">
                       ₹
                     </span>
                     <input
@@ -1278,8 +1271,8 @@ export default function Assets() {
                           currentValuePerGram: e.target.value,
                         }))
                       }
-                      className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm
-                                 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full rounded-lg border border-line pl-7 pr-3 py-2 text-sm
+                                 focus:outline-none focus:ring-2 focus:ring-accent"
                       placeholder="e.g. 14650"
                     />
                   </div>
@@ -1287,9 +1280,9 @@ export default function Assets() {
 
                 {/* Live calculated value */}
                 {parsedWeight > 0 && parsedPrice > 0 && (
-                  <div className="bg-slate-50 rounded-lg px-3 py-2">
-                    <p className="text-xs text-slate-500">Calculated value</p>
-                    <p className="text-base font-bold text-slate-800">
+                  <div className="bg-canvas rounded-lg px-3 py-2">
+                    <p className="text-xs text-muted">Calculated value</p>
+                    <p className="text-base font-bold text-ink">
                       {formatCurrency(calculatedValue)}
                     </p>
                   </div>
@@ -1325,10 +1318,10 @@ export default function Assets() {
           />
 
           {/* Modal container */}
-          <div className="fixed inset-x-4 top-[15%] bg-white rounded-2xl p-5 z-50 shadow-xl max-h-[70vh] overflow-y-auto">
+          <div className="fixed inset-x-4 top-[15%] bg-white rounded-lg p-5 z-50  max-h-[70vh] overflow-y-auto">
             {/* Modal header */}
             <div className="flex items-center justify-between mb-4">
-              <p className="text-base font-semibold text-slate-800">
+              <p className="text-base font-semibold text-ink">
                 {modal.type === 'addFD' && 'Add Fixed Deposit'}
                 {modal.type === 'editFD' && 'Edit Fixed Deposit'}
                 {modal.type === 'addChit' && 'Add Chit Fund'}
@@ -1339,9 +1332,9 @@ export default function Assets() {
               </p>
               <button
                 onClick={closeModal}
-                className="p-1.5 rounded-lg hover:bg-slate-100"
+                className="p-1.5 rounded-lg hover:bg-canvas"
               >
-                <X size={18} className="text-slate-500" />
+                <X size={18} className="text-muted" />
               </button>
             </div>
 
@@ -1349,21 +1342,21 @@ export default function Assets() {
             {modal.type === 'addFD' && (
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                  <label className="block text-xs font-medium text-muted mb-1">
                     Bank
                   </label>
                   <input
                     type="text"
-                    value={modalForm.bank ?? 'Canara Bank'}
+                    value={modalForm.bank ?? ''}
                     onChange={(e) =>
                       setModalForm((p) => ({ ...p, bank: e.target.value }))
                     }
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm
+                               focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                  <label className="block text-xs font-medium text-muted mb-1">
                     Principal (₹)
                   </label>
                   <input
@@ -1374,12 +1367,12 @@ export default function Assets() {
                       setModalForm((p) => ({ ...p, principal: e.target.value }))
                     }
                     placeholder="e.g. 600000"
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm
+                               focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                  <label className="block text-xs font-medium text-muted mb-1">
                     Interest rate (% p.a.)
                   </label>
                   <input
@@ -1391,12 +1384,12 @@ export default function Assets() {
                       setModalForm((p) => ({ ...p, rate: e.target.value }))
                     }
                     placeholder="e.g. 6.45"
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm
+                               focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                  <label className="block text-xs font-medium text-muted mb-1">
                     Maturity date
                   </label>
                   <input
@@ -1408,12 +1401,12 @@ export default function Assets() {
                         maturityDate: e.target.value,
                       }))
                     }
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm
+                               focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                  <label className="block text-xs font-medium text-muted mb-1">
                     Start date (optional)
                   </label>
                   <input
@@ -1425,12 +1418,12 @@ export default function Assets() {
                         startDate: e.target.value,
                       }))
                     }
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm
+                               focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                  <label className="block text-xs font-medium text-muted mb-1">
                     Purpose
                   </label>
                   <select
@@ -1438,8 +1431,8 @@ export default function Assets() {
                     onChange={(e) =>
                       setModalForm((p) => ({ ...p, purpose: e.target.value }))
                     }
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm
+                               focus:outline-none focus:ring-2 focus:ring-accent"
                   >
                     <option value="marriage">Marriage</option>
                     <option value="renovation">Renovation</option>
@@ -1448,7 +1441,7 @@ export default function Assets() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                  <label className="block text-xs font-medium text-muted mb-1">
                     Holder
                   </label>
                   <input
@@ -1457,12 +1450,12 @@ export default function Assets() {
                     onChange={(e) =>
                       setModalForm((p) => ({ ...p, holders: e.target.value }))
                     }
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm
+                               focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                  <label className="block text-xs font-medium text-muted mb-1">
                     Notes (optional)
                   </label>
                   <textarea
@@ -1471,8 +1464,8 @@ export default function Assets() {
                       setModalForm((p) => ({ ...p, notes: e.target.value }))
                     }
                     rows={2}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm
+                               focus:outline-none focus:ring-2 focus:ring-accent resize-none"
                   />
                 </div>
               </div>
@@ -1482,7 +1475,7 @@ export default function Assets() {
             {modal.type === 'addChit' && (
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                  <label className="block text-xs font-medium text-muted mb-1">
                     Organizer
                   </label>
                   <input
@@ -1494,12 +1487,12 @@ export default function Assets() {
                         organizer: e.target.value,
                       }))
                     }
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm
+                               focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                  <label className="block text-xs font-medium text-muted mb-1">
                     Monthly contribution (₹)
                   </label>
                   <input
@@ -1513,12 +1506,12 @@ export default function Assets() {
                       }))
                     }
                     placeholder="0 if unknown"
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm
+                               focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                  <label className="block text-xs font-medium text-muted mb-1">
                     Expected prize (₹)
                   </label>
                   <input
@@ -1532,12 +1525,12 @@ export default function Assets() {
                       }))
                     }
                     placeholder="e.g. 277000"
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm
+                               focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                  <label className="block text-xs font-medium text-muted mb-1">
                     Completion date
                   </label>
                   <input
@@ -1549,12 +1542,12 @@ export default function Assets() {
                         completionDate: e.target.value,
                       }))
                     }
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm
+                               focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                  <label className="block text-xs font-medium text-muted mb-1">
                     Notes (optional)
                   </label>
                   <textarea
@@ -1563,8 +1556,8 @@ export default function Assets() {
                       setModalForm((p) => ({ ...p, notes: e.target.value }))
                     }
                     rows={2}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm
+                               focus:outline-none focus:ring-2 focus:ring-accent resize-none"
                   />
                 </div>
               </div>
@@ -1574,34 +1567,34 @@ export default function Assets() {
             {modal.type === 'editFD' && (
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Bank</label>
+                  <label className="block text-xs font-medium text-muted mb-1">Bank</label>
                   <input type="text" value={modalForm.bank ?? ''} onChange={e => setModalForm(p => ({ ...p, bank: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Principal (₹)</label>
+                  <label className="block text-xs font-medium text-muted mb-1">Principal (₹)</label>
                   <input type="number" inputMode="numeric" value={modalForm.principal ?? ''} onChange={e => setModalForm(p => ({ ...p, principal: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Interest rate (% p.a.)</label>
+                  <label className="block text-xs font-medium text-muted mb-1">Interest rate (% p.a.)</label>
                   <input type="number" inputMode="decimal" step="0.01" value={modalForm.rate ?? ''} onChange={e => setModalForm(p => ({ ...p, rate: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Maturity date</label>
+                  <label className="block text-xs font-medium text-muted mb-1">Maturity date</label>
                   <input type="date" value={modalForm.maturityDate ?? ''} onChange={e => setModalForm(p => ({ ...p, maturityDate: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Start date</label>
+                  <label className="block text-xs font-medium text-muted mb-1">Start date</label>
                   <input type="date" value={modalForm.startDate ?? ''} onChange={e => setModalForm(p => ({ ...p, startDate: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Purpose</label>
+                  <label className="block text-xs font-medium text-muted mb-1">Purpose</label>
                   <select value={modalForm.purpose ?? 'core'} onChange={e => setModalForm(p => ({ ...p, purpose: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent">
                     <option value="marriage">Marriage</option>
                     <option value="renovation">Renovation</option>
                     <option value="core">Core</option>
@@ -1609,14 +1602,14 @@ export default function Assets() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Holder(s)</label>
+                  <label className="block text-xs font-medium text-muted mb-1">Holder(s)</label>
                   <input type="text" value={modalForm.holders ?? 'mother'} onChange={e => setModalForm(p => ({ ...p, holders: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Notes</label>
+                  <label className="block text-xs font-medium text-muted mb-1">Notes</label>
                   <textarea rows={2} value={modalForm.notes ?? ''} onChange={e => setModalForm(p => ({ ...p, notes: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none" />
                 </div>
               </div>
             )}
@@ -1625,42 +1618,42 @@ export default function Assets() {
             {modal.type === 'editLIC' && (
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Insured person</label>
+                  <label className="block text-xs font-medium text-muted mb-1">Insured person</label>
                   <input type="text" value={modalForm.insured ?? ''} onChange={e => setModalForm(p => ({ ...p, insured: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Plan name</label>
+                  <label className="block text-xs font-medium text-muted mb-1">Plan name</label>
                   <input type="text" value={modalForm.plan ?? ''} onChange={e => setModalForm(p => ({ ...p, plan: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Annual premium (₹)</label>
+                  <label className="block text-xs font-medium text-muted mb-1">Annual premium (₹)</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">₹</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-sm">₹</span>
                     <input type="number" inputMode="numeric" value={modalForm.annualPremium ?? ''} onChange={e => setModalForm(p => ({ ...p, annualPremium: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                      className="w-full rounded-lg border border-line pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Next due date</label>
+                  <label className="block text-xs font-medium text-muted mb-1">Next due date</label>
                   <input type="date" value={modalForm.nextDueDate ?? ''} onChange={e => setModalForm(p => ({ ...p, nextDueDate: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Paid-up eligible date</label>
+                  <label className="block text-xs font-medium text-muted mb-1">Paid-up eligible date</label>
                   <input type="date" value={modalForm.paidUpEligibleDate ?? ''} onChange={e => setModalForm(p => ({ ...p, paidUpEligibleDate: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Premiums paid</label>
+                  <label className="block text-xs font-medium text-muted mb-1">Premiums paid</label>
                   <input type="number" inputMode="numeric" value={modalForm.premiumsPaid ?? 0} onChange={e => setModalForm(p => ({ ...p, premiumsPaid: parseInt(e.target.value, 10) || 0 }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Notes</label>
+                  <label className="block text-xs font-medium text-muted mb-1">Notes</label>
                   <textarea rows={2} value={modalForm.notes ?? ''} onChange={e => setModalForm(p => ({ ...p, notes: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none" />
                 </div>
               </div>
             )}
@@ -1669,35 +1662,35 @@ export default function Assets() {
             {modal.type === 'editChit' && (
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Organizer</label>
+                  <label className="block text-xs font-medium text-muted mb-1">Organizer</label>
                   <input type="text" value={modalForm.organizer ?? ''} onChange={e => setModalForm(p => ({ ...p, organizer: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Monthly contribution (₹)</label>
+                  <label className="block text-xs font-medium text-muted mb-1">Monthly contribution (₹)</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">₹</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-sm">₹</span>
                     <input type="number" inputMode="numeric" value={modalForm.monthlyContribution ?? ''} onChange={e => setModalForm(p => ({ ...p, monthlyContribution: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                      className="w-full rounded-lg border border-line pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Expected prize (₹)</label>
+                  <label className="block text-xs font-medium text-muted mb-1">Expected prize (₹)</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">₹</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-sm">₹</span>
                     <input type="number" inputMode="numeric" value={modalForm.expectedPrize ?? ''} onChange={e => setModalForm(p => ({ ...p, expectedPrize: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                      className="w-full rounded-lg border border-line pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Completion date</label>
+                  <label className="block text-xs font-medium text-muted mb-1">Completion date</label>
                   <input type="date" value={modalForm.completionDate ?? ''} onChange={e => setModalForm(p => ({ ...p, completionDate: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Notes</label>
+                  <label className="block text-xs font-medium text-muted mb-1">Notes</label>
                   <textarea rows={2} value={modalForm.notes ?? ''} onChange={e => setModalForm(p => ({ ...p, notes: e.target.value }))}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none" />
                 </div>
               </div>
             )}
@@ -1705,15 +1698,15 @@ export default function Assets() {
             {/* ── Update MF Value form ── */}
             {modal.type === 'updateMFValue' && (
               <div className="space-y-3">
-                <p className="text-sm text-slate-600 leading-snug">
+                <p className="text-sm text-muted leading-snug">
                   {modal.data?.name}
                 </p>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                  <label className="block text-xs font-medium text-muted mb-1">
                     Current value — from Groww today (₹)
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-sm">
                       ₹
                     </span>
                     <input
@@ -1727,17 +1720,17 @@ export default function Assets() {
                         }))
                       }
                       autoFocus
-                      className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm
-                                 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full rounded-lg border border-line pl-7 pr-3 py-2 text-sm
+                                 focus:outline-none focus:ring-2 focus:ring-accent"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                  <label className="block text-xs font-medium text-muted mb-1">
                     Amount invested — total you put in (₹)
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-sm">
                       ₹
                     </span>
                     <input
@@ -1750,15 +1743,15 @@ export default function Assets() {
                           investedAmount: e.target.value,
                         }))
                       }
-                      className="w-full rounded-lg border border-slate-200 pl-7 pr-3 py-2 text-sm
-                                 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full rounded-lg border border-line pl-7 pr-3 py-2 text-sm
+                                 focus:outline-none focus:ring-2 focus:ring-accent"
                     />
                   </div>
                 </div>
                 {modalForm.currentValue && modalForm.investedAmount && (
                   <div className={`rounded-lg px-3 py-2 text-sm font-medium
                     ${parseFloat(modalForm.currentValue) >= parseFloat(modalForm.investedAmount)
-                      ? 'bg-emerald-50 text-emerald-700'
+                      ? 'bg-accent-soft text-accent'
                       : 'bg-red-50 text-red-700'}`}>
                     {parseFloat(modalForm.currentValue) >= parseFloat(modalForm.investedAmount)
                       ? `Gain: +₹${(parseFloat(modalForm.currentValue) - parseFloat(modalForm.investedAmount)).toLocaleString('en-IN')}`

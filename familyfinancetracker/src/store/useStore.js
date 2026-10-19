@@ -1,3 +1,4 @@
+import { ensureOriginalPreserved, planRecovery } from '../utils/recordRecovery.js'
 import { create } from 'zustand'
 import { INITIAL_DATA } from '../data/emptyData.js'
 import { dataKey, workspaceMode, workspaceKey, syntheticData, writeWorkspace } from '../utils/workspace.js'
@@ -5,6 +6,7 @@ import { dataKey, workspaceMode, workspaceKey, syntheticData, writeWorkspace } f
 // Load persisted state from localStorage, fall back to INITIAL_DATA
 function loadState() {
   try {
+    if (workspaceMode === 'personal') ensureOriginalPreserved(localStorage)
     const raw = localStorage.getItem(dataKey)
     if (raw) {
       return { ...INITIAL_DATA, ...JSON.parse(raw), currentUser: null }
@@ -43,12 +45,11 @@ const useStore = create((set, get) => {
   },
 
   setExpensesForMonth(ym, freshExpenses) {
-    save(state => ({
-      expenses: [
-        ...state.expenses.filter(e => !e.date.startsWith(ym)),
-        ...freshExpenses,
-      ],
-    }))
+    // Read responses are not authoritative deletions. Keep missing rows and both conflict versions.
+    save(state => {
+      const plan = planRecovery(state, { expenses: freshExpenses.filter(row => row.date?.startsWith(ym)) })
+      return { ...plan.patch, recoveryConflicts: [...(state.recoveryConflicts ?? []), ...plan.conflicts] }
+    })
   },
 
   // ── Budgets ───────────────────────────────────────────────────────────

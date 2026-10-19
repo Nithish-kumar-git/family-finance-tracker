@@ -20,12 +20,12 @@ function generateAlerts(state, year, month) {
   if (efActual < efTarget) {
     const shortfall = efTarget - efActual
     alerts.push(
-      `🔴 Emergency fund is below target — ${formatCurrency(shortfall)} needed`
+      `Action: Emergency fund is below target — ${formatCurrency(shortfall)} needed`
     )
   }
   if (!state.emergencyFund?.isIsolated) {
     alerts.push(
-      '🔴 Emergency fund not yet isolated — complete Week 3 action'
+      'Action: Emergency fund not yet isolated'
     )
   }
 
@@ -38,10 +38,10 @@ function generateAlerts(state, year, month) {
       const days = daysUntil(earliest.nextDueDate)
       if (days !== null && days < 0) {
         alerts.push(
-          '🔴 LIC premium OVERDUE — pay immediately to prevent policy lapse'
+          'Action: LIC premium OVERDUE — pay immediately to prevent policy lapse'
         )
       } else if (days !== null && days <= 30) {
-        alerts.push(`🔴 LIC premium due in ${days} days — ${formatCurrency(earliest.annualPremium ?? 0)}`)
+        alerts.push(`Action: LIC premium due in ${days} days — ${formatCurrency(earliest.annualPremium ?? 0)}`)
       }
     }
   }
@@ -55,7 +55,7 @@ function generateAlerts(state, year, month) {
       .reduce((s, e) => s + (e.amount ?? 0), 0)
     if (spent > limit) {
       alerts.push(
-        `🟠 ${EXPENSE_CATEGORIES[key].label} over budget by ${formatCurrency(spent - limit)}`
+        `Review: ${EXPENSE_CATEGORIES[key].label} over budget by ${formatCurrency(spent - limit)}`
       )
     }
   })
@@ -66,7 +66,7 @@ function generateAlerts(state, year, month) {
     const days = daysUntil(fd.maturityDate)
     if (days !== null && days >= 0 && days <= 45) {
       alerts.push(
-        `🟠 FD maturity in ${days} days — ${formatCurrency(fd.principal)} (${fd.purpose})`
+        `Review: FD maturity in ${days} days — ${formatCurrency(fd.principal)} (${fd.purpose})`
       )
     }
   })
@@ -78,13 +78,13 @@ function generateAlerts(state, year, month) {
 
   if (appsThisMonth >= 100) {
     alerts.push(
-      `🟡 Applications this month: ${appsThisMonth} — excellent momentum`
+      `Review: Applications this month: ${appsThisMonth} — excellent momentum`
     )
   } else if (appsThisMonth >= 25) {
-    alerts.push(`🟡 Applications this month: ${appsThisMonth} — on track`)
+    alerts.push(`Review: Applications this month: ${appsThisMonth} — on track`)
   } else {
     alerts.push(
-      `🟡 Applications this month: ${appsThisMonth} — below 25/week target`
+      `Review: Applications this month: ${appsThisMonth} — below 25/week target`
     )
   }
 
@@ -95,10 +95,10 @@ function generateAlerts(state, year, month) {
       m.title?.toLowerCase().includes('tds')
   )
   if (formMilestone?.status === 'done') {
-    alerts.push('🟡 Form 15G/121: Submitted ✓')
+    alerts.push('Review: Form 15G/121: Submitted ✓')
   } else if (formMilestone) {
     alerts.push(
-      '🟡 Form 15G/121: NOT YET SUBMITTED — URGENT before FD interest credit'
+      'Review: Form 15G/121: NOT YET SUBMITTED — URGENT before FD interest credit'
     )
   }
 
@@ -140,13 +140,12 @@ export const useReport = () => {
       e.date?.startsWith(prefix)
     )
 
-    const expByCat = {}
-    Object.keys(EXPENSE_CATEGORIES).forEach((key) => {
-      expByCat[key] = monthlyExpenses
-        .filter((e) => e.category === key)
-        .reduce((s, e) => s + (e.amount ?? 0), 0)
-    })
-    const expTotal = Object.values(expByCat).reduce((s, v) => s + v, 0)
+    const expByCat = Object.fromEntries(Object.keys(EXPENSE_CATEGORIES).map(key => [key, 0]))
+    for (const expense of monthlyExpenses) {
+      const key = Object.hasOwn(EXPENSE_CATEGORIES, expense.category) ? expense.category : 'other'
+      expByCat[key] = (expByCat[key] ?? 0) + (expense.amount ?? 0)
+    }
+    const expTotal = monthlyExpenses.reduce((sum, expense) => sum + (expense.amount ?? 0), 0)
     const expenses_by_category = { ...expByCat, total: expTotal }
 
     // Step 3 — Cash flow

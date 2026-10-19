@@ -114,6 +114,7 @@ test('actual Settings recovery control and actual Button are disabled with no ha
     'lucide-react': Object.fromEntries(['Shield', 'User', 'Wallet', 'Trash2', 'RefreshCw', 'Activity', 'ChevronRight', 'AlertTriangle', 'CheckCircle', 'XCircle', 'Lock'].map(name => [name, stub])),
     '../store/useStore': { default: selector => selector(fakeStore), saveLocalChanges: unexpectedStateChange },
     '../components/WorkspaceEditor.jsx': { default: stub },
+    '../components/RecoveryPanel.jsx': { default: stub },
     '../utils/formatters': { formatCurrency: () => 'Synthetic amount' },
     '../components/ui/Button': { default: button.namespace.default },
     '../components/ui/Card': { default: stub },

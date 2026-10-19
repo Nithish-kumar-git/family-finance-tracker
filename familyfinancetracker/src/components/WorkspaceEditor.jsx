@@ -43,19 +43,19 @@ export default function WorkspaceEditor() {
   function download() {
     const data = Object.fromEntries(Object.entries(state).filter(([key, value]) => typeof value !== 'function' && !['currentUser', 'persistenceError', 'isOffline'].includes(key)))
     data.users = data.users.map(({ pin, ...user }) => user)
-    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }))
+    const url = URL.createObjectURL(new Blob([JSON.stringify({ format: 'fft-backup-v2', workspace: workspaceMode, data }, null, 2)], { type: 'application/json' }))
     const a = document.createElement('a'); a.href = url; a.download = `family-finance-${workspaceMode}-${new Date().toISOString().slice(0, 10)}.json`; a.click(); URL.revokeObjectURL(url)
   }
-  return <section className="mb-8 rounded-2xl border border-slate-200 bg-white p-4 space-y-4">
-    <h2 className="font-semibold text-slate-900">Edit household & financial records</h2>
-    <p className="text-xs text-slate-500">Changes apply only to this {workspaceMode === 'demo' ? 'synthetic demo' : 'personal browser'} workspace. Nothing is uploaded to the household database.</p>
+  return <section className="mb-8 rounded-lg border border-line bg-white p-4 space-y-4">
+    <h2 className="font-semibold text-ink">Edit household & financial records</h2>
+    <p className="text-xs text-muted">Changes apply only to this {workspaceMode === 'demo' ? 'synthetic demo' : 'personal browser'} workspace. Nothing is uploaded to the household database.</p>
     <label className="block text-sm">Record type<select value={kind} onChange={e => { setKind(e.target.value); setSelected(''); setDraft({}); setMessage('') }} className="mt-1 w-full border rounded-lg p-2">{Object.entries(types).map(([key, type]) => <option key={key} value={key}>{type.label}</option>)}</select></label>
     <label className="block text-sm">Choose a record<select value={selected} onChange={e => { setSelected(e.target.value); setDraft({ ...(rows.find(row => row.id === e.target.value) ?? {}) }); setMessage('') }} className="mt-1 w-full border rounded-lg p-2"><option value="">{kind === 'users' ? 'Select a profile' : 'Add a new record'}</option>{rows.map(row => <option key={row.id} value={row.id}>{row.name || row.title || row.bank || row.insured || row.organizer || row.company || row.id}</option>)}</select></label>
     <form onSubmit={save} className="space-y-3">
-      <div className="grid sm:grid-cols-2 gap-3">{Object.entries(schema.fields).map(([key, label]) => <label key={key} className="text-sm text-slate-600">{label}<input aria-label={label} type={numeric.has(key) ? 'number' : /Date$|^date$/.test(key) ? 'date' : key === 'color' ? 'color' : 'text'} step="any" min={numeric.has(key) ? 0 : undefined} value={draft[key] ?? ''} onChange={e => setDraft({ ...draft, [key]: e.target.value })} className="mt-1 w-full rounded-lg border border-slate-200 p-2" /></label>)}</div>
-      <button className="bg-indigo-600 text-white rounded-xl px-4 py-2">Save record on this device</button>
-      {message && <p role="status" className="text-sm text-slate-700">{message}</p>}
+      <div className="grid sm:grid-cols-2 gap-3">{Object.entries(schema.fields).map(([key, label]) => <label key={key} className="text-sm text-muted">{label}<input aria-label={label} type={numeric.has(key) ? 'number' : /Date$|^date$/.test(key) ? 'date' : key === 'color' ? 'color' : 'text'} step="any" min={numeric.has(key) ? 0 : undefined} value={draft[key] ?? ''} onChange={e => setDraft({ ...draft, [key]: e.target.value })} className="mt-1 w-full rounded-lg border border-line p-2" /></label>)}</div>
+      <button className="bg-accent text-white rounded-lg px-4 py-2">Save record on this device</button>
+      {message && <p role="status" className="text-sm text-ink">{message}</p>}
     </form>
-    <button onClick={download} className="text-sm underline text-indigo-700">Download a backup of this workspace</button>
+    <button onClick={download} className="text-sm underline text-accent">Download a backup of this workspace</button>
   </section>
 }

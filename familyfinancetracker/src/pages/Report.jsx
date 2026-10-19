@@ -129,7 +129,7 @@ export default function Report() {
     const { apiSuccess } = await saveMonthlySnapshot(yr, mo, reportJson)
     setSaveLoading(false)
     if (apiSuccess) {
-      showToast(`Snapshot saved for ${monthLabel} ✓`, 'success')
+      showToast(`Snapshot saved for ${monthLabel} `, 'success')
     } else {
       showToast('Snapshot was not saved. Free browser storage and try again.', 'error')
     }
@@ -138,14 +138,14 @@ export default function Report() {
   // ── Derived display values ─────────────────────────────────────────────────
   const cf = reportJson?.cash_flow
   const netPos = cf?.net_position ?? 0
-  const netColor = netPos >= 0 ? 'text-emerald-700' : 'text-red-700'
+  const netColor = netPos >= 0 ? 'text-accent' : 'text-red-700'
   const netBg = netPos >= 0
-    ? 'bg-emerald-50 border-emerald-200'
+    ? 'bg-accent-soft border-line'
     : 'bg-red-50 border-red-200'
 
   const corp = reportJson?.corpus
   const efColor = corp?.emergency_fund?.is_intact
-    ? 'text-emerald-600'
+    ? 'text-accent'
     : 'text-red-600'
 
   const expByCat = reportJson?.cash_flow?.expenses_by_category ?? {}
@@ -179,10 +179,10 @@ export default function Report() {
       {/* ── Toast ── */}
       {toast && (
         <div
-          className={`fixed bottom-20 left-1/2 -translate-x-1/2 z-50 rounded-2xl px-5 py-3
-                     shadow-xl flex items-center gap-2 text-sm font-medium
+          className={`fixed bottom-20 left-1/2 -translate-x-1/2 z-50 rounded-lg px-5 py-3
+                      flex items-center gap-2 text-sm font-medium
                      text-white whitespace-nowrap
-                     ${toast.type === 'error' ? 'bg-red-600' : 'bg-emerald-600'}`}
+                     ${toast.type === 'error' ? 'bg-red-600' : 'bg-accent'}`}
         >
           {toast.type === 'error' ? (
             <AlertTriangle size={16} />
@@ -194,18 +194,18 @@ export default function Report() {
       )}
 
       {/* ── Month selector (Hero) ── */}
-      <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 -mx-4 px-4 pt-4 pb-6 mb-5">
+      <div className="surface mb-6">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <p className="text-3xl font-bold tracking-tight text-white">Monthly Report</p>
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mt-0.5">{monthLabel}</p>
+            <p className="text-3xl font-bold tracking-tight text-ink">Monthly Report</p>
+            <p className="text-xs font-medium uppercase tracking-wider text-muted mt-0.5">{monthLabel}</p>
           </div>
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="border border-slate-700 rounded-xl px-3 py-2 text-sm
-                       text-slate-200 focus:outline-none focus:ring-2
-                       focus:ring-indigo-500 bg-slate-800"
+            className="border border-line rounded-lg px-3 py-2 text-sm
+                       text-muted focus:outline-none focus:ring-2
+                       focus:ring-accent bg-surface"
           >
             {monthOptions.map((o) => (
               <option key={o.val} value={o.val}>
@@ -218,37 +218,37 @@ export default function Report() {
         {reportJson && (
           <>
             <div className="grid grid-cols-3 gap-3 text-center">
-              <div className="bg-white/15 backdrop-blur-md border border-white/25 rounded-xl p-3">
-                <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1">Income</p>
-                <p className="text-xl font-bold tracking-tight text-emerald-400">
+              <div className="bg-surface  border border-line rounded-lg p-3">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted mb-1">Income</p>
+                <p className="text-xl font-bold tracking-tight text-accent">
                   {formatCurrency(cf?.income?.total ?? 0, true)}
                 </p>
               </div>
-              <div className="bg-white/15 backdrop-blur-md border border-white/25 rounded-xl p-3">
-                <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1">Expenses</p>
-                <p className="text-xl font-bold tracking-tight text-red-400">
+              <div className="bg-surface  border border-line rounded-lg p-3">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted mb-1">Expenses</p>
+                <p className="text-xl font-bold tracking-tight text-red-700">
                   {formatCurrency(
                     cf?.expenses_by_category?.total ?? 0,
                     true
                   )}
                 </p>
               </div>
-              <div className="bg-white/15 backdrop-blur-md border border-white/25 rounded-xl p-3">
-                <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1">Net Flow</p>
-                <p className="text-xl font-bold tracking-tight text-white">
+              <div className="bg-surface  border border-line rounded-lg p-3">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted mb-1">Net Flow</p>
+                <p className="text-xl font-bold tracking-tight text-ink">
                   {netPos >= 0 ? '+' : '−'}
                   {formatCurrency(Math.abs(netPos), true)}
                 </p>
               </div>
             </div>
-            
-            <div className="mt-4 pt-4 border-t border-slate-700 flex items-center justify-between">
-              <p className="text-xs text-slate-400">vs ₹85,800 budget</p>
+
+            <div className="mt-4 pt-4 border-t border-line flex items-center justify-between">
+              <p className="text-xs text-muted">vs {formatCurrency(Object.values(state.budgets).reduce((sum, value) => sum + value, 0))} budget</p>
               <p
                 className={`text-xs font-semibold ${
                   (cf?.variance_from_budget ?? 0) >= 0
-                    ? 'text-emerald-400'
-                    : 'text-red-400'
+                    ? 'text-accent'
+                    : 'text-red-700'
                 }`}
               >
                 {(cf?.variance_from_budget ?? 0) >= 0
@@ -269,7 +269,7 @@ export default function Report() {
           {[...Array(4)].map((_, i) => (
             <div
               key={i}
-              className="h-28 bg-slate-100 rounded-2xl animate-pulse mb-3"
+              className="h-28 bg-canvas rounded-lg animate-pulse mb-3"
             />
           ))}
         </>
@@ -284,15 +284,15 @@ export default function Report() {
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           <Card className="mb-3">
             <div className="flex items-center gap-2 mb-3">
-              <p className="text-xs font-medium uppercase tracking-widest text-slate-400">Corpus</p>
+              <p className="text-xs font-medium uppercase tracking-widest text-muted">Corpus</p>
             </div>
-            <p className="text-3xl font-bold tracking-tight text-slate-900 mb-3">
+            <p className="text-3xl font-bold tracking-tight text-ink mb-3">
               {formatCurrency(corp?.total_corpus ?? 0, true)}
             </p>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <p className="text-xs text-slate-400">Fixed Deposits</p>
-                <p className="text-sm font-medium text-slate-700">
+                <p className="text-xs text-muted">Fixed Deposits</p>
+                <p className="text-sm font-medium text-ink">
                   {formatCurrency(
                     (corp?.fixed_deposits ?? []).reduce(
                       (s, fd) => s + fd.principal,
@@ -303,8 +303,8 @@ export default function Report() {
                 </p>
               </div>
               <div>
-                <p className="text-xs text-slate-400">Mutual Funds</p>
-                <p className="text-sm font-medium text-slate-700">
+                <p className="text-xs text-muted">Mutual Funds</p>
+                <p className="text-sm font-medium text-ink">
                   {formatCurrency(
                     (corp?.mutual_funds ?? []).reduce(
                       (s, mf) => s + mf.current_value,
@@ -315,13 +315,13 @@ export default function Report() {
                 </p>
               </div>
               <div>
-                <p className="text-xs text-slate-400">Gold</p>
-                <p className="text-sm font-medium text-slate-700">
+                <p className="text-xs text-muted">Gold</p>
+                <p className="text-sm font-medium text-ink">
                   {formatCurrency(corp?.gold_value ?? 0, true)}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-slate-400">Emergency Fund</p>
+                <p className="text-xs text-muted">Emergency Fund</p>
                 <div className="flex items-center gap-1">
                   <Lock size={11} className={efColor} />
                   <p className={`text-sm font-medium ${efColor}`}>
@@ -339,7 +339,7 @@ export default function Report() {
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           <Card className="mb-3">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
+              <p className="text-xs font-medium uppercase tracking-widest text-muted">
                 Budget Compliance
               </p>
               <Badge color={overCategories.length === 0 ? 'green' : 'red'}>
@@ -350,21 +350,21 @@ export default function Report() {
             </div>
             <div className="flex items-center gap-3">
               <div className="text-center flex-1">
-                <p className="text-3xl font-bold tracking-tight text-emerald-700">
+                <p className="text-3xl font-bold tracking-tight text-accent">
                   {withinCount}
                 </p>
-                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-1">within limit</p>
+                <p className="text-xs font-medium uppercase tracking-widest text-muted mt-1">within limit</p>
               </div>
               <div className="text-center flex-1">
                 <p className="text-3xl font-bold tracking-tight text-red-600">
                   {overCategories.length}
                 </p>
-                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-1">over budget</p>
+                <p className="text-xs font-medium uppercase tracking-widest text-muted mt-1">over budget</p>
               </div>
             </div>
             {worstOffender && (
               <div className="mt-3 bg-red-50 rounded-lg px-3 py-2">
-                <p className="text-xs text-slate-500">Worst offender</p>
+                <p className="text-xs text-muted">Worst offender</p>
                 <p className="text-sm font-semibold text-red-700">
                   {worstOffender.label} — over by{' '}
                   {formatCurrency(worstOffender.overage, true)}
@@ -378,33 +378,33 @@ export default function Report() {
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           <Card className="mb-3">
             <div className="flex items-center gap-2 mb-3">
-              <Calendar size={15} className="text-indigo-600" />
-              <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
+              <Calendar size={15} className="text-accent" />
+              <p className="text-xs font-medium uppercase tracking-widest text-muted">
                 Milestones
               </p>
             </div>
             <div className="grid grid-cols-3 gap-2 text-center">
               <div>
-                <p className="text-3xl font-bold tracking-tight text-emerald-700">
+                <p className="text-3xl font-bold tracking-tight text-accent">
                   {doneCount}
                 </p>
-                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-1">done</p>
+                <p className="text-xs font-medium uppercase tracking-widest text-muted mt-1">done</p>
               </div>
               <div>
                 <p
                   className={`text-3xl font-bold tracking-tight ${
-                    overdueCount > 0 ? 'text-red-600' : 'text-slate-400'
+                    overdueCount > 0 ? 'text-red-600' : 'text-muted'
                   }`}
                 >
                   {overdueCount}
                 </p>
-                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-1">overdue</p>
+                <p className="text-xs font-medium uppercase tracking-widest text-muted mt-1">overdue</p>
               </div>
               <div>
-                <p className="text-3xl font-bold tracking-tight text-amber-600">
+                <p className="text-3xl font-bold tracking-tight text-ink">
                   {upcoming30}
                 </p>
-                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mt-1">due in 30d</p>
+                <p className="text-xs font-medium uppercase tracking-widest text-muted mt-1">due in 30d</p>
               </div>
             </div>
             {(ms?.overdue?.length ?? 0) > 0 && (
@@ -420,7 +420,7 @@ export default function Report() {
                   </div>
                 ))}
                 {ms.overdue.length > 2 && (
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-muted">
                     +{ms.overdue.length - 2} more overdue
                   </p>
                 )}
@@ -433,14 +433,14 @@ export default function Report() {
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           <Card className="mb-3">
             <div className="flex items-center gap-2 mb-3">
-              <Briefcase size={15} className="text-indigo-600" />
-              <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
+              <Briefcase size={15} className="text-accent" />
+              <p className="text-xs font-medium uppercase tracking-widest text-muted">
                 Employment
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Status</p>
+                <p className="text-xs font-medium uppercase tracking-widest text-muted mb-1">Status</p>
                 <Badge
                   color={
                     emp?.nithish_status?.startsWith('employed')
@@ -454,20 +454,20 @@ export default function Report() {
                 </Badge>
               </div>
               <div>
-                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">This month</p>
-                <p className="text-base font-semibold text-slate-700">
+                <p className="text-xs font-medium uppercase tracking-widest text-muted mb-1">This month</p>
+                <p className="text-base font-semibold text-ink">
                   {emp?.applications_this_month ?? 0} applications
                 </p>
               </div>
               <div>
-                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Interviews</p>
-                <p className="text-base font-semibold text-slate-700">
+                <p className="text-xs font-medium uppercase tracking-widest text-muted mb-1">Interviews</p>
+                <p className="text-base font-semibold text-ink">
                   {emp?.interviews_total ?? 0}
                 </p>
               </div>
               <div>
-                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Offers</p>
-                <p className="text-base font-semibold text-slate-700">
+                <p className="text-xs font-medium uppercase tracking-widest text-muted mb-1">Offers</p>
+                <p className="text-base font-semibold text-ink">
                   {emp?.offers_total ?? 0}
                 </p>
               </div>
@@ -479,23 +479,23 @@ export default function Report() {
           {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
           {alerts.length > 0 && (
             <div className="mb-4">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">
+              <p className="text-xs font-bold text-muted uppercase tracking-wide mb-2">
                 Alerts
               </p>
               <div className="space-y-2">
                 {alerts.map((alert, i) => {
-                  const isRed = alert.startsWith('🔴')
-                  const isOrange = alert.startsWith('🟠')
+                  const isRed = alert.startsWith('')
+                  const isOrange = alert.startsWith('')
                   return (
                     <div
                       key={i}
-                      className={`rounded-xl border px-3 py-2.5 text-xs font-medium
+                      className={`rounded-lg border px-3 py-2.5 text-xs font-medium
                         ${
                           isRed
                             ? 'bg-red-50 border-red-200 text-red-700'
                             : isOrange
-                            ? 'bg-orange-50 border-orange-200 text-orange-700'
-                            : 'bg-yellow-50 border-yellow-200 text-yellow-700'
+                            ? 'bg-canvas border-line text-ink'
+                            : 'bg-canvas border-line text-ink'
                         }`}
                     >
                       {alert}
@@ -517,18 +517,18 @@ export default function Report() {
                 size="md"
                 className="w-full"
                 onClick={handleGetInsights}
-                disabled={!reportJson}
+                disabled
               >
-                <Sparkles size={15} className="mr-2 text-indigo-600" />
-                Get AI Insights
+                <Sparkles size={15} className="mr-2 text-accent" />
+                AI insights disconnected in local workspaces
               </Button>
             )}
 
             {/* Loading state */}
             {insightsLoading && (
               <div className="flex items-center justify-center gap-2 py-4">
-                <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-                <p className="text-sm text-slate-500">
+                <div className="w-4 h-4 border-2 border-line border-t-transparent rounded-full animate-spin" />
+                <p className="text-sm text-muted">
                   Getting insights from Gemini AI...
                 </p>
               </div>
@@ -537,12 +537,12 @@ export default function Report() {
             {/* Offline / error state */}
             {insightsError && !insightsLoading && (
               <div className="text-center py-4">
-                <p className="text-sm text-slate-500">
-                  AI insights require internet connection.
+                <p className="text-sm text-muted">
+                  AI providers are disconnected. No financial records were sent.
                 </p>
                 <button
                   onClick={() => setInsightsError(false)}
-                  className="text-xs text-indigo-600 underline mt-1"
+                  className="text-xs text-accent underline mt-1"
                 >
                   Try again
                 </button>
@@ -553,30 +553,30 @@ export default function Report() {
             {insights && !insightsLoading && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <Sparkles size={15} className="text-indigo-600" />
-                  <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
+                  <Sparkles size={15} className="text-accent" />
+                  <p className="text-xs font-medium uppercase tracking-widest text-muted">
                     AI Insights
                   </p>
                 </div>
                 <div className="space-y-3">
                   {insights.map((insight, i) => (
-                    <div key={i} className="flex gap-2 bg-slate-50 border border-slate-100 rounded-xl p-3">
-                      <span className="flex-shrink-0 w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 text-xs flex items-center justify-center font-bold mt-0.5">
+                    <div key={i} className="flex gap-2 bg-canvas border border-line rounded-lg p-3">
+                      <span className="flex-shrink-0 w-5 h-5 rounded-full bg-accent-soft text-accent text-xs flex items-center justify-center font-bold mt-0.5">
                         {i + 1}
                       </span>
-                      <p className="text-sm text-slate-700 leading-relaxed">
+                      <p className="text-sm text-ink leading-relaxed">
                         {insight}
                       </p>
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-slate-400 mt-2 text-center">
+                <p className="text-xs text-muted mt-2 text-center">
                   Generated by Gemini AI — for context only, not financial
                   advice
                 </p>
                 <button
                   onClick={() => setInsights(null)}
-                  className="text-xs text-slate-400 underline mt-1 block mx-auto"
+                  className="text-xs text-muted underline mt-1 block mx-auto"
                 >
                   Clear insights
                 </button>
@@ -594,24 +594,24 @@ export default function Report() {
           <button
             onClick={handleCopyForClaude}
             disabled={!reportJson}
-            className={`w-full h-14 rounded-2xl font-semibold text-base flex items-center
-                        justify-center gap-2 transition-all mb-3 shadow-md
+            className={`w-full h-14 rounded-lg font-semibold text-base flex items-center
+                        justify-center gap-2 transition-all mb-3
                         ${
                           copied
-                            ? 'bg-emerald-600 text-white'
-                            : 'bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.98]'
+                            ? 'bg-accent text-white'
+                            : 'bg-surface text-ink hover:bg-surface active:scale-[0.98]'
                         }
                         disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             {copied ? (
               <>
                 <CheckCircle size={18} />
-                Copied! Paste into Claude for analysis.
+                Report copied. Share only where you intend.
               </>
             ) : (
               <>
                 <ClipboardCopy size={18} />
-                Copy for Claude Analysis
+                Copy report for your own analysis
               </>
             )}
           </button>

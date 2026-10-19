@@ -1,16 +1,16 @@
 // Seed data for FamilyFinanceTracker — initial family financial state
 
 export const EXPENSE_CATEGORIES = {
-  groceries:         { label: 'Groceries & Food',   icon: 'ShoppingCart',   color: '#059669' },
-  utilities:         { label: 'Utilities',           icon: 'Zap',            color: '#0891B2' },
-  medical:           { label: 'Medical',             icon: 'Heart',          color: '#DC2626' },
-  transport:         { label: 'Transport',           icon: 'Car',            color: '#7C3AED' },
-  household:         { label: 'Household',           icon: 'Home',           color: '#D97706' },
-  lic_premium:       { label: 'LIC Premium',         icon: 'Shield',         color: '#9333EA' },
-  chit_contribution: { label: 'Chit Fund',           icon: 'Users',          color: '#EA580C' },
-  personal:          { label: 'Personal',            icon: 'User',           color: '#6366F1' },
-  education:         { label: 'Education',           icon: 'BookOpen',       color: '#0D9488' },
-  other:             { label: 'Other',               icon: 'MoreHorizontal', color: '#6B7280' },
+  groceries:         { label: 'Groceries & Food',   icon: 'ShoppingCart',   color: '#245C46' },
+  utilities:         { label: 'Utilities',           icon: 'Zap',            color: '#50715D' },
+  medical:           { label: 'Medical',             icon: 'Heart',          color: '#788A79' },
+  transport:         { label: 'Transport',           icon: 'Car',            color: '#3E6754' },
+  household:         { label: 'Household',           icon: 'Home',           color: '#65786B' },
+  lic_premium:       { label: 'LIC Premium',         icon: 'Shield',         color: '#8C978C' },
+  chit_contribution: { label: 'Chit Fund',           icon: 'Users',          color: '#A1AA9D' },
+  personal:          { label: 'Personal',            icon: 'User',           color: '#B7BEB0' },
+  education:         { label: 'Education',           icon: 'BookOpen',       color: '#CDD2C6' },
+  other:             { label: 'Other',               icon: 'MoreHorizontal', color: '#646D67' },
 }
 
 export const INITIAL_DATA = {

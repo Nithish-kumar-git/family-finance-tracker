@@ -8,18 +8,20 @@ import React from 'react'
 import { renderToString } from 'react-dom/server'
 import * as router from 'react-router-dom'
 
-async function renderApp(path, member, loading = false) {
+const renderState = { path: '/', member: null, loading: false }
+let appPromise
+async function loadApp() {
   const context = vm.createContext({ React })
   const page = name => () => React.createElement('main', { 'data-page': name }, name)
-  const store = { currentUser: 'nithish', users: [{ id: 'nithish', name: 'Synthetic family member' }] }
+  const store = { expenses: [], fixedDeposits: [], mutualFunds: [], milestones: [], currentUser: 'nithish', users: [{ id: 'nithish', name: 'Synthetic family member' }] }
   const module = new vm.SourceTextModule(transformSync(readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8'),
     { loader: 'jsx', format: 'esm' }).code, { context })
   await module.link(name => {
     let exports
     if (name === 'react-router-dom') exports = { ...router,
-      BrowserRouter: ({ children }) => React.createElement(router.MemoryRouter, { initialEntries: [path] }, children) }
+      BrowserRouter: ({ children }) => React.createElement(router.MemoryRouter, { initialEntries: [renderState.path] }, children) }
     else if (name.includes('FamilySession')) exports = { default: ({ children }) => children,
-      useFamilySession: () => ({ member, loading }) }
+      useFamilySession: () => ({ member: renderState.member, loading: renderState.loading }) }
     else if (name.includes('useStore')) exports = { default: selector => selector(store) }
     else if (name.includes('workspace')) exports = { workspaceMode: 'personal', switchWorkspace() {} }
     else if (name.startsWith('./pages/')) exports = { default: page(name.split('/').pop().replace('.jsx', '')) }
@@ -32,7 +34,13 @@ async function renderApp(path, member, loading = false) {
     }, { context })
   })
   await module.evaluate()
-  return renderToString(React.createElement(module.namespace.default))
+  return module.namespace.default
+}
+async function renderApp(path, member, loading = false) {
+  Object.assign(renderState, { path, member, loading })
+  // Reuse the compiled module; repeated VM context creation can crash Node on Windows.
+  const App = await (appPromise ??= loadApp())
+  return renderToString(React.createElement(App))
 }
 
 test('patched router renders every existing authorized route using the actual App route tree', async () => {

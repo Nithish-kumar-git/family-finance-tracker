@@ -147,14 +147,14 @@ export default function Budgets() {
     // 5-7. Finish
     setModalSaving(false)
     setEditAllOpen(false)
-    showToast('All budgets saved ✓', 'success')
+    showToast('All budgets saved ', 'success')
   }
 
   // ── Section 1 derived values ───────────────────────────────────────────────
   const totalPct = BUDGET_TARGET > 0 ? Math.min((totalSpent / BUDGET_TARGET) * 100, 100) : 0
   const totalBarColor =
-    totalPct >= 100 ? 'bg-red-500' : totalPct >= 80 ? 'bg-amber-500' : 'bg-emerald-500'
-  const totalTextColor = totalPct >= 100 ? 'text-red-600' : 'text-slate-800'
+    totalPct >= 100 ? 'bg-red-500' : totalPct >= 80 ? 'bg-canvas' : 'bg-accent'
+  const totalTextColor = totalPct >= 100 ? 'text-red-600' : 'text-ink'
 
   // ── Section 4 derived values ───────────────────────────────────────────────
   const untracked = BUDGET_TARGET - totalBudgeted
@@ -177,10 +177,10 @@ export default function Budgets() {
       {/* ── Toast ── */}
       {toast && (
         <div
-          className={`fixed bottom-20 left-1/2 -translate-x-1/2 z-50 rounded-2xl px-5 py-3
-                     shadow-xl flex items-center gap-2 text-sm font-medium
+          className={`fixed bottom-20 left-1/2 -translate-x-1/2 z-50 rounded-lg px-5 py-3
+                      flex items-center gap-2 text-sm font-medium
                      text-white whitespace-nowrap
-                     ${toast.type === 'error' ? 'bg-red-600' : 'bg-emerald-600'}`}
+                     ${toast.type === 'error' ? 'bg-red-600' : 'bg-accent'}`}
         >
           {toast.type === 'error' ? (
             <AlertTriangle size={16} />
@@ -193,7 +193,7 @@ export default function Budgets() {
 
       {/* ── Section 1 — Month total card ── */}
       <Card className="mb-4">
-        <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">
+        <p className="text-xs font-medium uppercase tracking-widest text-muted mb-1">
           {new Date(year, month - 1).toLocaleDateString('en-IN', {
             month: 'long',
             year: 'numeric',
@@ -212,16 +212,16 @@ export default function Budgets() {
             >
               {totalPct.toFixed(0)}% used
             </Badge>
-            <p className="text-xs text-slate-400 mt-1">of {formatCurrency(BUDGET_TARGET)}</p>
+            <p className="text-xs text-muted mt-1">of {formatCurrency(BUDGET_TARGET)}</p>
           </div>
         </div>
-        <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+        <div className="h-2 rounded-full bg-canvas overflow-hidden">
           <div
             className={`h-full rounded-full transition-all ${totalBarColor}`}
             style={{ width: `${totalPct}%` }}
           />
         </div>
-        <p className="text-xs text-slate-400 mt-1.5">
+        <p className="text-xs text-muted mt-1.5">
           {totalPct >= 100
             ? `Over budget by ${formatCurrency(totalSpent - BUDGET_TARGET)}`
             : `${formatCurrency(BUDGET_TARGET - totalSpent)} left in monthly budget`}
@@ -230,26 +230,26 @@ export default function Budgets() {
 
       {/* ── Section 2 — Edit All button ── */}
       <div className="flex items-center justify-between mb-3">
-        <p className="text-xs font-medium uppercase tracking-widest text-slate-400">Category Budgets</p>
+        <p className="text-xs font-medium uppercase tracking-widest text-muted">Category Budgets</p>
         <Button variant="secondary" size="sm" onClick={() => openEditAllModal()}>
           <Edit2 size={13} className="mr-1.5" /> Edit All
         </Button>
       </div>
 
       {/* ── Section 3 — Category rows ── */}
-      <div className="lg:grid lg:grid-cols-2 lg:gap-3">
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      <div className="w-full">
+      <div className="bg-white rounded-lg  border border-line overflow-hidden">
         {categoryData.map(({ key, cat, limit, spent, pct, isOver, isWarn, isChit }) => {
           const IconComponent = iconMap[cat.icon]
           const barColor = isOver
             ? 'bg-red-500'
             : isWarn
-            ? 'bg-amber-500'
-            : 'bg-emerald-500'
+            ? 'bg-canvas'
+            : 'bg-accent'
 
           return (
             <div key={key}>
-              <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100">
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-line">
                 {/* Icon */}
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
@@ -260,10 +260,10 @@ export default function Budgets() {
 
                 {/* Middle: label + progress bar */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-700 truncate">
+                  <p className="text-sm font-medium text-ink truncate">
                     {cat.label}
                   </p>
-                  <div className="h-1.5 rounded-full bg-slate-100 mt-1 overflow-hidden">
+                  <div className="h-1.5 rounded-full bg-canvas mt-1 overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${barColor}`}
                       style={{ width: `${Math.min(pct, 100)}%` }}
@@ -275,7 +275,7 @@ export default function Budgets() {
                 <div className="flex-shrink-0">
                   {editingCategory === key ? (
                     <div className="flex items-center gap-1">
-                      <span className="text-xs text-slate-400">₹</span>
+                      <span className="text-xs text-muted">₹</span>
                       <input
                         type="number"
                         inputMode="numeric"
@@ -286,18 +286,18 @@ export default function Budgets() {
                           if (e.key === 'Escape') setEditingCategory(null)
                         }}
                         autoFocus
-                        className="w-20 text-sm border border-indigo-300 rounded-lg px-2 py-1
-                                   focus:outline-none focus:ring-2 focus:ring-indigo-500 text-right"
+                        className="w-20 text-sm border border-line rounded-lg px-2 py-1
+                                   focus:outline-none focus:ring-2 focus:ring-accent text-right"
                       />
                       <button
                         onClick={() => saveInlineEdit(key)}
-                        className="p-1 text-emerald-600 hover:bg-emerald-50 rounded-lg"
+                        className="p-1 text-accent hover:bg-accent-soft rounded-lg"
                       >
                         <CheckCircle size={16} />
                       </button>
                       <button
                         onClick={() => setEditingCategory(null)}
-                        className="p-1 text-slate-400 hover:bg-slate-100 rounded-lg"
+                        className="p-1 text-muted hover:bg-canvas rounded-lg"
                       >
                         <X size={16} />
                       </button>
@@ -310,12 +310,12 @@ export default function Budgets() {
                       >
                         <p
                           className={`text-sm font-semibold ${
-                            isOver ? 'text-red-600' : 'text-slate-800'
+                            isOver ? 'text-red-600' : 'text-ink'
                           }`}
                         >
                           {formatCurrency(spent)}
                         </p>
-                        <p className="text-xs text-slate-400 group-hover:text-indigo-500 transition-colors">
+                        <p className="text-xs text-muted group-hover:text-accent transition-colors">
                           / {formatCurrency(limit)}
                         </p>
                       </button>
@@ -327,9 +327,9 @@ export default function Budgets() {
               {/* Chit contribution amber warning (below row, outside row flex) */}
               {isChit && limit === 0 && (
                 <div className="flex items-center gap-1.5 px-4 pb-2 -mt-1">
-                  <AlertTriangle size={12} className="text-amber-500 flex-shrink-0" />
-                  <p className="text-xs text-amber-600">
-                    Verify monthly chit amount with Nadar Sangam organiser
+                  <AlertTriangle size={12} className="text-ink flex-shrink-0" />
+                  <p className="text-xs text-ink">
+                    Verify the monthly contribution with your organiser
                   </p>
                 </div>
               )}
@@ -340,25 +340,25 @@ export default function Budgets() {
       </div>
 
       {/* ── Section 4 — Untracked amount card ── */}
-      <Card
+      {untracked !== 0 && <Card
         className={`mt-4 ${
           untracked < 0
             ? 'border-red-200 bg-red-50'
             : untracked > 0
-            ? 'border-amber-200 bg-amber-50'
-            : 'border-emerald-200 bg-emerald-50'
+            ? 'border-line bg-canvas'
+            : 'border-line bg-accent-soft'
         }`}
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold text-slate-700">
+            <p className="text-sm font-semibold text-ink">
               {untracked < 0
-                ? '⚠ Over-budgeted'
+                ? ' Over-budgeted'
                 : untracked > 0
                 ? 'Unbudgeted amount'
-                : '✓ Budget fully allocated'}
+                : ' Budget fully allocated'}
             </p>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-muted mt-0.5">
               {untracked < 0
                 ? `Category limits total ${formatCurrency(totalBudgeted)} — exceeds configured target by ${formatCurrency(Math.abs(untracked))}`
                 : untracked > 0
@@ -371,15 +371,15 @@ export default function Budgets() {
               untracked < 0
                 ? 'text-red-600'
                 : untracked > 0
-                ? 'text-amber-600'
-                : 'text-emerald-600'
+                ? 'text-ink'
+                : 'text-accent'
             }`}
           >
             {untracked < 0 ? '−' : '+'}{formatCurrency(Math.abs(untracked), true)}
           </p>
         </div>
         {untracked > 0 && (
-          <p className="text-xs text-amber-600 mt-2">
+          <p className="text-xs text-ink mt-2">
             Tip: assign the unbudgeted amount to a category, or add it to "Other"
             so your total matches your configured monthly target.
           </p>
@@ -389,25 +389,25 @@ export default function Budgets() {
             Reduce category limits until the total matches your target.
           </p>
         )}
-      </Card>
+      </Card>}
 
       {/* ── Section 5 — Alerts ── */}
       {(overBudget.length > 0 || nearLimit.length > 0) && (
         <div className="mt-4 space-y-2">
-        <p className="text-sm font-semibold text-slate-700">Alerts</p>
+        <p className="text-sm font-semibold text-ink">Alerts</p>
 
           {overBudget.map((d) => (
             <Card key={d.key} danger className="py-3">
               <div className="flex items-start gap-2">
                 <AlertTriangle
                   size={16}
-                  className="text-red-500 flex-shrink-0 mt-0.5"
+                  className="text-red-700 flex-shrink-0 mt-0.5"
                 />
                 <div>
                   <p className="text-sm font-semibold text-red-700">
                     {d.cat.label} overspent by {formatCurrency(Math.abs(d.remaining))}
                   </p>
-                  <p className="text-xs text-red-500 mt-0.5">
+                  <p className="text-xs text-red-700 mt-0.5">
                     Spent {formatCurrency(d.spent)} of {formatCurrency(d.limit)} limit
                   </p>
                 </div>
@@ -418,18 +418,18 @@ export default function Budgets() {
           {nearLimit.map((d) => (
             <div
               key={d.key}
-              className="rounded-xl border border-amber-200 bg-amber-50 p-3"
+              className="rounded-lg border border-line bg-canvas p-3"
             >
               <div className="flex items-start gap-2">
                 <AlertTriangle
                   size={16}
-                  className="text-amber-500 flex-shrink-0 mt-0.5"
+                  className="text-ink flex-shrink-0 mt-0.5"
                 />
                 <div>
-                  <p className="text-sm font-semibold text-amber-700">
+                  <p className="text-sm font-semibold text-ink">
                     {d.cat.label} is {formatCurrency(d.remaining)} from limit
                   </p>
-                  <p className="text-xs text-amber-600 mt-0.5">
+                  <p className="text-xs text-ink mt-0.5">
                     {d.pct.toFixed(0)}% used — {formatCurrency(d.spent)} of{' '}
                     {formatCurrency(d.limit)}
                   </p>
@@ -447,30 +447,30 @@ export default function Budgets() {
       {editAllOpen && (
         <div className="fixed inset-0 bg-white z-50 flex flex-col">
           {/* Modal header */}
-          <div className="flex items-center justify-between px-4 py-4 border-b border-slate-100 flex-shrink-0">
+          <div className="flex items-center justify-between px-4 py-4 border-b border-line flex-shrink-0">
             <div>
-              <p className="text-base font-semibold text-slate-900">Edit All Budgets</p>
-              <p className="text-xs text-slate-400 mt-0.5">Target follows your category budgets</p>
+              <p className="text-base font-semibold text-ink">Edit All Budgets</p>
+              <p className="text-xs text-muted mt-0.5">Target follows your category budgets</p>
             </div>
             <button
               onClick={() => setEditAllOpen(false)}
-              className="p-2 rounded-xl hover:bg-slate-100"
+              className="p-2 rounded-lg hover:bg-canvas"
             >
-              <X size={20} className="text-slate-500" />
+              <X size={20} className="text-muted" />
             </button>
           </div>
 
           {/* Running total bar */}
-          <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex-shrink-0">
+          <div className="px-4 py-3 bg-canvas border-b border-line flex-shrink-0">
             <div className="flex items-center justify-between mb-1.5">
-              <p className="text-xs text-slate-500">Total budgeted</p>
+              <p className="text-xs text-muted">Total budgeted</p>
               <p
                 className={`text-sm font-bold ${
                   modalDiff < 0
                     ? 'text-red-600'
                     : modalDiff === 0
-                    ? 'text-emerald-600'
-                    : 'text-amber-600'
+                    ? 'text-accent'
+                    : 'text-ink'
                 }`}
               >
                 {formatCurrency(modalTotal, true)}{' '}
@@ -479,18 +479,18 @@ export default function Budgets() {
                     ? `(+${formatCurrency(Math.abs(modalDiff), true)} over)`
                     : modalDiff > 0
                     ? `(${formatCurrency(modalDiff, true)} unallocated)`
-                    : '✓'}
+                    : ''}
                 </span>
               </p>
             </div>
-            <div className="h-1.5 rounded-full bg-slate-200 overflow-hidden">
+            <div className="h-1.5 rounded-full bg-canvas overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all ${
                   modalTotal > BUDGET_TARGET
                     ? 'bg-red-500'
                     : modalTotal === BUDGET_TARGET
-                    ? 'bg-emerald-500'
-                    : 'bg-amber-500'
+                    ? 'bg-accent'
+                    : 'bg-canvas'
                 }`}
                 style={{ width: `${modalPct}%` }}
               />
@@ -503,7 +503,7 @@ export default function Budgets() {
               const IconComponent = iconMap[cat.icon]
               const isChit = key === 'chit_contribution'
               return (
-                <div key={key} className="py-3 border-b border-slate-50">
+                <div key={key} className="py-3 border-b border-line">
                   <div className="flex items-center gap-3">
                     {/* Icon */}
                     <div
@@ -513,12 +513,12 @@ export default function Budgets() {
                       {IconComponent && <IconComponent size={15} />}
                     </div>
                     {/* Label */}
-                    <p className="flex-1 text-sm font-medium text-slate-700">
+                    <p className="flex-1 text-sm font-medium text-ink">
                       {cat.label}
                     </p>
                     {/* Input */}
                     <div className="flex items-center gap-1 flex-shrink-0">
-                      <span className="text-sm text-slate-400">₹</span>
+                      <span className="text-sm text-muted">₹</span>
                       <input
                         type="number"
                         inputMode="numeric"
@@ -529,17 +529,17 @@ export default function Budgets() {
                             [key]: e.target.value,
                           }))
                         }
-                        className="w-24 text-sm border border-slate-200 rounded-lg
+                        className="w-24 text-sm border border-line rounded-lg
                                    px-2 py-1.5 text-right focus:outline-none
-                                   focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                   focus:ring-2 focus:ring-accent focus:border-transparent"
                       />
                     </div>
                   </div>
                   {/* Chit warning in modal */}
                   {isChit && (parseInt(modalValues[key], 10) || 0) === 0 && (
                     <div className="flex items-center gap-1.5 mt-1.5 ml-11">
-                      <AlertTriangle size={11} className="text-amber-500" />
-                      <p className="text-xs text-amber-600">
+                      <AlertTriangle size={11} className="text-ink" />
+                      <p className="text-xs text-ink">
                         Verify with Nadar Sangam before setting this amount
                       </p>
                     </div>
@@ -552,7 +552,7 @@ export default function Budgets() {
           </div>
 
           {/* Footer */}
-          <div className="px-4 py-4 border-t border-slate-100 bg-white flex-shrink-0">
+          <div className="px-4 py-4 border-t border-line bg-white flex-shrink-0">
             <Button
               variant="primary"
               size="lg"

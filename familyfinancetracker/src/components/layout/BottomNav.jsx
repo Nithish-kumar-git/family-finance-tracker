@@ -14,7 +14,7 @@ export default function BottomNav() {
   const navigate = useNavigate()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-slate-200 h-16">
+    <nav className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-line h-16">
       <div className="flex items-stretch h-full max-w-lg mx-auto">
         {TABS.map(({ label, icon: Icon, path }) => {
           const active = location.pathname === path
@@ -23,7 +23,7 @@ export default function BottomNav() {
               key={path}
               onClick={() => navigate(path)}
               className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors
-                ${active ? 'text-violet-600' : 'text-slate-400 hover:text-slate-600'}`}
+                ${active ? 'text-accent' : 'text-muted hover:text-muted'}`}
             >
               <Icon size={20} strokeWidth={active ? 2.5 : 2} />
               <span className="text-[10px] font-medium leading-none">{label}</span>

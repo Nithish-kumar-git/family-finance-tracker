@@ -30,7 +30,8 @@ test('the actual dashboard counts each savings bucket once and distinguishes iso
   const tree = module.namespace.default()
   const text = JSON.stringify(tree)
   assert.equal(calculations.getTotalCorpus(data), 267500)
-  assert.match(text, /AMOUNT:267500/)
+  assert.equal((text.match(/AMOUNT:267500/g) ?? []).length, 1, 'Net worth appears once')
+  assert.match(text, /AMOUNT:66700/, 'Employment summary reflects actual monthly surplus')
   assert.doesNotMatch(text, /AMOUNT:282500/)
   assert.match(text, /Below emergency-fund target/)
   assert.doesNotMatch(text, /Not yet isolated/)
@@ -40,4 +41,9 @@ test('Netlify revalidates the app shell and does not cache service-worker update
   const headers = readFileSync(new URL('../public/_headers', import.meta.url), 'utf8')
   assert.match(headers, /\/sw\.js\n\s+Cache-Control: no-store, must-revalidate/)
   assert.match(headers, /\/index\.html\n\s+Cache-Control: no-cache, must-revalidate/)
+})
+
+test('employment projection follows editable budgets and income', () => {
+  const result = calculations.getEmploymentProjection({ budgets: { groceries: 10000, rent: 5000 }, monthlyIncome: { pension: 4000, abeerami: 1000 } }, 12000)
+  assert.deepEqual(result, { budget: 15000, baselineDeficit: 10000, deficit: -2000 })
 })

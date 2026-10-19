@@ -301,9 +301,9 @@ export default function Expenses() {
       {toast && (
         <div
           role={toast.type === 'error' ? 'alert' : 'status'}
-          className={`fixed bottom-20 left-1/2 -translate-x-1/2 z-50 rounded-2xl px-5 py-3 text-sm
-            font-medium shadow-xl flex items-center gap-2 w-max max-w-[calc(100vw-2rem)] whitespace-normal
-            ${toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}`}
+          className={`fixed bottom-20 left-1/2 -translate-x-1/2 z-50 rounded-lg px-5 py-3 text-sm
+            font-medium  flex items-center gap-2 w-max max-w-[calc(100vw-2rem)] whitespace-normal
+            ${toast.type === 'success' ? 'bg-accent text-white' : 'bg-red-600 text-white'}`}
         >
           {toast.message}
         </div>
@@ -316,20 +316,20 @@ export default function Expenses() {
             className="fixed inset-0 bg-black/50 z-50"
             onClick={() => { setSmsModalOpen(false); setSmsText('') }}
           />
-          <div className="fixed inset-x-4 bottom-0 bg-white rounded-t-2xl p-5 z-50 shadow-2xl">
+          <div className="fixed inset-x-4 bottom-0 bg-white rounded-t-2xl p-5 z-50 ">
             <div className="flex items-center justify-between mb-4">
-              <p className="text-base font-semibold text-slate-900">Paste UPI / SMS</p>
+              <p className="text-base font-semibold text-ink">Paste UPI / SMS</p>
               <button
                 onClick={() => { setSmsModalOpen(false); setSmsText('') }}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                className="p-1.5 rounded-lg text-muted hover:text-muted hover:bg-canvas"
               >
                 <X size={18} />
               </button>
             </div>
             <textarea
               rows={4}
-              className="w-full rounded-xl border border-slate-200 p-3 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500
+              className="w-full rounded-lg border border-line p-3 text-sm
+                         focus:outline-none focus:ring-2 focus:ring-accent
                          focus:border-transparent resize-none"
               placeholder="Paste your bank SMS or UPI notification here..."
               value={smsText}
@@ -362,16 +362,16 @@ export default function Expenses() {
       )}
 
       {/* ── Tab bar ───────────────────────────────────────────────────────── */}
-      <div className="bg-slate-100 -mx-4 px-4 pt-2 pb-2 lg:mx-0 lg:rounded-xl lg:mb-4">
-        <div className="flex flex-wrap items-center bg-white rounded-full p-1 shadow-sm">
+      <div className="bg-canvas -mx-4 px-4 pt-2 pb-2 lg:mx-0 lg:rounded-lg lg:mb-4">
+        <div className="flex flex-wrap items-center bg-white rounded-full p-1 ">
           {['add', 'history', 'summary'].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`flex-1 basis-20 min-w-0 break-words text-center px-2 py-2 text-sm font-medium transition-colors rounded-full
                 ${activeTab === tab
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-slate-500 hover:text-slate-700'}`}
+                  ? 'bg-accent text-white'
+                  : 'text-muted hover:text-ink'}`}
             >
               {tab === 'add' ? 'Add' : tab === 'history' ? 'History' : 'Summary'}
             </button>
@@ -381,17 +381,17 @@ export default function Expenses() {
 
       {/* ── Month selector (History + Summary only) ────────────────────────── */}
       {activeTab !== 'add' && (
-        <div className="flex flex-wrap items-center gap-2 px-4 py-2 bg-white border-b border-slate-100">
-          <label htmlFor="expense-month" className="text-sm font-medium text-slate-700">
+        <div className="flex flex-wrap items-center gap-2 px-4 py-2 bg-white border-b border-line">
+          <label htmlFor="expense-month" className="text-sm font-medium text-ink">
             Month
           </label>
           <select
             id="expense-month"
             value={selectedMonth}
             onChange={e => setSelectedMonth(e.target.value)}
-            className="min-w-0 max-w-full border border-slate-100 rounded-xl px-3 py-1.5 text-sm
-                       text-slate-700 focus:outline-none focus:ring-2
-                       focus:ring-indigo-500 bg-slate-50"
+            className="min-w-0 max-w-full border border-line rounded-lg px-3 py-1.5 text-sm
+                       text-ink focus:outline-none focus:ring-2
+                       focus:ring-accent bg-canvas"
           >
             {MONTH_OPTIONS.map(o => (
               <option key={o.val} value={o.val}>{o.label}</option>
@@ -403,7 +403,7 @@ export default function Expenses() {
       <div className="px-4 py-4 max-w-7xl mx-auto lg:px-6 pb-24 lg:pb-8">
 
         {activeTab !== 'add' && (
-          <div role={history.error ? 'alert' : 'status'} className="mb-4 rounded-xl border border-slate-200 p-3 text-sm text-slate-700">
+          <div role={history.error ? 'alert' : 'status'} className="mb-4 rounded-lg border border-line p-3 text-sm text-ink">
             {dataLoading ? (
               <p>Loading selected month…</p>
             ) : history.status === 'fallback' || history.status === 'error' ? (
@@ -420,12 +420,12 @@ export default function Expenses() {
                 {history.fallbackError === 'LOCAL' && !fallbackWarnings.length && (
                   <p className="mt-1">The local fallback could not be safely read. Stored records are unchanged.</p>
                 )}
-                <button type="button" onClick={loadData} className="mt-2 rounded-lg border border-slate-300 px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <button type="button" onClick={loadData} className="mt-2 rounded-lg border border-line px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-accent">
                   Retry
                 </button>
               </>
             ) : (
-              <p>Response loaded for the selected month. Freshness is unverified; the response may be cached.</p>
+              <p>{history.source === 'browser' ? 'Loaded from this device’s workspace. Cloud sync is disconnected.' : 'Response loaded for the selected month. Freshness is unverified; the response may be cached.'}</p>
             )}
           </div>
         )}
@@ -473,7 +473,7 @@ export default function Expenses() {
 
             {/* Category selector */}
             <div>
-              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-2">Category</p>
+              <p className="text-xs font-medium uppercase tracking-widest text-muted mb-2">Category</p>
               <div className="grid grid-cols-5 gap-2">
                 {Object.entries(EXPENSE_CATEGORIES).map(([key, cat]) => {
                   const isSelected = category === key
@@ -481,11 +481,11 @@ export default function Expenses() {
                     <button
                       key={key}
                       onClick={() => setCategory(key)}
-                      className={`rounded-xl p-2.5 flex flex-col items-center gap-1
+                      className={`rounded-lg p-2.5 flex flex-col items-center gap-1
                         cursor-pointer text-xs transition-colors
                         ${isSelected
-                          ? 'ring-2 ring-indigo-500 bg-indigo-50 text-indigo-700'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                          ? 'ring-2 ring-accent bg-accent-soft text-accent'
+                          : 'bg-canvas text-muted hover:bg-canvas'}`}
                     >
                       {renderCategoryIcon(key, 18)}
                       <span className="leading-tight text-center">
@@ -508,7 +508,7 @@ export default function Expenses() {
                 maxLength={60}
               />
               {description.length > 0 && (
-                <p className="text-xs text-slate-400 mt-1 text-right">
+                <p className="text-xs text-muted mt-1 text-right">
                   {description.length}/60
                 </p>
               )}
@@ -518,7 +518,7 @@ export default function Expenses() {
             <div>
               <label
                 htmlFor="expense-date"
-                className="block text-sm font-medium text-slate-700 mb-1"
+                className="block text-sm font-medium text-ink mb-1"
               >
                 Date
               </label>
@@ -528,15 +528,15 @@ export default function Expenses() {
                 value={date}
                 max={todayStr()}
                 onChange={e => setDate(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                           bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500
+                className="w-full rounded-lg border border-line px-3 py-2 text-sm
+                           bg-white focus:outline-none focus:ring-2 focus:ring-accent
                            focus:border-transparent"
               />
             </div>
 
             {/* Paid by */}
             <div>
-              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-2">Paid by</p>
+              <p className="text-xs font-medium uppercase tracking-widest text-muted mb-2">Paid by</p>
               <div className="flex gap-3">
                 {users.map(u => {
                   const active = (selectedUserId ?? currentUser) === u.id
@@ -546,7 +546,7 @@ export default function Expenses() {
                       onClick={() => setSelectedUserId(u.id)}
                       className={`w-8 h-8 rounded-full flex items-center justify-center
                         text-white text-xs font-bold transition-all
-                        ${active ? 'ring-2 ring-offset-1 ring-indigo-600 scale-110' : 'opacity-70'}`}
+                        ${active ? 'ring-2 ring-offset-1 ring-accent scale-110' : 'opacity-70'}`}
                       style={{ backgroundColor: u.color }}
                       title={u.name}
                     >
@@ -560,7 +560,7 @@ export default function Expenses() {
             {/* Recurring toggle */}
             <div>
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-slate-600">
+                <p className="text-sm font-medium text-muted">
                   Repeat for next 3 months
                 </p>
                 {/* Pill toggle */}
@@ -569,8 +569,8 @@ export default function Expenses() {
                   aria-checked={isRecurring}
                   onClick={() => setIsRecurring(v => !v)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full
-                    transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500
-                    ${isRecurring ? 'bg-indigo-600' : 'bg-slate-200'}`}
+                    transition-colors focus:outline-none focus:ring-2 focus:ring-accent
+                    ${isRecurring ? 'bg-accent' : 'bg-canvas'}`}
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white
@@ -580,7 +580,7 @@ export default function Expenses() {
                 </button>
               </div>
               {isRecurring && (
-                <p className="text-xs text-amber-600 mt-1.5 bg-amber-50 rounded-lg px-3 py-2">
+                <p className="text-xs text-ink mt-1.5 bg-canvas rounded-lg px-3 py-2">
                   This will create 3 additional entries on the 1st of the next 3 months.
                 </p>
               )}
@@ -603,14 +603,14 @@ export default function Expenses() {
             </Button>
           </fieldset>
           </div>
-          
+
           {/* Second column for recent expenses preview on desktop */}
           <div className="hidden lg:block">
-            <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-3">
+            <p className="text-xs font-medium uppercase tracking-widest text-muted mb-3">
               Recent Expenses
             </p>
             {fallbackWarnings.length > 0 && (
-              <div role="alert" className="mb-3 text-sm text-slate-700">
+              <div role="alert" className="mb-3 text-sm text-ink">
                 {fallbackWarnings.map(message => <p key={message}>{message}</p>)}
               </div>
             )}
@@ -618,14 +618,14 @@ export default function Expenses() {
               {expenses.slice(0, 5).map((expense, index) => {
                 const catMeta = EXPENSE_CATEGORIES[expense.category]
                 return (
-                  <div key={`${expense.id}:${index}`} className="flex items-center gap-3 py-2 px-3 bg-white rounded-xl border border-slate-100">
+                  <div key={`${expense.id}:${index}`} className="flex items-center gap-3 py-2 px-3 bg-white rounded-lg border border-line">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-800 truncate">
+                      <p className="text-sm font-medium text-ink truncate">
                         {expense.description || catMeta?.label}
                       </p>
-                      <p className="text-xs text-slate-400">{formatDate(expense.date)}</p>
+                      <p className="text-xs text-muted">{formatDate(expense.date)}</p>
                     </div>
-                    <p className="text-sm font-semibold text-slate-800">{formatCurrency(expense.amount)}</p>
+                    <p className="text-sm font-semibold text-ink">{formatCurrency(expense.amount)}</p>
                   </div>
                 )
               })}
@@ -651,8 +651,8 @@ export default function Expenses() {
                   className={`rounded-full px-3 py-1 text-xs font-medium cursor-pointer
                     transition-colors
                     ${historyUserFilter === f.id
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                      ? 'bg-accent text-white'
+                      : 'bg-canvas text-muted hover:bg-canvas'}`}
                 >
                   {f.label}
                 </button>
@@ -663,7 +663,7 @@ export default function Expenses() {
             {dataLoading && (
               <div className="space-y-2">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-16 bg-slate-100 rounded-xl animate-pulse" />
+                  <div key={i} className="h-16 bg-canvas rounded-lg animate-pulse" />
                 ))}
               </div>
             )}
@@ -671,8 +671,8 @@ export default function Expenses() {
             {/* Empty state */}
             {!dataLoading && ['success', 'empty'].includes(history.status) && filteredExpenses.length === 0 && (
               <div className="flex flex-col items-center justify-center py-16">
-                <p className="text-sm font-medium text-slate-400">No expenses recorded</p>
-                <p className="text-xs text-slate-300 mt-1">
+                <p className="text-sm font-medium text-muted">No expenses recorded</p>
+                <p className="text-xs text-muted mt-1">
                   {historyUserFilter !== 'all'
                     ? 'Try switching the user filter above'
                     : 'Tap Add to record your first expense'}
@@ -681,14 +681,14 @@ export default function Expenses() {
             )}
 
             {!dataLoading && history.status === 'fallback' && filteredExpenses.length === 0 && (
-              <p className="py-8 text-sm text-slate-500">No matching entries are available in this local or retained view. Current history could not be verified.</p>
+              <p className="py-8 text-sm text-muted">No matching entries are available in this local or retained view. Current history could not be verified.</p>
             )}
 
             {/* Grouped expense list */}
             {!dataLoading && groupedExpenses.sortedDates.map(dateKey => (
               <div key={dateKey}>
                 {/* Date heading */}
-                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 py-2">
+                <p className="text-xs font-medium uppercase tracking-widest text-muted py-2">
                   {dateHeading(dateKey)}
                 </p>
 
@@ -700,7 +700,7 @@ export default function Expenses() {
                   return (
                     <div
                       key={`${expense.id}:${index}`}
-                      className="flex items-center gap-3 py-3 border-b border-slate-50"
+                      className="flex items-center gap-3 py-3 border-b border-line"
                     >
                       {/* Category icon circle */}
                       <div
@@ -716,12 +716,12 @@ export default function Expenses() {
 
                       {/* Description + category */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-800 truncate">
+                        <p className="text-sm font-medium text-ink truncate">
                           {expense.description || catMeta?.label}
                         </p>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          <p className="text-xs text-slate-400">{catMeta?.label}</p>
-                          {expense.userId === '' && <span className="text-xs text-slate-500">Empty profile ID</span>}
+                          <p className="text-xs text-muted">{catMeta?.label}</p>
+                          {expense.userId === '' && <span className="text-xs text-muted">Empty profile ID</span>}
                           {u && (
                             <span
                               className="w-2 h-2 rounded-full flex-shrink-0"
@@ -733,11 +733,11 @@ export default function Expenses() {
 
                       {/* Amount + delete */}
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <p className="text-sm font-semibold text-slate-800">
+                        <p className="text-sm font-semibold text-ink">
                           {formatCurrency(expense.amount)}
                         </p>
                         {ambiguousLocalId ? (
-                          <span className="text-xs text-slate-500">Duplicate ID — read-only</span>
+                          <span className="text-xs text-muted">Duplicate ID — read-only</span>
                         ) : deleteConfirmId === expense.id ? (
                           <div className="flex gap-1">
                             <button
@@ -750,7 +750,7 @@ export default function Expenses() {
                             </button>
                             <button
                               onClick={() => setDeleteConfirmId(null)}
-                              className="text-xs bg-slate-100 text-slate-600
+                              className="text-xs bg-canvas text-muted
                                          rounded-lg px-2 py-1"
                             >
                               Cancel
@@ -759,8 +759,8 @@ export default function Expenses() {
                         ) : (
                           <button
                             onClick={() => setDeleteConfirmId(expense.id)}
-                            className="p-1.5 rounded-lg text-slate-300
-                                       hover:text-red-400 hover:bg-red-50
+                            className="p-1.5 rounded-lg text-muted
+                                       hover:text-red-700 hover:bg-red-50
                                        transition-colors"
                           >
                             <Trash2 size={15} />
@@ -786,25 +786,25 @@ export default function Expenses() {
               const budgetTarget = Object.values(useStore.getState().budgets ?? {}).reduce((sum, value) => sum + (Number(value) || 0), 0)
               const pct          = budgetTarget > 0 ? Math.min((totalSpent / budgetTarget) * 100, 100) : 0
               const barColor     = pct >= 100 ? 'bg-red-500'
-                                 : pct >= 80  ? 'bg-amber-500'
-                                              : 'bg-emerald-500'
+                                 : pct >= 80  ? 'bg-canvas'
+                                              : 'bg-accent'
               return (
                 <Card className="mb-4">
-                  <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">Monthly Spend</p>
+                  <p className="text-xs font-medium uppercase tracking-widest text-muted mb-1">Monthly Spend</p>
                   <div className="flex items-end justify-between mb-3">
                     <p className={`text-3xl font-bold tracking-tight
-                      ${pct >= 100 ? 'text-red-500' : 'text-slate-900'}`}>
+                      ${pct >= 100 ? 'text-red-700' : 'text-ink'}`}>
                       {formatCurrency(totalSpent)}
                     </p>
-                    <p className="text-xs text-slate-400 mb-1">of {formatCurrency(budgetTarget)}</p>
+                    <p className="text-xs text-muted mb-1">of {formatCurrency(budgetTarget)}</p>
                   </div>
-                  <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                  <div className="h-2 rounded-full bg-canvas overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${barColor}`}
                       style={{ width: `${pct}%` }}
                     />
                   </div>
-                  <p className="text-xs text-slate-400 mt-1.5">
+                  <p className="text-xs text-muted mt-1.5">
                     {pct >= 100
                       ? `Over budget by ${formatCurrency(totalSpent - budgetTarget)}`
                       : `${formatCurrency(budgetTarget - totalSpent)} remaining`}
@@ -815,11 +815,11 @@ export default function Expenses() {
 
             {/* Spending by category bar chart */}
             <Card className="mb-4">
-              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-3">
+              <p className="text-xs font-medium uppercase tracking-widest text-muted mb-3">
                 Spending by Category
               </p>
               {dataLoading ? (
-                <div className="h-48 bg-slate-100 rounded-xl animate-pulse" />
+                <div className="h-48 bg-canvas rounded-lg animate-pulse" />
               ) : chartData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart
@@ -847,7 +847,7 @@ export default function Expenses() {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="text-sm text-slate-400 text-center py-8">
+                <p className="text-sm text-muted text-center py-8">
                   No spending recorded for this month
                 </p>
               )}
@@ -855,7 +855,7 @@ export default function Expenses() {
 
             {/* Budget vs Actual table */}
             <Card>
-              <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-3">
+              <p className="text-xs font-medium uppercase tracking-widest text-muted mb-3">
                 Budget vs Actual
               </p>
               <div className="space-y-2">
@@ -870,26 +870,26 @@ export default function Expenses() {
                   return (
                     <div key={key} className="flex items-center gap-3">
                       {/* Category name */}
-                      <p className="text-xs text-slate-600 w-20 flex-shrink-0 truncate">
+                      <p className="text-xs text-muted w-20 flex-shrink-0 truncate">
                         {shortLabel(cat.label)}
                       </p>
                       {/* Progress bar */}
-                      <div className="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                      <div className="flex-1 h-1.5 rounded-full bg-canvas overflow-hidden">
                         <div
                           className={`h-full rounded-full ${
-                            isOver ? 'bg-red-500' : isWarn ? 'bg-amber-500' : 'bg-emerald-500'
+                            isOver ? 'bg-red-500' : isWarn ? 'bg-canvas' : 'bg-accent'
                           }`}
                           style={{ width: `${pct}%` }}
                         />
                       </div>
                       {/* Spent */}
                       <p className={`text-xs font-medium w-14 text-right flex-shrink-0
-                        ${isOver ? 'text-red-600' : 'text-slate-700'}`}>
+                        ${isOver ? 'text-red-600' : 'text-ink'}`}>
                         {formatCurrency(spent, true)}
                       </p>
                       {/* Remaining */}
                       <p className={`text-xs w-14 text-right flex-shrink-0
-                        ${isOver ? 'text-red-500 font-medium' : 'text-slate-400'}`}>
+                        ${isOver ? 'text-red-700 font-medium' : 'text-muted'}`}>
                         {isOver
                           ? `+${formatCurrency(Math.abs(remaining), true)}`
                           : formatCurrency(remaining, true)}
@@ -898,7 +898,7 @@ export default function Expenses() {
                   )
                 })}
               </div>
-              <p className="text-xs text-slate-300 mt-3">
+              <p className="text-xs text-muted mt-3">
                 Spent · Remaining (of monthly budget)
               </p>
             </Card>

@@ -27,10 +27,10 @@ export default function SparkLine({ data, height = 60 }) {
         <Line
           type="monotone"
           dataKey="value"
-          stroke="#7C3AED"
+          stroke="#245C46"
           strokeWidth={2}
           dot={false}
-          activeDot={{ r: 4, fill: '#7C3AED' }}
+          activeDot={{ r: 4, fill: '#245C46' }}
         />
       </LineChart>
     </ResponsiveContainer>
