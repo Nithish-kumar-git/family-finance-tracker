@@ -31,5 +31,8 @@ test('valid public configuration uses PKCE and retrieves the SDK-managed session
     VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_synthetic' })
   assert.equal(result.calls.length, 1)
   assert.equal(result.calls[0][2].auth.flowType, 'pkce')
+  assert.equal(result.calls[0][2].auth.detectSessionInUrl, true)
+  assert.equal(result.calls[0][2].auth.persistSession, true)
+  assert.equal(result.calls[0][2].auth.autoRefreshToken, true)
   assert.equal(await result.exports.getAccessToken(), 'synthetic-token')
 })

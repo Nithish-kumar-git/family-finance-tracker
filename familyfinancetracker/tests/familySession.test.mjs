@@ -133,3 +133,60 @@ test('authorization failure cancels an outstanding response before the next rend
     assert.deepEqual(h.writes, [])
   } finally { h.unmount() }
 })
+
+function formNodes(tree) {
+  const result = []
+  const visit = node => {
+    if (Array.isArray(node)) node.forEach(visit)
+    else if (node?.props) { result.push(node); visit(node.props.children) }
+  }
+  visit(tree)
+  return result
+}
+
+async function loginHarness(signInWithOtp) {
+  return componentHarness('../src/pages/Auth.jsx', {
+    'react-router-dom': { Navigate: () => null },
+    '../utils/authClient.js': { authClient: { auth: { signInWithOtp } } },
+    '../components/FamilySession.jsx': { useFamilySession: () => ({ member: null, configured: true }) },
+  }, { window: { location: { origin: 'https://scintillating-donut-a597ff.netlify.app' } } })
+}
+
+test('production email links target the deployed frontend root without enabling account creation', async () => {
+  const requests = []
+  const h = await loginHarness(async body => { requests.push(body); return { error: null } })
+  formNodes(h.render()).find(node => node.type === 'input').props.onChange({ target: { value: ' synthetic@example.invalid ' } })
+  await formNodes(h.render()).find(node => node.type === 'form').props.onSubmit({ preventDefault() {} })
+  assert.equal(requests.length, 1)
+  assert.equal(requests[0].email, 'synthetic@example.invalid')
+  assert.equal(requests[0].options.shouldCreateUser, false)
+  assert.equal(requests[0].options.emailRedirectTo, 'https://scintillating-donut-a597ff.netlify.app/')
+  assert.ok(formNodes(h.render()).some(node => node.props.role === 'status'))
+})
+
+test('OTP enrollment errors explain administrator enrollment without leaking provider details', async () => {
+  const h = await loginHarness(async () => ({ error: { code: 'otp_disabled', message: 'Synthetic private provider details' } }))
+  await formNodes(h.render()).find(node => node.type === 'form').props.onSubmit({ preventDefault() {} })
+  const message = formNodes(h.render()).find(node => node.props.role === 'alert').props.children.join('')
+  assert.match(message, /enroll your approved email/)
+  assert.doesNotMatch(message, /private/)
+})
+
+test('provider rate limits stop subsequent email sends without automatic retries or a guessed reset time', async () => {
+  for (const failure of [{ status: 429 }, { code: 'over_email_send_rate_limit' }, { code: 'over_request_rate_limit' }]) {
+    let requests = 0
+    const h = await loginHarness(async () => { requests++; return { error: { ...failure, message: 'Synthetic private details' } } })
+    const submit = formNodes(h.render()).find(node => node.type === 'form').props.onSubmit
+    await submit({ preventDefault() {} })
+    await submit({ preventDefault() {} })
+    await formNodes(h.render()).find(node => node.type === 'form').props.onSubmit({ preventDefault() {} })
+    await flush()
+    assert.equal(requests, 1)
+    const nodes = formNodes(h.render())
+    assert.equal(nodes.find(node => node.type === 'button').props.disabled, true)
+    const message = nodes.find(node => node.props.role === 'alert').props.children.join('')
+    assert.match(message, /rate limited/)
+    assert.match(message, /reload this page/)
+    assert.doesNotMatch(message, /private|minute|60/)
+  }
+})
