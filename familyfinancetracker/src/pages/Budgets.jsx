@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import useStore from '../store/useStore'
+import useStore, { saveLocalChanges } from '../store/useStore'
 import { formatCurrency } from '../utils/formatters'
 import {
   getCategorySpent,
@@ -29,7 +29,6 @@ import {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const BUDGET_TARGET = 85800 // family's known monthly expense target — constant
 
 const now = new Date()
 const year = now.getFullYear()
@@ -55,6 +54,7 @@ export default function Budgets() {
   // ── Store reads ────────────────────────────────────────────────────────────
   const state = useStore()
   const budgets = state.budgets
+  const BUDGET_TARGET = Object.values(budgets ?? {}).reduce((sum, value) => sum + (Number(value) || 0), 0)
 
   // ── Local state ────────────────────────────────────────────────────────────
   const [editingCategory, setEditingCategory] = useState(null)
@@ -111,7 +111,8 @@ export default function Budgets() {
       showToast('Enter a valid amount (0 or more)', 'error')
       return
     }
-    useStore.getState().updateBudget(key, parsed)
+    try { useStore.getState().updateBudget(key, parsed) }
+    catch { showToast('Budget was not saved. Check browser storage.', 'error'); return }
     setEditingCategory(null)
     showToast('Budget updated', 'success')
   }
@@ -141,9 +142,8 @@ export default function Budgets() {
     // 3. Brief UX delay
     await new Promise((resolve) => setTimeout(resolve, 300))
     // 4. Save each category
-    Object.entries(modalValues).forEach(([key, val]) => {
-      useStore.getState().updateBudget(key, parseInt(val, 10))
-    })
+    try { saveLocalChanges({ budgets: Object.fromEntries(Object.entries(modalValues).map(([key, value]) => [key, parseInt(value, 10)])) }) }
+    catch { setModalSaving(false); showToast('Budgets were not saved. Your form is unchanged.', 'error'); return }
     // 5-7. Finish
     setModalSaving(false)
     setEditAllOpen(false)
@@ -151,7 +151,7 @@ export default function Budgets() {
   }
 
   // ── Section 1 derived values ───────────────────────────────────────────────
-  const totalPct = Math.min((totalSpent / BUDGET_TARGET) * 100, 100)
+  const totalPct = BUDGET_TARGET > 0 ? Math.min((totalSpent / BUDGET_TARGET) * 100, 100) : 0
   const totalBarColor =
     totalPct >= 100 ? 'bg-red-500' : totalPct >= 80 ? 'bg-amber-500' : 'bg-emerald-500'
   const totalTextColor = totalPct >= 100 ? 'text-red-600' : 'text-slate-800'
@@ -169,7 +169,7 @@ export default function Budgets() {
     0
   )
   const modalDiff = BUDGET_TARGET - modalTotal
-  const modalPct = Math.min((modalTotal / BUDGET_TARGET) * 100, 100)
+  const modalPct = BUDGET_TARGET > 0 ? Math.min((modalTotal / BUDGET_TARGET) * 100, 100) : 0
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -360,10 +360,10 @@ export default function Budgets() {
             </p>
             <p className="text-xs text-slate-500 mt-0.5">
               {untracked < 0
-                ? `Category limits total ${formatCurrency(totalBudgeted)} — exceeds ₹85,800 target by ${formatCurrency(Math.abs(untracked))}`
+                ? `Category limits total ${formatCurrency(totalBudgeted)} — exceeds configured target by ${formatCurrency(Math.abs(untracked))}`
                 : untracked > 0
                 ? `${formatCurrency(untracked)} not assigned to any category`
-                : 'All ₹85,800 is assigned across categories'}
+                : 'Your configured budget is assigned across categories'}
             </p>
           </div>
           <p
@@ -381,12 +381,12 @@ export default function Budgets() {
         {untracked > 0 && (
           <p className="text-xs text-amber-600 mt-2">
             Tip: assign the unbudgeted amount to a category, or add it to "Other"
-            so your total matches the ₹85,800 monthly target.
+            so your total matches your configured monthly target.
           </p>
         )}
         {untracked < 0 && (
           <p className="text-xs text-red-600 mt-2">
-            Reduce category limits until the total equals ₹85,800.
+            Reduce category limits until the total matches your target.
           </p>
         )}
       </Card>
@@ -450,7 +450,7 @@ export default function Budgets() {
           <div className="flex items-center justify-between px-4 py-4 border-b border-slate-100 flex-shrink-0">
             <div>
               <p className="text-base font-semibold text-slate-900">Edit All Budgets</p>
-              <p className="text-xs text-slate-400 mt-0.5">Target: ₹85,800/month</p>
+              <p className="text-xs text-slate-400 mt-0.5">Target follows your category budgets</p>
             </div>
             <button
               onClick={() => setEditAllOpen(false)}

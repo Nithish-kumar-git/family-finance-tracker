@@ -58,10 +58,13 @@ export function useAssets() {
     // Store is empty — first time load. Fetch from Supabase.
     try {
       const [fds, mfs, lics, chits] = await Promise.all([
-        authorizedFetch(`${BASE}/api/assets/fixeddeposits`).then(r => r.json()),
-        authorizedFetch(`${BASE}/api/assets/mutualfunds`).then(r => r.json()),
-        authorizedFetch(`${BASE}/api/assets/lic`).then(r => r.json()),
-        authorizedFetch(`${BASE}/api/assets/chitfunds`).then(r => r.json()),
+        ...['fixeddeposits', 'mutualfunds', 'lic', 'chitfunds'].map(async kind => {
+          const response = await authorizedFetch(`${BASE}/api/assets/${kind}`)
+          if (!response.ok) throw Error('Asset load failed')
+          const rows = await response.json()
+          if (!Array.isArray(rows)) throw Error('Invalid asset response')
+          return rows
+        }),
       ])
       const result = {
         fixedDeposits: toCamel(Array.isArray(fds)   ? fds   : []),

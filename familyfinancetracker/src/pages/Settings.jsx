@@ -8,7 +8,8 @@ import {
   ChevronRight, AlertTriangle, CheckCircle, XCircle, Lock,
 } from 'lucide-react'
 
-import useStore from '../store/useStore'
+import useStore, { saveLocalChanges } from '../store/useStore'
+import WorkspaceEditor from '../components/WorkspaceEditor.jsx'
 import { formatCurrency } from '../utils/formatters'
 import { RESTORE_UNAVAILABLE_MESSAGE } from '../utils/dataRecovery'
 import Card from '../components/ui/Card'
@@ -109,19 +110,16 @@ export default function Settings() {
     // UNCERTAIN: api.js has no settings.updateIncome — using direct fetch as documented fallback
     const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
     try {
-      await authorizedFetch(`${BASE_URL}/api/settings/income`, {
+      const response = await authorizedFetch(`${BASE_URL}/api/settings/income`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
+      if (!response.ok) throw Error('Save failed')
     } catch {
-      // Silent fail — store update below always runs
+      showToast('Income was not saved. Your form is unchanged.', 'error'); return
     }
-    // useStore.updateMonthlyIncome takes (field, value) — call three times
-    updateMonthlyIncome('pension',  body.pension)
-    updateMonthlyIncome('nithish',  body.nithish)
-    updateMonthlyIncome('abeerami', body.abeerami)
-    showToast('Income updated')
+    showToast('Income saved on this device')
   }
 
   // ── Section C: Emergency Fund ─────────────────────────────────────────────
@@ -135,7 +133,7 @@ export default function Settings() {
 
   function handleEfTargetBlur() {
     const val = parseFloat(efTarget) || 0
-    useStore.setState(state => ({
+    saveLocalChanges(state => ({
       emergencyFund: { ...state.emergencyFund, target: val },
     }))
   }
@@ -143,7 +141,7 @@ export default function Settings() {
   function handleEfIsolatedChange(e) {
     const checked = e.target.checked
     setEfIsolated(checked)
-    useStore.setState(state => ({
+    saveLocalChanges(state => ({
       emergencyFund: { ...state.emergencyFund, isIsolated: checked },
     }))
   }
@@ -172,11 +170,12 @@ export default function Settings() {
     const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
     // api.js has no expenses.deleteBulk — using direct fetch as documented fallback
     try {
-      await authorizedFetch(`${BASE_URL}/api/expenses/bulk?month=${month}`, { method: 'DELETE' })
+      const response = await authorizedFetch(`${BASE_URL}/api/expenses/bulk?month=${encodeURIComponent(month)}`, { method: 'DELETE' })
+      if (!response.ok || (await response.json())?.deleted !== true) throw Error('Delete unconfirmed')
     } catch {
-      // Silent fail — store update below always runs
+      showToast('Deletion failed. Your expenses are unchanged.', 'error'); return
     }
-    useStore.setState(state => ({
+    saveLocalChanges(state => ({
       expenses: state.expenses.filter(e => !e.date?.startsWith(month)),
     }))
     setDeleteExpModal(false)
@@ -204,11 +203,12 @@ export default function Settings() {
     const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
     // employment.py line 66–79 confirms DELETE /api/employment/bulk?status= exists
     try {
-      await authorizedFetch(`${BASE_URL}/api/employment/bulk?status=${status}`, { method: 'DELETE' })
+      const response = await authorizedFetch(`${BASE_URL}/api/employment/bulk?status=${encodeURIComponent(status)}`, { method: 'DELETE' })
+      if (!response.ok || (await response.json())?.deleted !== true) throw Error('Delete unconfirmed')
     } catch {
-      // Silent fail — store update below always runs
+      showToast('Deletion failed. Your applications are unchanged.', 'error'); return
     }
-    useStore.setState(state => ({
+    saveLocalChanges(state => ({
       jobApplications: status === 'all'
         ? []
         : state.jobApplications.filter(j => j.status !== status),
@@ -257,7 +257,7 @@ export default function Settings() {
       const res = await authorizedFetch(`${BASE_URL}/health`)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       setIsOffline(false)
-      showToast('Backend is online.')
+      showToast('Browser workspace is available. Cloud database was not contacted.')
     } catch {
       setIsOffline(true)
       showToast('Backend unreachable.', 'error')
@@ -286,7 +286,7 @@ export default function Settings() {
         <div className="space-y-3">
           <Input
             id="income-pension"
-            label="Amma's Pension"
+            label={`${users.find(u => u.id === 'mother')?.name ?? 'Parent'} — pension`}
             prefix="₹"
             inputMode="numeric"
             value={pension}
@@ -294,7 +294,7 @@ export default function Settings() {
           />
           <Input
             id="income-nithish"
-            label="Nithish's Salary"
+            label={`${users.find(u => u.id === 'nithish')?.name ?? 'Member'} — salary`}
             prefix="₹"
             inputMode="numeric"
             value={nithish}
@@ -302,7 +302,7 @@ export default function Settings() {
           />
           <Input
             id="income-abeerami"
-            label="Abeerami's Contribution"
+            label={`${users.find(u => u.id === 'abeerami')?.name ?? 'Member'} — contribution`}
             prefix="₹"
             inputMode="numeric"
             value={abeerami}
@@ -329,8 +329,9 @@ export default function Settings() {
 
       <div className="mb-8">
         <SectionHeader icon={User} title="Family sign-in" />
-        <p className="text-sm text-slate-600">Access is verified with your family email account. Ask the app administrator to add another family member.</p>
+        <p className="text-sm text-slate-600">Choose a profile and enter its browser PIN. PINs do not authorize cloud access. Existing personal records on this device are retained; the recruiter demo uses separate synthetic records.</p>
       </div>
+      <WorkspaceEditor />
       <hr className="border-slate-100 mb-8" />
 
       {/* ── Section C: Emergency Fund ──────────────────────────────────────── */}
@@ -370,7 +371,7 @@ export default function Settings() {
                 value={String(emergencyFund.cashInBank ?? 0)}
                 onChange={e => {
                   const val = parseFloat(e.target.value) || 0
-                  useStore.setState(state => ({
+                  saveLocalChanges(state => ({
                     emergencyFund: { ...state.emergencyFund, cashInBank: val }
                   }))
                 }}
@@ -562,7 +563,7 @@ export default function Settings() {
               </span>
             ) : (
               <span className="text-sm font-medium text-emerald-600 flex items-center gap-1">
-                <CheckCircle size={14} /> Online ✓
+                <CheckCircle size={14} /> Browser storage
               </span>
             )}
           </div>

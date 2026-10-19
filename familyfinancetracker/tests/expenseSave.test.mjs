@@ -98,13 +98,13 @@ for (const [name, reply] of [
   })
 }
 
-test('successful form reports server save and clears draft only after acknowledgement', async () => {
+test('successful form reports device save and clears draft only after acknowledgement', async () => {
   const h = await harness(acknowledged)
   await h.context.submit()
   assert.equal(h.rows.length, 2)
   assert.equal(h.context.amount, '')
   assert.equal(h.context.addLoading, false)
-  assert.deepEqual(h.toasts, [{ message: 'Expense saved to server', type: 'success' }])
+  assert.deepEqual(h.toasts, [{ message: 'Expense saved on this device', type: 'success' }])
 })
 
 test('recurring partial failure preserves primary and confirmed children, exposes unconfirmed count', async () => {
@@ -115,7 +115,7 @@ test('recurring partial failure preserves primary and confirmed children, expose
   assert.deepEqual(h.requests.map(row => row.date), ['2026-07-14', '2026-08-01', '2026-09-01', '2026-10-01'])
   assert.equal(h.rows.length, 4)
   assert.equal(new Set(h.rows.map(row => row.id)).size, h.rows.length)
-  assert.match(h.context.formError, /Main expense saved to server.*1 of 3.*Check History/)
+  assert.match(h.context.formError, /Main expense saved on this device.*1 of 3.*Check History/)
   assert.equal(h.toasts.some(toast => toast.type === 'success'), false)
   assert.equal(h.context.addLoading, false)
 })

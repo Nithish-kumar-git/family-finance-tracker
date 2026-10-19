@@ -21,6 +21,7 @@ async function renderApp(path, member, loading = false) {
     else if (name.includes('FamilySession')) exports = { default: ({ children }) => children,
       useFamilySession: () => ({ member, loading }) }
     else if (name.includes('useStore')) exports = { default: selector => selector(store) }
+    else if (name.includes('workspace')) exports = { workspaceMode: 'personal', switchWorkspace() {} }
     else if (name.startsWith('./pages/')) exports = { default: page(name.split('/').pop().replace('.jsx', '')) }
     else if (name.includes('Header') || name.includes('BottomNav')) exports = { default: () => null }
     else if (name === 'lucide-react') exports = Object.fromEntries(

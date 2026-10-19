@@ -1,54 +1,52 @@
-import { useRef, useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Navigate } from 'react-router-dom'
-import { authClient } from '../utils/authClient.js'
+import { ChevronRight } from 'lucide-react'
+import useStore from '../store/useStore.js'
 import { useFamilySession } from '../components/FamilySession.jsx'
+import { hasPin } from '../utils/localLogin.js'
+import { workspaceMode, switchWorkspace } from '../utils/workspace.js'
 
 export default function Auth() {
-  const session = useFamilySession()
-  const [email, setEmail] = useState('')
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
-  const [busy, setBusy] = useState(false)
-  const inFlight = useRef(false)
-  const rateLimited = useRef(false)
-  if (session.member) return <Navigate to="/dashboard" replace />
-  async function sendLink(event) {
-    event.preventDefault()
-    if (inFlight.current || rateLimited.current || !authClient) return
-    inFlight.current = true; setBusy(true); setError(''); setMessage('')
-    try {
-      const { error: failure } = await authClient.auth.signInWithOtp({
-        email: email.trim(),
-        options: { shouldCreateUser: false, emailRedirectTo: window.location.origin + '/' },
-      })
-      if (failure) throw failure
-      setMessage('If your email is enrolled, a sign-in link is on its way. Open it in this browser. Contact the app administrator if it does not arrive.')
-    } catch (failure) {
-      if (failure?.status === 429 || ['over_email_send_rate_limit', 'over_request_rate_limit'].includes(failure?.code)) {
-        // Do not retry automatically or guess the provider's reset interval.
-        rateLimited.current = true
-        setError('Sign-in email requests are rate limited. Stop retrying and wait for the email service limit to reset, then reload this page.')
-      } else if (failure?.code === 'otp_disabled') {
-        setError('Email sign-in requires an enrolled family account. Ask the app administrator to enroll your approved email. This app does not create accounts.')
-      } else {
-        setError('The sign-in email could not be sent. Try again later, or contact the app administrator.')
-      }
-    } finally { inFlight.current = false; setBusy(false) }
+  const session = useFamilySession(), users = useStore(s => s.users)
+  const [selected, setSelected] = useState(null), [pin, setPin] = useState(''), [confirmation, setConfirmation] = useState('')
+  const [error, setError] = useState(''), [busy, setBusy] = useState(false)
+  const inFlight = useRef(false), input = useRef(null)
+  const user = users.find(u => u.id === selected)
+  const setup = user && workspaceMode !== 'demo' && !hasPin(user)
+  async function unlock(id, value, confirm) {
+    if (inFlight.current) return
+    inFlight.current = true; setBusy(true); setError('')
+    try { await session.signIn(id, value, confirm) }
+    catch (failure) { setError(failure.message || 'Could not unlock this browser.'); setPin(''); setConfirmation('') }
+    finally { inFlight.current = false; setBusy(false) }
   }
-  return <div className="min-h-screen bg-slate-900 flex items-center justify-center px-6">
-    <form onSubmit={sendLink} className="w-full max-w-sm space-y-5 text-white">
-      <h1 className="text-2xl font-bold text-center">FamilyFinanceTracker</h1>
-      <p className="text-sm text-slate-300">Sign in with an enrolled family email to access your household.</p>
-      <label className="block text-sm">Family email
-        <input type="email" autoComplete="email" required value={email} onChange={event => setEmail(event.target.value)}
-          disabled={busy || rateLimited.current} className="mt-2 w-full rounded-xl border border-slate-500 bg-slate-800 px-4 py-3 text-white" />
-      </label>
-      <button type="submit" disabled={busy || rateLimited.current || !session.configured} className="w-full rounded-xl bg-indigo-600 px-4 py-3 font-semibold disabled:opacity-50">
-        {busy ? 'Sending…' : 'Email me a sign-in link'}
-      </button>
-      {!session.configured && <p role="alert" className="text-sm text-amber-200">Email sign-in needs configuration by the app administrator.</p>}
-      {(error || session.error) && <p role="alert" className="text-sm text-amber-200">{error || session.error}</p>}
-      {message && <p role="status" className="text-sm text-emerald-200">{message}</p>}
-    </form>
+  useEffect(() => { input.current?.focus() }, [selected])
+  useEffect(() => { if (selected && pin.length === 4 && !setup && workspaceMode !== 'demo') unlock(selected, pin) }, [selected, pin, setup])
+  if (session.member) return <Navigate to="/dashboard" replace />
+  return <div className="min-h-screen bg-slate-900">
+    <div className="max-w-sm mx-auto px-6 py-10 flex flex-col justify-center min-h-screen">
+      <div className="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center mx-auto mb-6"><span className="text-2xl font-bold text-white">₹</span></div>
+      <h1 className="text-2xl font-bold text-white text-center">FamilyFinanceTracker</h1>
+      <p className="text-sm text-slate-400 text-center mt-1 mb-6">Family finances, in one place.</p>
+      <div className="rounded-xl border border-slate-700 p-3 mb-5 text-xs leading-relaxed text-slate-300">
+        {workspaceMode === 'demo' ? 'Recruiter demo · synthetic data only. Edits stay in a separate demo workspace on this browser.' : 'Personal workspace · saved on this device only. Your PIN is a browser convenience lock, not server authentication. Private cloud records remain protected and disconnected.'}
+      </div>
+      {users.map(profile => <div key={profile.id}>
+        <button disabled={busy} onClick={() => {
+          setSelected(profile.id); setPin(''); setConfirmation(''); setError('')
+          if (workspaceMode === 'demo') unlock(profile.id)
+        }} className={`w-full flex items-center justify-between rounded-2xl p-4 mb-3 border transition-colors ${selected === profile.id ? 'border-indigo-500 bg-slate-800' : 'bg-slate-800 border-slate-700 hover:border-indigo-500'}`}>
+          <div className="text-left"><p className="text-base font-semibold text-white">{profile.name}</p><p className="text-xs text-slate-400">{profile.role || (workspaceMode === 'demo' ? 'Explore the demo' : 'Household member')}</p></div><ChevronRight size={18} className="text-slate-500" />
+        </button>
+        {selected === profile.id && workspaceMode !== 'demo' && <form onSubmit={event => { event.preventDefault(); unlock(selected, pin, confirmation) }} className="space-y-3 mb-5 text-white">
+          <p className="text-sm text-slate-300">{setup ? 'Create your own four-digit PIN for this browser.' : 'Enter your four-digit PIN.'}</p>
+          <input ref={input} aria-label="Enter PIN" type="password" inputMode="numeric" autoComplete="off" maxLength={4} value={pin} disabled={busy} onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))} className="w-full rounded-xl bg-slate-800 border border-slate-600 p-3 text-center tracking-[1em]" />
+          {setup && <><input aria-label="Confirm PIN" type="password" inputMode="numeric" autoComplete="off" maxLength={4} value={confirmation} disabled={busy} onChange={e => setConfirmation(e.target.value.replace(/\D/g, '').slice(0, 4))} className="w-full rounded-xl bg-slate-800 border border-slate-600 p-3 text-center tracking-[1em]" /><button disabled={busy || pin.length !== 4 || confirmation.length !== 4} className="w-full rounded-xl bg-indigo-600 p-3 disabled:opacity-50">Set PIN & open workspace</button></>}
+        </form>}
+      </div>)}
+      {error && <p role="alert" className="text-sm text-red-300 mb-4">{error}</p>}
+      <button onClick={() => switchWorkspace(workspaceMode === 'demo' ? 'personal' : 'demo')} className="mt-4 rounded-xl border border-indigo-400 p-3 text-sm text-indigo-200 hover:bg-slate-800">{workspaceMode === 'demo' ? 'Back to personal workspace' : 'Explore recruiter demo — synthetic data'}</button>
+      <p className="text-xs text-slate-500 text-center mt-5">No emails. No public registration. No cloud writes.</p>
+    </div>
   </div>
 }

@@ -41,7 +41,7 @@ function generateAlerts(state, year, month) {
           '🔴 LIC premium OVERDUE — pay immediately to prevent policy lapse'
         )
       } else if (days !== null && days <= 30) {
-        alerts.push(`🔴 LIC premium due in ${days} days — ₹36,375 total`)
+        alerts.push(`🔴 LIC premium due in ${days} days — ${formatCurrency(earliest.annualPremium ?? 0)}`)
       }
     }
   }
@@ -96,7 +96,7 @@ function generateAlerts(state, year, month) {
   )
   if (formMilestone?.status === 'done') {
     alerts.push('🟡 Form 15G/121: Submitted ✓')
-  } else {
+  } else if (formMilestone) {
     alerts.push(
       '🟡 Form 15G/121: NOT YET SUBMITTED — URGENT before FD interest credit'
     )
@@ -151,13 +151,14 @@ export const useReport = () => {
 
     // Step 3 — Cash flow
     const net_position = incomeFlat.total - expTotal
-    const variance_from_budget = 85800 - expTotal
+    const budgetTarget = Object.values(state.budgets ?? {}).reduce((sum, value) => sum + (Number(value) || 0), 0)
+    const variance_from_budget = budgetTarget - expTotal
 
     const cash_flow = {
       income: incomeFlat,
       expenses_by_category,
       net_position,
-      budget_monthly_target: 85800,
+      budget_monthly_target: budgetTarget,
       variance_from_budget,
     }
 
@@ -305,8 +306,7 @@ export const useReport = () => {
       apiSuccess = false
     }
 
-    // Always save to store (offline persistence)
-    useStore.getState().addMonthlySnapshot(snapshot)
+    if (apiSuccess) useStore.getState().addMonthlySnapshot(snapshot)
     return { snapshot, apiSuccess }
   }
 

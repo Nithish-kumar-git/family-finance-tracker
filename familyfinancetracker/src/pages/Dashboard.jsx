@@ -105,7 +105,8 @@ export default function Dashboard() {
         if (data && Array.isArray(data.expenses)) {
           const apiExpenses = data.expenses
           const ym = `${year}-${String(month).padStart(2, '0')}`
-          useStore.getState().setExpensesForMonth(ym, apiExpenses)
+          try { useStore.getState().setExpensesForMonth(ym, apiExpenses) }
+          catch { /* Readable records remain available if storage is full. */ }
         }
       }
 

@@ -1,6 +1,7 @@
 import FamilySession, { useFamilySession } from './components/FamilySession.jsx'
 import { BrowserRouter, Routes, Route, Navigate, NavLink } from 'react-router-dom'
 import useStore from './store/useStore.js'
+import { workspaceMode, switchWorkspace } from './utils/workspace.js'
 import Header from './components/layout/Header.jsx'
 import BottomNav from './components/layout/BottomNav.jsx'
 import Auth from './pages/Auth.jsx'
@@ -22,6 +23,7 @@ function ProtectedLayout({ children }) {
   const session = useFamilySession()
   const currentUser = useStore(s => s.currentUser)
   const users = useStore(s => s.users)
+  const persistenceError = useStore(s => s.persistenceError)
   
   if (!session?.member || !currentUser) return <Navigate to="/" replace />
   
@@ -94,6 +96,11 @@ function ProtectedLayout({ children }) {
       {/* ── MAIN CONTENT ── */}
       <div className="lg:ml-56 flex flex-col min-h-screen lg:border-l lg:border-slate-200 bg-slate-100">
         <Header />
+        <div className="bg-indigo-50 border-b border-indigo-100 px-4 py-2 text-xs text-indigo-900 flex flex-wrap gap-2 justify-between">
+          <span>{workspaceMode === 'demo' ? 'RECRUITER DEMO · Synthetic data · Separate browser storage' : 'PERSONAL · This device only · Cloud sync disconnected'}</span>
+          <button className="underline font-semibold" onClick={() => switchWorkspace(workspaceMode === 'demo' ? 'personal' : 'demo')}>{workspaceMode === 'demo' ? 'Personal workspace' : 'Recruiter demo'}</button>
+        </div>
+        {persistenceError && <p role="alert" className="bg-red-50 p-3 text-sm text-red-800">{persistenceError}</p>}
         
         {/* Page content */}
         <main className="flex-1 px-4 py-5 pb-28 lg:px-8 lg:py-6 lg:pb-8">

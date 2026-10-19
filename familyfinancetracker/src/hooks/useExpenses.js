@@ -100,7 +100,7 @@ export const useExpenses = () => {
       id: submission.id ?? (submission.id = generateId()),
       userId: expenseData.userId ?? null,
       amount: typeof expenseData.amount === 'string'
-        ? parseInt(expenseData.amount, 10)
+        ? Number(expenseData.amount)
         : expenseData.amount,
       category: expenseData.category ?? 'other',
       description: (expenseData.description ?? '').slice(0, 60),

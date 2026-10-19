@@ -54,7 +54,7 @@ test('new browser defaults contain no household records or login PINs', () => {
   assert.equal(INITIAL_DATA.users.some(user => 'pin' in user), false)
   const store = readFileSync(new URL('../src/store/useStore.js', import.meta.url), 'utf8')
   assert.match(store, /emptyData\.js/)
-  assert.match(store, /return JSON\.parse\(raw\)/, 'Existing financial storage must be preserved')
+  assert.match(store, /JSON\.parse\(raw\)/, 'Existing financial storage must be preserved')
   const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8')
   assert.match(app, /!session\?\.member \|\| !currentUser/)
 })

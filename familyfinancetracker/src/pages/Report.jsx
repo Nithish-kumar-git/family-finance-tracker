@@ -131,7 +131,7 @@ export default function Report() {
     if (apiSuccess) {
       showToast(`Snapshot saved for ${monthLabel} ✓`, 'success')
     } else {
-      showToast('Saved locally — will sync when online', 'success')
+      showToast('Snapshot was not saved. Free browser storage and try again.', 'error')
     }
   }
 

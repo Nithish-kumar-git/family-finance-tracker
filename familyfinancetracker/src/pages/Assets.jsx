@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import useStore from '../store/useStore'
+import useStore, { saveLocalChanges } from '../store/useStore'
 import { useAssets } from '../hooks/useAssets'
 import { api } from '../utils/api'
 import { formatCurrency, formatDate, daysUntil } from '../utils/formatters'
@@ -113,11 +113,11 @@ export default function Assets() {
     try {
       await api.assets.deleteFD(id)
     } catch {
-      showToast('Save failed. Changes were NOT saved to server.', 'error')
+      showToast('Save failed. Changes were not saved on this device.', 'error')
       return
     }
     setFixedDeposits((prev) => prev.filter((fd) => fd.id !== id))
-    useStore.setState(state => ({
+    saveLocalChanges(state => ({
       fixedDeposits: state.fixedDeposits.filter(fd => fd.id !== id),
     }))
     setExpandedId(null)
@@ -148,13 +148,13 @@ export default function Assets() {
     try {
       saved = await api.assets.createFD(body)
     } catch {
-      showToast('Save failed. Changes were NOT saved to server.', 'error')
+      showToast('Save failed. Changes were not saved on this device.', 'error')
       setModalLoading(false)
       return
     }
     setFixedDeposits((prev) => [...prev, saved])
-    useStore.setState(state => ({
-      fixedDeposits: [...state.fixedDeposits, saved],
+    saveLocalChanges(state => ({
+      fixedDeposits: [...state.fixedDeposits.filter(row => row.id !== saved.id), saved],
     }))
     setModalLoading(false)
     closeModal()
@@ -175,12 +175,12 @@ export default function Assets() {
     try {
       saved = await api.assets.updateMutualFundValue(modalForm.id, currentVal, investedArg)
     } catch {
-      showToast('Save failed. Changes were NOT saved to server.', 'error')
+      showToast('Save failed. Changes were not saved on this device.', 'error')
       setModalLoading(false)
       return
     }
     setMutualFunds(prev => prev.map(mf => mf.id === saved.id ? saved : mf))
-    useStore.setState(state => ({
+    saveLocalChanges(state => ({
       mutualFunds: state.mutualFunds.map(mf => mf.id === saved.id ? saved : mf)
     }))
     setModalLoading(false)
@@ -208,13 +208,13 @@ export default function Assets() {
     try {
       await api.assets.updateChitStatus(id, newStatus)
     } catch {
-      showToast('Save failed. Changes were NOT saved to server.', 'error')
+      showToast('Save failed. Changes were not saved on this device.', 'error')
       return
     }
     setChitFunds((prev) =>
       prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c))
     )
-    useStore.setState(state => ({
+    saveLocalChanges(state => ({
       chitFunds: state.chitFunds.map(c =>
         c.id === id ? { ...c, status: newStatus } : c
       ),
@@ -225,11 +225,11 @@ export default function Assets() {
     try {
       await api.assets.deleteChit(id)
     } catch {
-      showToast('Save failed. Changes were NOT saved to server.', 'error')
+      showToast('Save failed. Changes were not saved on this device.', 'error')
       return
     }
     setChitFunds((prev) => prev.filter((c) => c.id !== id))
-    useStore.setState(state => ({
+    saveLocalChanges(state => ({
       chitFunds: state.chitFunds.filter(c => c.id !== id),
     }))
     showToast('Chit removed ✓', 'success')
@@ -254,13 +254,13 @@ export default function Assets() {
     try {
       saved = await api.assets.createChit(body)
     } catch {
-      showToast('Save failed. Changes were NOT saved to server.', 'error')
+      showToast('Save failed. Changes were not saved on this device.', 'error')
       setModalLoading(false)
       return
     }
     setChitFunds((prev) => [...prev, saved])
-    useStore.setState(state => ({
-      chitFunds: [...state.chitFunds, saved],
+    saveLocalChanges(state => ({
+      chitFunds: [...state.chitFunds.filter(row => row.id !== saved.id), saved],
     }))
     setModalLoading(false)
     closeModal()
@@ -299,12 +299,12 @@ export default function Assets() {
     try {
       saved = await api.assets.updateFD(modalForm.id, body)
     } catch {
-      showToast('Save failed. Changes were NOT saved to server.', 'error')
+      showToast('Save failed. Changes were not saved on this device.', 'error')
       setModalLoading(false)
       return
     }
     setFixedDeposits(prev => prev.map(fd => fd.id === saved.id ? saved : fd))
-    useStore.setState(state => ({
+    saveLocalChanges(state => ({
       fixedDeposits: state.fixedDeposits.map(fd => fd.id === saved.id ? saved : fd)
     }))
     setModalLoading(false)
@@ -337,12 +337,12 @@ export default function Assets() {
     try {
       saved = await api.assets.updateLIC(modalForm.id, body)
     } catch {
-      showToast('Save failed. Changes were NOT saved to server.', 'error')
+      showToast('Save failed. Changes were not saved on this device.', 'error')
       setModalLoading(false)
       return
     }
     setLicPolicies(prev => prev.map(l => l.id === saved.id ? saved : l))
-    useStore.setState(state => ({
+    saveLocalChanges(state => ({
       licPolicies: state.licPolicies.map(l => l.id === saved.id ? saved : l)
     }))
     setModalLoading(false)
@@ -375,12 +375,12 @@ export default function Assets() {
     try {
       saved = await api.assets.updateChit(modalForm.id, body)
     } catch {
-      showToast('Save failed. Changes were NOT saved to server.', 'error')
+      showToast('Save failed. Changes were not saved on this device.', 'error')
       setModalLoading(false)
       return
     }
     setChitFunds(prev => prev.map(c => c.id === saved.id ? saved : c))
-    useStore.setState(state => ({
+    saveLocalChanges(state => ({
       chitFunds: state.chitFunds.map(c => c.id === saved.id ? saved : c)
     }))
     setModalLoading(false)
@@ -402,7 +402,7 @@ export default function Assets() {
     try {
       await api.assets.updateGold(goldData)
     } catch {
-      showToast('Save failed. Changes were NOT saved to server.', 'error')
+      showToast('Save failed. Changes were not saved on this device.', 'error')
       setGoldSaving(false)
       return
     }
@@ -449,6 +449,7 @@ export default function Assets() {
       )}
 
       {/* ── Tab bar ── */}
+      <a href="/settings" className="block mb-4 text-sm text-indigo-700 underline">Add or edit any asset type in Settings → Edit household & financial records</a>
       <div className="sticky top-14 z-10 -mx-4 px-4 bg-slate-100 pt-2 pb-2 lg:mx-0 lg:rounded-xl lg:mb-4">
         <div className="flex items-center bg-white rounded-full p-1 shadow-sm">
           {TABS.map((tab) => (
@@ -473,7 +474,7 @@ export default function Assets() {
             onClick={async () => {
               try {
                 const data = await api.assets.getAll()
-                useStore.setState({
+                saveLocalChanges({
                   fixedDeposits: data.fixedDeposits,
                   mutualFunds: data.mutualFunds,
                   licPolicies: data.licPolicies,
@@ -483,14 +484,14 @@ export default function Assets() {
                 setMutualFunds(data.mutualFunds)
                 setLicPolicies(data.licPolicies)
                 setChitFunds(data.chitFunds)
-                showToast('Refreshed from server ✓', 'success')
+                showToast('Refreshed from this workspace ✓', 'success')
               } catch {
-                showToast('Could not reach server — showing local data', 'error')
+                showToast('Could not refresh this workspace.', 'error')
               }
             }}
             className="text-xs text-slate-400 underline"
           >
-            ↺ Sync from server
+            ↺ Refresh workspace
           </button>
         </div>
 
@@ -575,7 +576,7 @@ export default function Assets() {
                           {fd.bank}
                         </p>
                         <Badge color={purposeColor}>
-                          {fd.purpose.charAt(0).toUpperCase() + fd.purpose.slice(1)}
+                          {(fd.purpose || 'savings').charAt(0).toUpperCase() + (fd.purpose || 'savings').slice(1)}
                         </Badge>
                         {/* Rate contested — see FINANCIAL_CONTEXT.md */}
                         {fd.rate === 6.45 && (
@@ -789,7 +790,7 @@ export default function Assets() {
                               : 'amber'
                           }
                         >
-                          {mf.type.charAt(0).toUpperCase() + mf.type.slice(1)}
+                          {(mf.type || 'equity').charAt(0).toUpperCase() + (mf.type || 'equity').slice(1)}
                         </Badge>
                         <Badge color={isRegular ? 'red' : 'green'}>
                           {isRegular ? 'Regular' : 'Direct'}
@@ -1098,8 +1099,8 @@ export default function Assets() {
                               : 'red'
                           }
                         >
-                          {chit.status.charAt(0).toUpperCase() +
-                            chit.status.slice(1)}
+                          {(chit.status || 'active').charAt(0).toUpperCase() +
+                            (chit.status || 'active').slice(1)}
                         </Badge>
                       </div>
                     </div>

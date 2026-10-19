@@ -1,3 +1,4 @@
+import { workspaceKey } from '../utils/workspace.js'
 import { useState, useEffect, useMemo } from 'react'
 import useStore from '../store/useStore'
 import { api } from '../utils/api'
@@ -114,7 +115,7 @@ export default function Employment() {
   // ── Employment status (persisted to localStorage) ──────────────────────────
   const [employmentStatus, setEmploymentStatus] = useState(() => {
     try {
-      return localStorage.getItem('fft_nithish_status') ?? 'searching'
+      return localStorage.getItem(workspaceKey('fft_nithish_status')) ?? 'searching'
     } catch {
       return 'searching'
     }
@@ -256,7 +257,7 @@ export default function Employment() {
       EMPLOYMENT_STATUS_CYCLE[(idx + 1) % EMPLOYMENT_STATUS_CYCLE.length]
     setEmploymentStatus(next)
     try {
-      localStorage.setItem('fft_nithish_status', next)
+      localStorage.setItem(workspaceKey('fft_nithish_status'), next)
     } catch {}
 
     if (employmentStatus === 'employed') {
@@ -272,7 +273,8 @@ export default function Employment() {
       return
     }
     setSalarySaving(true)
-    useStore.getState().updateMonthlyIncome('nithish', salary)
+    try { useStore.getState().updateMonthlyIncome('nithish', salary) }
+    catch { setSalarySaving(false); showToast('Salary was not saved. Check browser storage.', 'error'); return }
     await new Promise((r) => setTimeout(r, 300))
     setSalarySaving(false)
     showToast(`Salary of ${formatCurrency(salary)}/month saved ✓`, 'success')

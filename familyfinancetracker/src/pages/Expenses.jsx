@@ -167,8 +167,8 @@ export default function Expenses() {
   const handleAddExpense = async () => {
     if (addInFlight.current) return
     setFormError('')
-    const parsedAmount = parseInt(amount, 10)
-    if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
+    const parsedAmount = Number(amount)
+    if (!amount || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
       setFormError('Amount is required')
       return
     }
@@ -201,16 +201,16 @@ export default function Expenses() {
       setParsedByAI(false)
       setFormError('')
       if (saved.recurringSave.unconfirmed > 0) {
-        const message = `Main expense saved to server. ${saved.recurringSave.unconfirmed} of 3 recurring saves could not be confirmed. Check History before adding them again.`
+        const message = `Main expense saved on this device. ${saved.recurringSave.unconfirmed} of 3 recurring saves could not be confirmed. Check History before adding them again.`
         setFormError(message)
         showToast(message, 'error')
       } else {
-        showToast('Expense saved to server', 'success')
+        showToast('Expense saved on this device', 'success')
       }
       // Reload data for the currently selected month
       loadData()
     } catch {
-      const message = 'Server save could not be confirmed. Your form is unchanged. Check History before submitting again to avoid duplicates.'
+      const message = 'Save on this device could not be confirmed. Your form is unchanged. Check History before submitting again to avoid duplicates.'
       setFormError(message)
       showToast(message, 'error')
     } finally {
@@ -783,8 +783,8 @@ export default function Expenses() {
             {/* Monthly total vs budget bar */}
             {(() => {
               const totalSpent   = getMonthlyTotal(expenses)
-              const budgetTarget = 85800
-              const pct          = Math.min((totalSpent / budgetTarget) * 100, 100)
+              const budgetTarget = Object.values(useStore.getState().budgets ?? {}).reduce((sum, value) => sum + (Number(value) || 0), 0)
+              const pct          = budgetTarget > 0 ? Math.min((totalSpent / budgetTarget) * 100, 100) : 0
               const barColor     = pct >= 100 ? 'bg-red-500'
                                  : pct >= 80  ? 'bg-amber-500'
                                               : 'bg-emerald-500'

@@ -158,6 +158,11 @@ export async function readHistoryMonth({ month, url, fetchResponse, getLocalExpe
         error = 'JSON'
       }
       if (!error) {
+        if (response.local === true) {
+          const validated = validateLocalHistory(Array.isArray(payload) ? payload : payload?.expenses, month)
+          return { ...initialHistoryState(month), ...validated, source: 'browser',
+            status: validated.limited && !validated.expenses.length ? 'error' : validated.expenses.length ? 'success' : 'empty' }
+        }
         const validated = validateHistoryResponse(payload, month)
         if (!validated.error) {
           return {

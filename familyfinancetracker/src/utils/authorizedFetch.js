@@ -1,4 +1,5 @@
 import { getAccessToken } from './authClient.js'
+import { browserRequest } from './browserRepository.js'
 
 export function authRequired() {
   if (typeof window !== 'undefined') window.dispatchEvent(new Event('fft-auth-required'))
@@ -7,6 +8,11 @@ export function authRequired() {
 
 // Injectable token/transport dependencies permit isolated synthetic tests.
 export async function authorizedFetch(url, options = {}, dependencies = {}) {
+  if (!dependencies.getToken && !dependencies.fetchImpl && typeof window !== 'undefined') {
+    const result = await browserRequest(url, options)
+    if (result.status === 401) throw authRequired()
+    return result
+  }
   let token
   try { token = await (dependencies.getToken ?? getAccessToken)() }
   catch { throw authRequired() }

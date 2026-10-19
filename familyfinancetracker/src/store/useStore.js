@@ -1,27 +1,33 @@
 import { create } from 'zustand'
 import { INITIAL_DATA } from '../data/emptyData.js'
+import { dataKey, workspaceMode, workspaceKey, syntheticData, writeWorkspace } from '../utils/workspace.js'
 
 // Load persisted state from localStorage, fall back to INITIAL_DATA
 function loadState() {
   try {
-    const raw = localStorage.getItem('fft_data')
+    const raw = localStorage.getItem(dataKey)
     if (raw) {
-      return JSON.parse(raw)
+      return { ...INITIAL_DATA, ...JSON.parse(raw), currentUser: null }
     }
   } catch {
-    // JSON parse error or localStorage not available — use initial data
+    return { ...INITIAL_DATA, currentUser: null, storageReadError: true }
   }
-  return { ...INITIAL_DATA }
+  return { ...INITIAL_DATA, ...(workspaceMode === 'demo' ? syntheticData() : {}), currentUser: null }
 }
 
-const useStore = create((set, get) => ({
+const useStore = create((set, get) => {
+  const save = update => {
+    const patch = typeof update === 'function' ? update(get()) : update
+    writeWorkspace({ ...get(), ...patch }); set(patch)
+  }
+  return ({
   ...loadState(),
 
   // ── Auth ────────────────────────────────────────────────────────────────
   setCurrentUser(userId) {
     set({ currentUser: userId })
     try {
-      localStorage.setItem('fft_currentUser', userId ?? '')
+      localStorage.setItem(workspaceKey('fft_currentUser'), userId ?? '')
     } catch {
       // ignore localStorage write failures (private browsing, quota exceeded)
     }
@@ -29,15 +35,15 @@ const useStore = create((set, get) => ({
 
   // ── Expenses ──────────────────────────────────────────────────────────
   addExpense(expense) {
-    set(state => ({ expenses: [...state.expenses, expense] }))
+    save(state => ({ expenses: [...state.expenses.filter(row => row.id !== expense.id), expense] }))
   },
 
   deleteExpense(id) {
-    set(state => ({ expenses: state.expenses.filter(e => e.id !== id) }))
+    save(state => ({ expenses: state.expenses.filter(e => e.id !== id) }))
   },
 
   setExpensesForMonth(ym, freshExpenses) {
-    set(state => ({
+    save(state => ({
       expenses: [
         ...state.expenses.filter(e => !e.date.startsWith(ym)),
         ...freshExpenses,
@@ -47,12 +53,12 @@ const useStore = create((set, get) => ({
 
   // ── Budgets ───────────────────────────────────────────────────────────
   updateBudget(category, amount) {
-    set(state => ({ budgets: { ...state.budgets, [category]: amount } }))
+    save(state => ({ budgets: { ...state.budgets, [category]: amount } }))
   },
 
   // ── Milestones ────────────────────────────────────────────────────────
   updateMilestoneStatus(id, status) {
-    set(state => ({
+    save(state => ({
       milestones: state.milestones.map(m =>
         m.id === id ? { ...m, status } : m
       ),
@@ -61,11 +67,11 @@ const useStore = create((set, get) => ({
 
   // ── Job Applications ──────────────────────────────────────────────────
   addJobApplication(application) {
-    set(state => ({ jobApplications: [...state.jobApplications, application] }))
+    save(state => ({ jobApplications: [...state.jobApplications.filter(row => row.id !== application.id), application] }))
   },
 
   updateJobStatus(id, status) {
-    set(state => ({
+    save(state => ({
       jobApplications: state.jobApplications.map(j =>
         j.id === id ? { ...j, status } : j
       ),
@@ -74,7 +80,7 @@ const useStore = create((set, get) => ({
 
   // ── Assets ────────────────────────────────────────────────────────────
   updateMutualFundValue(id, currentValue) {
-    set(state => ({
+    save(state => ({
       mutualFunds: state.mutualFunds.map(mf =>
         mf.id === id ? { ...mf, currentValue } : mf
       ),
@@ -82,7 +88,7 @@ const useStore = create((set, get) => ({
   },
 
   markLICPaid(id) {
-    set(state => ({
+    save(state => ({
       licPolicies: state.licPolicies.map(lic => {
         if (lic.id !== id) return lic
         const nextDate = new Date(lic.nextDueDate)
@@ -97,7 +103,7 @@ const useStore = create((set, get) => ({
   },
 
   updateGold(goldData) {
-    set(state => ({ gold: { ...state.gold, ...goldData } }))
+    save(state => ({ gold: { ...state.gold, ...goldData } }))
   },
 
   // ── UI state ──────────────────────────────────────────────────────────
@@ -107,7 +113,7 @@ const useStore = create((set, get) => ({
 
   // ── Reports ───────────────────────────────────────────────────────────
   addMonthlySnapshot(snapshot) {
-    set(state => {
+    save(state => {
       const existingIdx = state.monthlySnapshots.findIndex(
         s => s.month === snapshot.month
       )
@@ -121,7 +127,7 @@ const useStore = create((set, get) => ({
   },
 
   updateMonthlyIncome(field, value) {
-    set(state => ({
+    save(state => ({
       monthlyIncome: { ...state.monthlyIncome, [field]: value },
     }))
   },
@@ -130,22 +136,26 @@ const useStore = create((set, get) => ({
   resetStore() {
     set({ ...INITIAL_DATA, currentUser: null, isOffline: false })
     try {
-      localStorage.removeItem('fft_data')
-      localStorage.removeItem('fft_currentUser')
+      localStorage.removeItem(dataKey)
     } catch {
       // ignore
     }
   },
-}))
+}) })
+
+export function saveLocalChanges(update) {
+  const state = useStore.getState(), patch = typeof update === 'function' ? update(state) : update
+  writeWorkspace({ ...state, ...patch }); useStore.setState(patch)
+}
 
 // Persist state to localStorage after every change
 useStore.subscribe(state => {
   try {
     // Exclude isOffline from persistence — it should always start false
-    const { isOffline: _ignored, ...persistable } = state
-    localStorage.setItem('fft_data', JSON.stringify(persistable))
+    writeWorkspace(state)
+    if (state.persistenceError) useStore.setState({ persistenceError: '' })
   } catch {
-    // localStorage quota exceeded or private browsing — ignore silently
+    if (!state.persistenceError) useStore.setState({ persistenceError: 'Browser storage is unavailable or full. Changes may not survive closing this page. Export a backup before leaving.' })
   }
 })
 

@@ -1,144 +1,56 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import vm from 'node:vm'
-import { readFileSync } from 'node:fs'
-import { GoTrueClient } from '@supabase/auth-js'
+import { browserHarness, memoryStorage } from './browserHarness.mjs'
 
-async function load(env, { auth = {}, window, createClientImpl } = {}) {
-  const calls = [], context = vm.createContext({ URL, ...(window ? { window } : {}) })
-  const client = { auth: { getSession: async () => ({ data: { session: { access_token: 'synthetic-token' } } }), ...auth } }
-  const module = new vm.SourceTextModule(readFileSync(new URL('../src/utils/authClient.js', import.meta.url), 'utf8'), {
-    context, initializeImportMeta: meta => { meta.env = env },
-  })
-  await module.link(() => new vm.SyntheticModule(['createClient'], function () {
-    this.setExport('createClient', (...args) => { calls.push(args); return createClientImpl ? createClientImpl(...args) : client })
-  }, { context }))
-  await module.evaluate()
-  return { calls, exports: module.namespace }
-}
+test('new personal profiles choose and confirm their own PIN; no plaintext PIN is persisted', async () => {
+  const h = await browserHarness(), user = h.store.getState().users[0]
+  await assert.rejects(h.login.unlockProfile(user, '1739', '9999'), /same PIN twice/)
+  assert.equal(h.login.unlockedProfile(), null)
+  await h.login.unlockProfile(user, '1739', '1739')
+  assert.equal(h.login.unlockedProfile(), user.id)
+  const saved = h.localStorage.getItem('fft_pin_v1_' + user.id)
+  assert.doesNotMatch(saved, /1739/)
+  assert.equal(JSON.parse(saved).hash.length, 32)
+  h.login.lockWorkspace(); assert.equal(h.login.unlockedProfile(), null)
+  await assert.rejects(h.login.unlockProfile(user, '9999'), /Incorrect PIN/)
+  await h.login.unlockProfile(user, '1739')
+  assert.equal(h.login.unlockedProfile(), user.id)
+})
 
-test('missing, invalid, or secret-key frontend configuration fails closed without constructing a client', async () => {
-  for (const env of [{}, { VITE_SUPABASE_URL: 'invalid', VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_synthetic' },
-    { VITE_SUPABASE_URL: 'https://synthetic.supabase.co', VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_secret_synthetic' }]) {
-    const result = await load(env)
-    assert.equal(result.exports.authClient, null)
-    assert.equal(await result.exports.getAccessToken(), null)
-    assert.equal(result.calls.length, 0)
+test('legacy browser profiles retain their existing PIN; invalid profiles and malformed PINs fail', async () => {
+  const h = await browserHarness(), user = { id: 'nithish', pin: '1739' }
+  await assert.rejects(h.login.unlockProfile(user, '1234'), /Incorrect PIN/)
+  await assert.rejects(h.login.unlockProfile(user, 'abc'), /four-digit/)
+  await assert.rejects(h.login.unlockProfile({ id: 'outsider' }, '1739'), /Choose/)
+  await h.login.unlockProfile(user, '1739')
+  assert.equal(h.login.unlockedProfile(), 'nithish')
+})
+
+test('recruiter demo requires no private credential and never loads or overwrites personal records', async () => {
+  const original = JSON.stringify({ users: [{ id: 'mother', name: 'Private synthetic fixture' }], expenses: [{ id: 'private-fixture', amount: 17 }] })
+  const storage = memoryStorage({ fft_data: original, fft_currentUser: 'mother', fft_nithish_status: 'private-status' })
+  const h = await browserHarness({ demo: true, localStorage: storage })
+  assert.equal(h.store.getState().expenses.some(e => e.id === 'private-fixture'), false)
+  assert.equal(h.store.getState().users.some(u => u.name.includes('Private')), false)
+  await h.login.unlockProfile(h.store.getState().users[0])
+  h.store.getState().setCurrentUser('mother'); h.store.getState().updateMonthlyIncome('pension', 123)
+  assert.equal(storage.getItem('fft_data'), original)
+  assert.equal(storage.getItem('fft_currentUser'), 'mother')
+  assert.equal(storage.getItem('fft_nithish_status'), 'private-status')
+  assert.ok(storage.getItem('fft_demo_data_v1'))
+})
+
+test('corrupt personal data is preserved rather than silently replaced by an empty workspace', async () => {
+  const storage = memoryStorage({ fft_data: '{broken synthetic fixture' })
+  const h = await browserHarness({ localStorage: storage })
+  assert.equal(h.store.getState().storageReadError, true)
+  assert.throws(() => h.store.getState().updateBudget('groceries', 123), /not been overwritten/)
+  assert.equal(storage.getItem('fft_data'), '{broken synthetic fixture')
+})
+
+test('the public application has no Supabase email or callback initialization', async () => {
+  const { readFileSync } = await import('node:fs')
+  for (const file of ['../src/pages/Auth.jsx', '../src/components/FamilySession.jsx', '../src/utils/authClient.js']) {
+    assert.doesNotMatch(readFileSync(new URL(file, import.meta.url), 'utf8'), /signInWithOtp|exchangeCodeForSession|createClient|initializeAuthSession/)
   }
-})
-
-test('valid public configuration uses PKCE and retrieves the SDK-managed session token', async () => {
-  const result = await load({ VITE_SUPABASE_URL: 'https://synthetic.supabase.co',
-    VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_synthetic' })
-  assert.equal(result.calls.length, 1)
-  assert.equal(result.calls[0][2].auth.flowType, 'pkce')
-  assert.equal(result.calls[0][2].auth.detectSessionInUrl, false)
-  assert.equal(result.calls[0][2].auth.persistSession, true)
-  assert.equal(result.calls[0][2].auth.autoRefreshToken, true)
-  assert.equal(await result.exports.getAccessToken(), 'synthetic-token')
-})
-
-const publicConfig = { VITE_SUPABASE_URL: 'https://synthetic.supabase.co', VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_synthetic' }
-const browser = (query = '?code=synthetic-code') => {
-  const replacements = []
-  return { replacements, location: { href: 'https://scintillating-donut-a597ff.netlify.app/' + query },
-    history: { state: { synthetic: true }, replaceState: (...args) => replacements.push(args) } }
-}
-
-test('one callback exchange is shared by concurrent consumers and remounts; successful code is removed', async () => {
-  const window = browser('?code=synthetic-code&keep=1#section'), requests = []
-  const result = await load(publicConfig, { window, auth: { exchangeCodeForSession: async code => {
-    requests.push(code); return { data: { session: { access_token: 'synthetic-token' } }, error: null }
-  } } })
-  const sessions = await Promise.all([result.exports.initializeAuthSession(), result.exports.initializeAuthSession(), result.exports.getAccessToken()])
-  await result.exports.initializeAuthSession()
-  assert.deepEqual(requests, ['synthetic-code'])
-  assert.equal(sessions[0].data.session.access_token, 'synthetic-token')
-  assert.equal(sessions[2], 'synthetic-token')
-  assert.equal(window.replacements.length, 1)
-  assert.equal(window.replacements[0][2], '/?keep=1#section')
-})
-
-test('returning users and refreshes restore current stored sessions without exchanging a code', async () => {
-  let token = 'synthetic-original', exchanges = 0
-  const result = await load(publicConfig, { window: browser(''), auth: {
-    exchangeCodeForSession: async () => { exchanges++ },
-    getSession: async () => ({ data: { session: token ? { access_token: token } : null }, error: null }),
-  } })
-  assert.equal(await result.exports.getAccessToken(), token)
-  token = 'synthetic-refreshed'
-  assert.equal(await result.exports.getAccessToken(), token)
-  token = null
-  assert.equal(await result.exports.getAccessToken(), null)
-  assert.equal(exchanges, 0)
-})
-
-test('expired, reused, missing-verifier and rejected callback codes fail visibly without retry or stale-session fallback', async () => {
-  for (const code of ['otp_expired', 'flow_state_not_found', 'pkce_code_verifier_not_found']) {
-    let exchanges = 0, reads = 0
-    const window = browser()
-    const result = await load(publicConfig, { window, auth: {
-      exchangeCodeForSession: async () => { exchanges++; return { data: { session: null }, error: { code, message: 'Synthetic private error' } } },
-      getSession: async () => { reads++; return { data: { session: { access_token: 'stale-token' } } } },
-    } })
-    for (let i = 0; i < 2; i++) await assert.rejects(result.exports.initializeAuthSession(), error => {
-      assert.match(error.message, /invalid, expired, or already used/)
-      assert.match(error.message, /same browser/)
-      assert.doesNotMatch(error.message, /private/)
-      return true
-    })
-    assert.equal(exchanges, 1); assert.equal(reads, 0); assert.equal(window.replacements.length, 0)
-  }
-})
-
-test('provider error callbacks and empty codes fail without exchanging or leaking URL error details', async () => {
-  for (const query of ['?error=access_denied&error_description=private', '?error_code=otp_expired', '?code=']) {
-    let exchanges = 0
-    const result = await load(publicConfig, { window: browser(query), auth: {
-      exchangeCodeForSession: async () => { exchanges++ },
-    } })
-    await assert.rejects(result.exports.initializeAuthSession(), /This sign-in link is invalid/)
-    assert.equal(exchanges, 0)
-  }
-})
-
-test('session restoration exceptions are sanitized', async () => {
-  const result = await load(publicConfig, { auth: { getSession: async () => { throw Error('Synthetic private details') } } })
-  await assert.rejects(result.exports.initializeAuthSession(), { message: 'Your session could not be restored. Please sign in again.' })
-})
-
-test('installed Supabase SDK exchanges the callback once, persists it, and restores it after a fresh app load with mocked transport', async () => {
-  const stored = new Map([['synthetic-auth-code-verifier', JSON.stringify('synthetic-verifier')]])
-  const storage = { getItem: key => stored.get(key) ?? null, setItem: (key, value) => stored.set(key, value), removeItem: key => stored.delete(key) }
-  let exchanges = 0
-  const clients = []
-  const makeClient = (url, key, options) => {
-    const client = { auth: new GoTrueClient({ ...options.auth, url: url + '/auth/v1', headers: { apikey: key },
-      storageKey: 'synthetic-auth', storage, autoRefreshToken: false,
-      fetch: async (url, config) => {
-        assert.match(String(url), /\/auth\/v1\/token\?grant_type=pkce$/)
-        const body = JSON.parse(config.body)
-        assert.equal(body.auth_code, 'synthetic-code')
-        assert.equal(body.code_verifier, 'synthetic-verifier')
-        exchanges++
-        return { ok: true, status: 200, headers: { get: () => null }, json: async () => ({
-          access_token: 'synthetic-token', refresh_token: 'synthetic-refresh', token_type: 'bearer', expires_in: 3600,
-          user: { id: 'synthetic-user', email: 'synthetic@example.invalid', email_confirmed_at: '2026-01-01', aud: 'authenticated' },
-        }) }
-      },
-    }) }
-    clients.push(client)
-    return client
-  }
-  try {
-    const callback = await load(publicConfig, { window: browser(), createClientImpl: makeClient })
-    const [first, duplicate] = await Promise.all([callback.exports.initializeAuthSession(), callback.exports.initializeAuthSession()])
-    assert.equal(first.data.session.user.email, 'synthetic@example.invalid')
-    assert.equal(duplicate.data.session.access_token, 'synthetic-token')
-    const refresh = await load(publicConfig, { window: browser(''), createClientImpl: makeClient })
-    assert.equal((await refresh.exports.initializeAuthSession()).data.session.access_token, 'synthetic-token')
-    assert.equal(exchanges, 1)
-    await clients.at(-1).auth.signOut({ scope: 'local' })
-    assert.equal((await refresh.exports.initializeAuthSession()).data.session, null)
-  } finally { for (const client of clients) client.auth.stopAutoRefresh() }
 })

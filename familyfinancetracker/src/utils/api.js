@@ -26,7 +26,7 @@ async function apiFetch(path, options = {}) {
   try {
     response = await authorizedFetch(url, config)
   } catch (error) {
-    if (error?.code === 'AUTH_REQUIRED') throw error
+    if (['AUTH_REQUIRED', 'LOCAL_SAVE_FAILED'].includes(error?.code)) throw error
     // Network error — backend unreachable
     useStore.getState().setIsOffline(true)
     throw new Error('Network error')
@@ -34,7 +34,7 @@ async function apiFetch(path, options = {}) {
 
   if (!response.ok) {
     useStore.getState().setIsOffline(true)
-    throw new Error(`HTTP ${response.status}`)
+    throw Object.assign(new Error(`HTTP ${response.status}`), { code: method === 'GET' ? 'READ_FAILED' : 'MUTATION_FAILED' })
   }
 
   useStore.getState().setIsOffline(false)
@@ -110,7 +110,7 @@ export const api = {
       try {
         return await apiFetch('/api/assets/summary')
       } catch (error) {
-        if (error?.code === 'AUTH_REQUIRED') throw error
+        if (['AUTH_REQUIRED', 'LOCAL_SAVE_FAILED', 'MUTATION_FAILED'].includes(error?.code)) throw error
         const s = useStore.getState()
         const fds = s.fixedDeposits.reduce((sum, fd) => sum + fd.principal, 0)
         const mutual_funds = s.mutualFunds.reduce((sum, mf) => sum + mf.currentValue, 0)
@@ -130,7 +130,7 @@ export const api = {
           ])
         return { fixedDeposits, mutualFunds, licPolicies, chitFunds }
       } catch (error) {
-        if (error?.code === 'AUTH_REQUIRED') throw error
+        if (['AUTH_REQUIRED', 'LOCAL_SAVE_FAILED', 'MUTATION_FAILED'].includes(error?.code)) throw error
         const s = useStore.getState()
         return {
           fixedDeposits: s.fixedDeposits,
@@ -245,7 +245,7 @@ export const api = {
         const qs = params.toString()
         return await apiFetch(`/api/milestones${qs ? '?' + qs : ''}`)
       } catch (error) {
-        if (error?.code === 'AUTH_REQUIRED') throw error
+        if (['AUTH_REQUIRED', 'LOCAL_SAVE_FAILED', 'MUTATION_FAILED'].includes(error?.code)) throw error
         const milestones = useStore.getState().milestones
         if (filters.status) {
           return milestones.filter(m => m.status === filters.status)
@@ -261,7 +261,7 @@ export const api = {
           body: JSON.stringify({ status }),
         })
       } catch (error) {
-        if (error?.code === 'AUTH_REQUIRED') throw error
+        if (['AUTH_REQUIRED', 'LOCAL_SAVE_FAILED', 'MUTATION_FAILED'].includes(error?.code)) throw error
         useStore.getState().updateMilestoneStatus(id, status)
         return useStore.getState().milestones.find(m => m.id === id)
       }
@@ -274,7 +274,7 @@ export const api = {
           body: JSON.stringify(milestone),
         })
       } catch (error) {
-        if (error?.code === 'AUTH_REQUIRED') throw error
+        if (['AUTH_REQUIRED', 'LOCAL_SAVE_FAILED', 'MUTATION_FAILED'].includes(error?.code)) throw error
         const newMilestone = { ...milestone, id: milestone.id ?? crypto.randomUUID() }
         useStore.getState().updateMilestoneStatus // no direct add action — push via store workaround
         // Fallback: use store subscribe to add via setState manually
@@ -289,7 +289,7 @@ export const api = {
       try {
         return await apiFetch(`/api/milestones/${id}`, { method: 'DELETE' })
       } catch (error) {
-        if (error?.code === 'AUTH_REQUIRED') throw error
+        if (['AUTH_REQUIRED', 'LOCAL_SAVE_FAILED', 'MUTATION_FAILED'].includes(error?.code)) throw error
         useStore.setState(state => ({
           milestones: state.milestones.filter(m => m.id !== id),
         }))
@@ -305,7 +305,7 @@ export const api = {
       try {
         return await apiFetch('/api/employment')
       } catch (error) {
-        if (error?.code === 'AUTH_REQUIRED') throw error
+        if (['AUTH_REQUIRED', 'LOCAL_SAVE_FAILED', 'MUTATION_FAILED'].includes(error?.code)) throw error
         return useStore.getState().jobApplications
       }
     },
@@ -317,7 +317,7 @@ export const api = {
           body: JSON.stringify(application),
         })
       } catch (error) {
-        if (error?.code === 'AUTH_REQUIRED') throw error
+        if (['AUTH_REQUIRED', 'LOCAL_SAVE_FAILED', 'MUTATION_FAILED'].includes(error?.code)) throw error
         useStore.getState().addJobApplication(application)
         return application
       }
@@ -330,7 +330,7 @@ export const api = {
           body: JSON.stringify({ status }),
         })
       } catch (error) {
-        if (error?.code === 'AUTH_REQUIRED') throw error
+        if (['AUTH_REQUIRED', 'LOCAL_SAVE_FAILED', 'MUTATION_FAILED'].includes(error?.code)) throw error
         useStore.getState().updateJobStatus(id, status)
         return useStore.getState().jobApplications.find(j => j.id === id)
       }
@@ -340,7 +340,7 @@ export const api = {
       try {
         return await apiFetch('/api/employment/stats')
       } catch (error) {
-        if (error?.code === 'AUTH_REQUIRED') throw error
+        if (['AUTH_REQUIRED', 'LOCAL_SAVE_FAILED', 'MUTATION_FAILED'].includes(error?.code)) throw error
         const apps = useStore.getState().jobApplications
         const total = apps.length
         const sevenDaysAgo = new Date()
@@ -375,7 +375,7 @@ export const api = {
       try {
         return await apiFetch(`/api/reports/snapshot?month=${month}`)
       } catch (error) {
-        if (error?.code === 'AUTH_REQUIRED') throw error
+        if (['AUTH_REQUIRED', 'LOCAL_SAVE_FAILED', 'MUTATION_FAILED'].includes(error?.code)) throw error
         return useStore.getState().monthlySnapshots.find(s => s.month === month) ?? null
       }
     },
@@ -387,7 +387,7 @@ export const api = {
           body: JSON.stringify(snapshot),
         })
       } catch (error) {
-        if (error?.code === 'AUTH_REQUIRED') throw error
+        if (['AUTH_REQUIRED', 'LOCAL_SAVE_FAILED', 'MUTATION_FAILED'].includes(error?.code)) throw error
         useStore.getState().addMonthlySnapshot(snapshot)
         return snapshot
       }
@@ -397,7 +397,7 @@ export const api = {
       try {
         return await apiFetch('/api/reports/snapshots')
       } catch (error) {
-        if (error?.code === 'AUTH_REQUIRED') throw error
+        if (['AUTH_REQUIRED', 'LOCAL_SAVE_FAILED', 'MUTATION_FAILED'].includes(error?.code)) throw error
         return [...useStore.getState().monthlySnapshots].sort((a, b) =>
           b.month.localeCompare(a.month)
         )
@@ -415,7 +415,7 @@ export const api = {
           body: JSON.stringify({ raw_text: rawText }),
         })
       } catch (error) {
-        if (error?.code === 'AUTH_REQUIRED') throw error
+        if (['AUTH_REQUIRED', 'LOCAL_SAVE_FAILED', 'MUTATION_FAILED'].includes(error?.code)) throw error
         // AI requires network — do not fall back to local data
         return null
       }
@@ -428,7 +428,7 @@ export const api = {
           body: JSON.stringify({ report: reportJson }),
         })
       } catch (error) {
-        if (error?.code === 'AUTH_REQUIRED') throw error
+        if (['AUTH_REQUIRED', 'LOCAL_SAVE_FAILED', 'MUTATION_FAILED'].includes(error?.code)) throw error
         return null
       }
     },

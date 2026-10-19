@@ -46,251 +46,62 @@ async function componentHarness(file, dependencies, globals = {}) {
   }
 }
 
-async function sessionHarness(fetchImpl, initialize) {
-  const writes = [], listeners = new Map()
-  const auth = { getSession: async () => ({ data: { session: { access_token: 'synthetic-token' } } }),
-    onAuthStateChange: callback => { auth.changed = callback; return { data: { subscription: { unsubscribe() {} } } } },
-    signOut: async () => {},
-  }
+async function sessionHarness({ restored = null, unlock = async () => {} } = {}) {
+  const writes = [], users = [{ id: 'mother', name: 'Synthetic parent' }]
+  let locked = 0
   const h = await componentHarness('../src/components/FamilySession.jsx', {
-    '../utils/authClient.js': { authClient: { auth }, initializeAuthSession: initialize ?? (() => auth.getSession()) },
-    '../store/useStore.js': { default: { getState: () => ({ setCurrentUser: id => writes.push(id) }) } },
-  }, { fetch: fetchImpl, window: { addEventListener: (name, callback) => listeners.set(name, callback), removeEventListener() {} } })
-  return { ...h, auth, writes, listeners }
-}
-
-test('cached local identity cannot grant household access when the server denies the session', async () => {
-  const h = await sessionHarness(async () => ({ ok: false, status: 403 }))
-  try {
-    h.render(); await flush(); h.render(); await flush()
-    const value = h.render().props.value
-    assert.equal(value.member, null)
-    assert.equal(value.loading, false)
-    assert.match(value.error, /not authorized for this household/)
-    assert.deepEqual(h.writes, [null])
-  } finally { h.unmount() }
-})
-
-test('only the verified server profile activates the household UI', async () => {
-  const h = await sessionHarness(async (url, config) => {
-    assert.equal(url, 'https://synthetic.invalid/api/auth/me')
-    assert.equal(config.headers.Authorization, 'Bearer synthetic-token')
-    assert.equal(config.cache, 'no-store')
-    return { ok: true, json: async () => ({ profileId: 'nithish' }) }
+    '../utils/localLogin.js': { unlockedProfile: () => restored, unlockProfile: unlock, lockWorkspace: () => { locked++ } },
+    '../store/useStore.js': { default: { getState: () => ({ users, setCurrentUser: id => writes.push(id) }) } },
   })
-  try {
-    h.render(); await flush(); h.render(); await flush()
-    assert.equal(h.render().props.value.member.profileId, 'nithish')
-    assert.deepEqual(h.writes, ['nithish'])
-    h.listeners.get('fft-auth-required')()
-    assert.equal(h.render().props.value.member, null)
-  } finally { h.unmount() }
-})
-
-test('sign-out invalidates a pending authorization response so it cannot reopen the UI', async () => {
-  const pending = deferred()
-  const h = await sessionHarness(() => pending.promise)
-  try {
-    h.render(); await flush(); h.render()
-    h.auth.changed('SIGNED_OUT', null); h.render()
-    pending.resolve({ ok: true, json: async () => ({ profileId: 'nithish' }) }); await flush()
-    assert.equal(h.render().props.value.member, null)
-    assert.deepEqual(h.writes, [null])
-  } finally { h.unmount() }
-})
-
-test('email-link login blocks duplicate sends and sanitizes failures', async () => {
-  const pending = deferred(), requests = []
-  const h = await componentHarness('../src/pages/Auth.jsx', {
-    'react-router-dom': { Navigate: () => null },
-    '../utils/authClient.js': { authClient: { auth: { signInWithOtp: body => { requests.push(body); return pending.promise } } } },
-    '../components/FamilySession.jsx': { useFamilySession: () => ({ member: null, configured: true }) },
-  }, { window: { location: { origin: 'https://synthetic.invalid' } } })
-  const nodes = tree => {
-    const result = []
-    const visit = node => { if (Array.isArray(node)) node.forEach(visit); else if (node?.props) { result.push(node); visit(node.props.children) } }
-    visit(tree); return result
-  }
-  const input = nodes(h.render()).find(node => node.type === 'input')
-  input.props.onChange({ target: { value: 'synthetic@example.invalid' } })
-  const submit = nodes(h.render()).find(node => node.type === 'form').props.onSubmit
-  const first = submit({ preventDefault() {} }); await submit({ preventDefault() {} })
-  assert.equal(requests.length, 1)
-  assert.equal(requests[0].options.shouldCreateUser, false)
-  pending.resolve({ error: { message: 'Synthetic private provider error' } }); await first
-  const alert = nodes(h.render()).find(node => node.props.role === 'alert')
-  assert.match(alert.props.children.join(''), /could not be sent/)
-  assert.doesNotMatch(alert.props.children.join(''), /private/)
-})
-
-test('authorization failure cancels an outstanding response before the next render', async () => {
-  const pending = deferred()
-  const h = await sessionHarness(() => pending.promise)
-  try {
-    h.render(); await flush(); h.render()
-    h.listeners.get('fft-auth-required')()
-    pending.resolve({ ok: true, json: async () => ({ profileId: 'nithish' }) }); await flush()
-    assert.equal(h.render().props.value.member, null)
-    assert.deepEqual(h.writes, [null])
-  } finally { h.unmount() }
-})
-
-function formNodes(tree) {
-  const result = []
-  const visit = node => {
-    if (Array.isArray(node)) node.forEach(visit)
-    else if (node?.props) { result.push(node); visit(node.props.children) }
-  }
-  visit(tree)
-  return result
+  return { ...h, writes, locked: () => locked }
 }
 
-async function loginHarness(signInWithOtp) {
-  return componentHarness('../src/pages/Auth.jsx', {
-    'react-router-dom': { Navigate: () => null },
-    '../utils/authClient.js': { authClient: { auth: { signInWithOtp } } },
-    '../components/FamilySession.jsx': { useFamilySession: () => ({ member: null, configured: true }) },
-  }, { window: { location: { origin: 'https://scintillating-donut-a597ff.netlify.app' } } })
-}
-
-test('production email links target the deployed frontend root without enabling account creation', async () => {
-  const requests = []
-  const h = await loginHarness(async body => { requests.push(body); return { error: null } })
-  formNodes(h.render()).find(node => node.type === 'input').props.onChange({ target: { value: ' synthetic@example.invalid ' } })
-  await formNodes(h.render()).find(node => node.type === 'form').props.onSubmit({ preventDefault() {} })
-  assert.equal(requests.length, 1)
-  assert.equal(requests[0].email, 'synthetic@example.invalid')
-  assert.equal(requests[0].options.shouldCreateUser, false)
-  assert.equal(requests[0].options.emailRedirectTo, 'https://scintillating-donut-a597ff.netlify.app/')
-  assert.ok(formNodes(h.render()).some(node => node.props.role === 'status'))
+test('a persisted data profile alone cannot unlock the application', async () => {
+  const h = await sessionHarness()
+  h.render()
+  assert.equal(h.render().props.value.member, null)
+  assert.equal(h.render().props.value.loading, false)
+  assert.deepEqual(h.writes, [])
 })
-
-test('OTP enrollment errors explain administrator enrollment without leaking provider details', async () => {
-  const h = await loginHarness(async () => ({ error: { code: 'otp_disabled', message: 'Synthetic private provider details' } }))
-  await formNodes(h.render()).find(node => node.type === 'form').props.onSubmit({ preventDefault() {} })
-  const message = formNodes(h.render()).find(node => node.props.role === 'alert').props.children.join('')
-  assert.match(message, /enroll your approved email/)
-  assert.doesNotMatch(message, /private/)
+test('successful PIN verification activates the selected profile only after acknowledgement', async () => {
+  const pending = deferred(), h = await sessionHarness({ unlock: () => pending.promise })
+  h.render()
+  const login = h.render().props.value.signIn('mother', 'synthetic-pin')
+  assert.equal(h.render().props.value.member, null)
+  pending.resolve(); await login
+  assert.equal(h.render().props.value.member.profileId, 'mother')
+  assert.deepEqual(h.writes, ['mother'])
+  await h.render().props.value.signOut()
+  assert.equal(h.render().props.value.member, null); assert.equal(h.locked(), 1)
+  assert.equal(h.writes.at(-1), null)
 })
-
-test('provider rate limits stop subsequent email sends without automatic retries or a guessed reset time', async () => {
-  for (const failure of [{ status: 429 }, { code: 'over_email_send_rate_limit' }, { code: 'over_request_rate_limit' }]) {
-    let requests = 0
-    const h = await loginHarness(async () => { requests++; return { error: { ...failure, message: 'Synthetic private details' } } })
-    const submit = formNodes(h.render()).find(node => node.type === 'form').props.onSubmit
-    await submit({ preventDefault() {} })
-    await submit({ preventDefault() {} })
-    await formNodes(h.render()).find(node => node.type === 'form').props.onSubmit({ preventDefault() {} })
-    await flush()
-    assert.equal(requests, 1)
-    const nodes = formNodes(h.render())
-    assert.equal(nodes.find(node => node.type === 'button').props.disabled, true)
-    const message = nodes.find(node => node.props.role === 'alert').props.children.join('')
-    assert.match(message, /rate limited/)
-    assert.match(message, /reload this page/)
-    assert.doesNotMatch(message, /private|minute|60/)
-  }
+test('wrong PIN leaves the protected app locked', async () => {
+  const h = await sessionHarness({ unlock: async () => { throw Error('Incorrect PIN') } })
+  h.render()
+  await assert.rejects(h.render().props.value.signIn('mother', 'synthetic-wrong'), /Incorrect PIN/)
+  assert.equal(h.render().props.value.member, null); assert.deepEqual(h.writes, [])
 })
-
-test('callback initialization and server verification finish before any unauthenticated routing decision', async () => {
-  const callback = deferred(), verified = deferred()
-  let requests = 0
-  const h = await sessionHarness(() => { requests++; return verified.promise }, () => callback.promise)
-  try {
-    assert.equal(h.render().props.value.loading, true)
-    h.auth.changed('INITIAL_SESSION', null)
-    // Restoring an expired old session may emit this before exchanging a new link.
-    h.auth.changed('SIGNED_OUT', null)
-    h.auth.changed('SIGNED_IN', { access_token: 'synthetic-token' })
-    assert.equal(h.render().props.value.loading, true)
-    assert.equal(requests, 0)
-    // React StrictMode repeats setup/cleanup; the shared initializer is pending.
-    h.replayEffects()
-    callback.resolve({ data: { session: { access_token: 'synthetic-token' } } }); await flush()
-    assert.equal(h.render().props.value.loading, true)
-    assert.equal(requests, 1)
-    assert.equal(h.render().props.value.member, null)
-    verified.resolve({ ok: true, json: async () => ({ profileId: 'nithish' }) }); await flush()
-    const value = h.render().props.value
-    assert.equal(value.loading, false); assert.equal(value.member.profileId, 'nithish')
-    assert.deepEqual(h.writes, ['nithish'])
-  } finally { h.unmount() }
+test('same-tab refresh restores a local profile and sign-out requires unlocking again', async () => {
+  const h = await sessionHarness({ restored: 'mother' })
+  h.render()
+  assert.equal(h.render().props.value.member.local, true)
+  await h.render().props.value.signOut()
+  assert.equal(h.render().props.value.member, null)
 })
-
-test('callback failure shows a useful error without sending household requests', async () => {
-  let requests = 0
-  const h = await sessionHarness(async () => { requests++ }, async () => { throw Error('This sign-in link is invalid, expired, or already used.') })
-  try {
-    h.render(); await flush()
-    const value = h.render().props.value
-    assert.equal(value.loading, false); assert.equal(value.member, null)
-    assert.match(value.error, /invalid, expired/); assert.equal(requests, 0)
-  } finally { h.unmount() }
-})
-
-test('explicit sign-out during callback processing cannot be undone by its late result', async () => {
-  const callback = deferred()
-  let requests = 0
-  const h = await sessionHarness(async () => { requests++ }, () => callback.promise)
-  try {
-    h.render()
-    await h.render().props.value.signOut()
-    callback.resolve({ data: { session: { access_token: 'synthetic-token' } } }); await flush()
-    const value = h.render().props.value
-    assert.equal(value.loading, false); assert.equal(value.member, null)
-    assert.equal(requests, 0); assert.deepEqual(h.writes, [null])
-  } finally { h.unmount() }
-})
-
-test('session events revalidate refreshed tokens, ignore duplicate sign-ins, and clear identity on sign-out', async () => {
-  const tokens = []
-  const h = await sessionHarness(async (_url, config) => {
-    tokens.push(config.headers.Authorization)
-    return { ok: true, json: async () => ({ profileId: 'mother' }) }
-  })
-  try {
-    h.render(); await flush(); h.render(); await flush()
-    h.auth.changed('INITIAL_SESSION', null)
-    h.auth.changed('SIGNED_IN', { access_token: 'synthetic-token' })
-    h.render(); await flush()
-    assert.equal(tokens.length, 1)
-    h.auth.changed('TOKEN_REFRESHED', { access_token: 'synthetic-refreshed' })
-    assert.equal(h.render().props.value.member, null)
-    await flush()
-    assert.equal(h.render().props.value.member.profileId, 'mother')
-    assert.deepEqual(tokens, ['Bearer synthetic-token', 'Bearer synthetic-refreshed'])
-    await h.render().props.value.signOut()
-    h.auth.changed('SIGNED_OUT', null)
-    assert.equal(h.render().props.value.member, null)
-    assert.equal(h.writes.at(-1), null)
-    h.auth.changed('SIGNED_IN', { access_token: 'synthetic-returning' })
-    h.render(); await flush()
-    assert.equal(h.render().props.value.member.profileId, 'mother')
-  } finally { h.unmount() }
-})
-
-test('expired server sessions and unrecognized profiles never activate the dashboard', async () => {
-  for (const response of [{ ok: false, status: 401 }, { ok: true, json: async () => ({ profileId: 'outsider' }) }]) {
-    const h = await sessionHarness(async () => response)
-    try {
-      h.render(); await flush(); h.render(); await flush()
-      assert.equal(h.render().props.value.member, null)
-      assert.equal(h.render().props.value.loading, false)
-      assert.ok(h.render().props.value.error)
-      assert.equal(h.writes.some(Boolean), false)
-    } finally { h.unmount() }
-  }
-})
-
-test('verified membership navigates to the existing dashboard route', async () => {
+test('original profile/PIN screen replaces email login and opens the existing dashboard route', async () => {
   const Navigate = () => null
+  let member = null, calls = 0
   const h = await componentHarness('../src/pages/Auth.jsx', {
-    'react-router-dom': { Navigate },
-    '../utils/authClient.js': { authClient: { auth: {} } },
-    '../components/FamilySession.jsx': { useFamilySession: () => ({ member: { profileId: 'nithish' }, configured: true }) },
+    'react-router-dom': { Navigate }, 'lucide-react': { ChevronRight: () => null },
+    '../store/useStore.js': { default: selector => selector({ users: [{ id: 'mother', name: 'Synthetic parent' }] }) },
+    '../utils/localLogin.js': { hasPin: () => true },
+    '../utils/workspace.js': { workspaceMode: 'personal', switchWorkspace() {} },
+    '../components/FamilySession.jsx': { useFamilySession: () => ({ member, signIn: async () => { calls++; member = { profileId: 'mother' } } }) },
   })
-  const result = h.render()
-  assert.equal(result.type, Navigate)
-  assert.equal(result.props.to, '/dashboard')
-  assert.equal(result.props.replace, true)
+  const nodes = tree => { const all = []; const visit = n => { if (Array.isArray(n)) n.forEach(visit); else if (n?.props) { all.push(n); visit(n.props.children) } }; visit(tree); return all }
+  assert.doesNotMatch(JSON.stringify(h.render()), /Email me|email-link|Supabase/)
+  nodes(h.render()).find(n => n.type === 'button').props.onClick()
+  nodes(h.render()).find(n => n.props['aria-label'] === 'Enter PIN').props.onChange({ target: { value: '1739' } })
+  h.render(); await flush()
+  const result = h.render(); assert.equal(result.type, Navigate); assert.equal(result.props.to, '/dashboard'); assert.equal(calls, 1)
 })
