@@ -129,10 +129,11 @@ export default function Dashboard() {
   const mfTotal = getMFTotal(state)
   const goldTotal = getGoldTotal(state)
   const savingsBalance = state.emergencyFund?.cashInBank ?? 0
-  const totalCorpusWithSavings = totalCorpus + savingsBalance
+  // getTotalCorpus already includes cashInBank and liquidFundBalance.
+  const totalCorpusWithSavings = totalCorpus
   const efBalance = emergencyFund.liquidFundBalance + emergencyFund.cashInBank
   const efTarget = emergencyFund.target
-  const efPct = Math.min((efBalance / efTarget) * 100, 100)
+  const efPct = efTarget > 0 ? Math.min((efBalance / efTarget) * 100, 100) : 0
   const efIntact = emergencyFund.isIsolated && efBalance >= efTarget
 
   const nithishSalary = monthlyIncome.nithish
@@ -373,7 +374,7 @@ export default function Dashboard() {
               </div>
               {!efIntact && (
                 <p className="text-xs text-red-500 mt-1.5 font-medium">
-                  ⚠ Not yet isolated
+                  {emergencyFund.isIsolated ? '⚠ Below emergency-fund target' : '⚠ Not yet isolated'}
                 </p>
               )}
             </div>
