@@ -510,9 +510,8 @@ class MonthlyInsightsRequest(BaseModel):
         return _bounded_ai_json(value, AI_REPORT_MAX_BYTES)
 
 
-class ChatRequest(BaseModel):
+class ChatInput(BaseModel):
     question: str = Field(min_length=1, max_length=AI_QUESTION_MAX_CHARS)
-    context: Dict[str, Any]
     history: List[Dict[str, Any]] = Field(max_length=AI_HISTORY_MAX_MESSAGES)
 
     @field_validator('question')
@@ -522,11 +521,6 @@ class ChatRequest(BaseModel):
             raise ValueError('Question must contain non-whitespace text')
         return value
 
-    @field_validator('context')
-    @classmethod
-    def bounded_context(cls, value: Dict[str, Any]) -> Dict[str, Any]:
-        return _bounded_ai_json(value, AI_CONTEXT_MAX_BYTES)
-
     @field_validator('history')
     @classmethod
     def bounded_history(cls, value: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -535,6 +529,28 @@ class ChatRequest(BaseModel):
             if not isinstance(content, str) or len(content) > AI_HISTORY_MESSAGE_MAX_CHARS:
                 raise ValueError(f'History content must be a string of at most {AI_HISTORY_MESSAGE_MAX_CHARS} characters')
         return _bounded_ai_json(value, AI_HISTORY_MAX_BYTES)
+
+
+class ChatRequest(ChatInput):
+    context: Dict[str, Any]
+
+    @field_validator('context')
+    @classmethod
+    def bounded_context(cls, value: Dict[str, Any]) -> Dict[str, Any]:
+        return _bounded_ai_json(value, AI_CONTEXT_MAX_BYTES)
+
+
+class DemoChatRequest(ChatInput):
+    # No caller-provided financial context, extra fields or arbitrary metadata.
+    model_config = ConfigDict(extra="forbid")
+
+    @field_validator("history")
+    @classmethod
+    def demo_messages_only(cls, value):
+        for message in value:
+            if set(message) != {"role", "content"} or message["role"] not in {"user", "model"}:
+                raise ValueError("History must contain only user/model text messages")
+        return value
 
 
 # ── Status update schemas ─────────────────────────────────────────────────────

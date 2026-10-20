@@ -13,7 +13,7 @@ const source = path => readFileSync(new URL(path, import.meta.url), 'utf8')
 const chatSource = source('../src/utils/ammaChat.js')
 const apiSource = source('../src/utils/api.js')
 const dashboardSource = source('../src/pages/Dashboard.jsx')
-const fixture = { baseUrl: 'https://synthetic.invalid', question: 'Synthetic question', context: { synthetic: true }, history: [] }
+const fixture = { mode: 'personal', baseUrl: 'https://synthetic.invalid', question: 'Synthetic question', context: { synthetic: true }, history: [] }
 const ok = answer => ({ ok: true, status: 200, json: async () => ({ answer }) })
 const deferred = () => {
   let resolve, reject
@@ -177,11 +177,12 @@ async function dashboardHarness(fetchImpl) {
     for (const [key, value] of Object.entries(values)) this.setExport(key, value)
   }, { context })
   const chat = new vm.SourceTextModule(chatSource, { context })
-  await chat.link(() => stubModule({ authorizedFetch: (...args) => context.fetch(...args) }))
+  await chat.link(specifier => specifier.includes('workspace') ? stubModule({ workspaceMode: 'personal' }) : stubModule({ authorizedFetch: (...args) => context.fetch(...args), serverAuthorizedFetch: (...args) => context.fetch(...args) }))
   await chat.evaluate()
   const apiModule = new vm.SourceTextModule(apiSource, { context, initializeImportMeta: meta => { meta.env = { VITE_API_URL: fixture.baseUrl } } })
   await apiModule.link(specifier => {
-    if (specifier.includes('authorizedFetch')) return stubModule({ authorizedFetch: (...args) => context.fetch(...args) })
+    if (specifier.includes('workspace')) return stubModule({ workspaceMode: 'personal' })
+    if (specifier.includes('authorizedFetch')) return stubModule({ authorizedFetch: (...args) => context.fetch(...args), serverAuthorizedFetch: (...args) => context.fetch(...args) })
     if (specifier === './ammaChat.js') return chat
     if (specifier === '../store/useStore.js') return stubModule({ default: store })
     if (specifier === './expenseHistory.js') return stubModule({ readHistoryMonth: blocked })
@@ -238,6 +239,7 @@ async function dashboardHarness(fetchImpl) {
   }
   const component = new vm.SourceTextModule(transformSync(dashboardSource, { loader: 'jsx', format: 'esm', jsx: 'transform' }).code, { context })
   await component.link(specifier => {
+    if (specifier.includes('workspace')) return stubModule({ workspaceMode: 'personal' })
     if (specifier === '../utils/ammaChat') return chat
     if (!exports[specifier]) throw Error(`Unexpected Dashboard import: ${specifier}`)
     return stubModule(exports[specifier])
@@ -262,12 +264,12 @@ async function dashboardHarness(fetchImpl) {
   }
   render()
   await flush()
-  find(node => node.props['aria-label'] === 'Open local assistant').props.onClick()
+  find(node => node.props['aria-label'] === 'Open finance assistant').props.onClick()
   return {
     clock, actualApi, state, offlineUpdates, render,
-    input: () => find(node => node.props['aria-label'] === 'Message local assistant'),
+    input: () => find(node => node.props['aria-label'] === 'Message finance assistant'),
     send(question = 'Synthetic question') {
-      find(node => node.props['aria-label'] === 'Message local assistant').props.onChange({ target: { value: question } })
+      find(node => node.props['aria-label'] === 'Message finance assistant').props.onChange({ target: { value: question } })
       return find(node => node.props['aria-label'] === 'Send message').props.onClick()
     },
     retry: () => find(node => node.type === 'button' && node.props.children.includes('Retry')).props.onClick(),
@@ -409,4 +411,24 @@ test('unmount cancels pending chat, clears the deadline and ignores late complet
   pending.resolve(ok('Late unmounted synthetic answer'))
   await flush()
   h.assertPreserved()
+})
+
+
+test('demo chat reaches the real network contract without serializing financial context', async () => {
+  const privateContext = { account: 'PRIVATE-MARKER' }
+  const result = await readChat({ ...fixture, mode: 'demo', context: privateContext,
+    fetchImpl: async (url, options) => {
+      assert.equal(url, 'https://synthetic.invalid/api/demo/ai/chat')
+      assert.deepEqual(JSON.parse(options.body), { question: fixture.question, history: [] })
+      assert.ok(!options.body.includes('PRIVATE-MARKER'))
+      assert.equal(options.cache, 'no-store')
+      assert.equal(options.headers.Authorization, undefined)
+      return ok('Actual provider-shaped answer')
+    } })
+  assert.equal(result.answer, 'Actual provider-shaped answer')
+})
+
+test('a personal PIN alone never authorizes or sends a private AI request', async () => {
+  await assert.rejects(readChat({ ...fixture }), { code: 'AUTH_REQUIRED', retryable: false })
+  assert.match(getChatErrorMessage({ code: 'AUTH_REQUIRED' }), /PIN does not authorize/)
 })

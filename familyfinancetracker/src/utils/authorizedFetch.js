@@ -26,3 +26,8 @@ export async function authorizedFetch(url, options = {}, dependencies = {}) {
   }
   return response
 }
+
+// AI must reach the guarded server, never the browser's financial repository.
+export function serverAuthorizedFetch(url, options) {
+  return authorizedFetch(url, options, { getToken: getAccessToken, fetchImpl: fetch })
+}

@@ -61,10 +61,11 @@ test('assets, income, milestones, employment and report snapshots are editable a
   assert.equal(refreshed.store.getState().monthlyIncome.pension, 100)
   assert.equal((await (await refreshed.request(url('/api/reports/snapshot?month=2026-10'))).json()).totalExpenses, 17)
 })
-test('reset stays disabled, invalid bulk months are rejected, and local chat is honestly labelled', async () => {
+test('reset stays disabled, invalid bulk months are rejected, and the financial repository never fabricates AI answers', async () => {
   const h = await unlocked()
   assert.equal((await h.request(url('/api/reset'), { method: 'DELETE' })).status, 403)
   assert.equal((await h.request(url('/api/expenses/bulk?month=%25'), { method: 'DELETE' })).status, 422)
-  const chat = await (await h.request(url('/api/ai/chat'), { method: 'POST', body: '{}' })).json()
-  assert.match(chat.answer, /not an AI-provider response/)
+  const chat = await h.request(url('/api/ai/chat'), { method: 'POST', body: '{}' })
+  assert.equal(chat.status, 503)
+  assert.equal((await chat.json()).answer, undefined)
 })

@@ -19,10 +19,6 @@ export async function browserRequest(rawUrl, options = {}) {
   if (route === '/health') return response({ status: 'ok', storage: 'browser-only', database: 'not contacted' })
   if (route === '/api/reset') return response({ detail: 'Reset is disabled. Your data is unchanged.' }, 403)
   if (route.startsWith('/api/ai/')) {
-    if (route.endsWith('/chat')) {
-      const total = state.expenses.filter(e => e.date?.startsWith(new Date().toISOString().slice(0, 7))).reduce((sum, e) => sum + e.amount, 0)
-      return response({ answer: `Local summary (not an AI-provider response): this month's recorded expenses total ₹${total.toLocaleString('en-IN')}. Review Budgets and Report for category totals. No financial data was sent to an external service.` })
-    }
     return response({ detail: 'AI providers are disconnected in browser workspaces. Enter transactions manually.' }, 503)
   }
   if (route === '/api/settings/income' && method === 'PATCH') {

@@ -1,4 +1,5 @@
-import { authorizedFetch } from './authorizedFetch.js'
+import { workspaceMode } from './workspace.js'
+import { serverAuthorizedFetch } from './authorizedFetch.js'
 // Chat-only transport: no shared offline flag, persistence or local fallback.
 export const CHAT_TIMEOUT_MS = 30_000
 
@@ -22,7 +23,7 @@ export function getChatErrorMessage(error) {
     case 'NETWORK':
       return 'Amma AI could not reach the service. Check your connection and try again.'
     case 'AUTH_REQUIRED':
-      return 'Please sign in again to use Amma AI.'
+      return 'Personal AI requires a server-authorized household session. This device PIN does not authorize cloud access. The public demo is available separately.'
     case 'HTTP':
       if (error.status === 401 || error.status === 403) {
         return `Amma AI access was rejected (HTTP ${error.status}). Retry after checking your access.`
@@ -39,8 +40,8 @@ export function getChatErrorMessage(error) {
 
 // Injectable dependencies are used only by isolated, network-blocked tests.
 export async function readChat({
-  baseUrl, question, context, history, signal,
-  fetchImpl = authorizedFetch, timeoutMs = CHAT_TIMEOUT_MS,
+  baseUrl, question, context, history, signal, mode = workspaceMode,
+  fetchImpl, timeoutMs = CHAT_TIMEOUT_MS,
   setTimer = setTimeout, clearTimer = clearTimeout,
 }) {
   const controller = new AbortController()
@@ -65,10 +66,12 @@ export async function readChat({
     if (controller.signal.aborted) throw chatError('CANCELLED')
     let response
     try {
-      response = await fetchImpl(baseUrl + '/api/ai/chat', {
+      const transport = fetchImpl ?? (mode === 'demo' ? fetch : serverAuthorizedFetch)
+      response = await transport(baseUrl + (mode === 'demo' ? '/api/demo/ai/chat' : '/api/ai/chat'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, context, history }),
+        cache: 'no-store',
+        body: JSON.stringify(mode === 'demo' ? { question, history } : { question, context, history }),
         signal: controller.signal,
       })
     } catch (error) {

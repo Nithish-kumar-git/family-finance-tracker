@@ -77,7 +77,7 @@ class ProtectedResponseCacheTests(unittest.TestCase):
         from fastapi.routing import APIRoute
         operations = 0
         for route in self.app.routes:
-            if not isinstance(route, APIRoute) or not route.path.startswith('/api/') or route.path == '/api/reset':
+            if not isinstance(route, APIRoute) or not route.path.startswith('/api/') or route.path in {'/api/reset', '/api/demo/ai/chat'}:
                 continue
             for method in route.methods:
                 with self.subTest(path=route.path, method=method):

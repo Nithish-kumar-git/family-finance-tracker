@@ -18,6 +18,7 @@ test('the actual dashboard counts each savings bucket once and distinguishes iso
     else if (name.includes('useStore')) exports = { default: selector => selector ? selector(data) : data }
     else if (name.includes('calculations')) exports = calculations
     else if (name.includes('formatters')) exports = { formatCurrency: value => `AMOUNT:${value}`, formatDeficit: value => String(value), formatDate: () => 'Synthetic date', daysUntil: () => 7, formatMonth: () => 'Synthetic month', getGreeting: () => 'Hello' }
+    else if (name.includes('workspace')) exports = { workspaceMode: 'demo' }
     else if (name.includes('api')) exports = { api: {} }
     else if (name.includes('seedData')) exports = { EXPENSE_CATEGORIES: {} }
     else if (name.includes('ammaChat')) exports = { getChatErrorMessage: () => '' }

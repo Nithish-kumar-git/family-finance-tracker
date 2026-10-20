@@ -14,6 +14,7 @@ from auth import require_family_member
 from cache_policy import ProtectedResponseCacheMiddleware, internal_server_error
 from request_protection import RequestProtectionMiddleware
 from routers.auth import router as auth_router
+from routers.demo_ai import router as demo_ai_router
 from routers import expenses, assets, milestones, employment, reports, ai, reset
 from routers.settings import router as settings_router
 
@@ -55,6 +56,7 @@ app.include_router(milestones.router, prefix="/api", dependencies=protected)
 app.include_router(employment.router, prefix="/api", dependencies=protected)
 app.include_router(reports.router, prefix="/api", dependencies=protected)
 app.include_router(ai.router, prefix="/api", dependencies=protected)
+app.include_router(demo_ai_router, prefix="/api")
 app.include_router(reset.router, prefix="/api")
 app.include_router(settings_router, prefix="/api", dependencies=protected)
 app.include_router(auth_router, prefix="/api")

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useStore from '../store/useStore'
+import { workspaceMode } from '../utils/workspace'
 import { api } from '../utils/api'
 import { getChatErrorMessage } from '../utils/ammaChat'
 import {
@@ -30,8 +31,8 @@ const iconMap = {
 
 const SUGGESTIONS = [
   'How much did we spend on groceries this month?',
-  'When is the next LIC premium due?',
-  'What happens if household income increases?',
+  'What is the largest expense category?',
+  'How can this example household build its emergency fund?',
 ]
 
 export default function Dashboard() {
@@ -59,6 +60,14 @@ export default function Dashboard() {
   const chatRequestRef = useRef(null)
   const retryAttemptRef = useRef(null)
   const messagesEndRef = useRef(null)
+  const chatPanelRef = useRef(null)
+  const chatOpenerRef = useRef(null)
+
+  useEffect(() => {
+    if (!chatOpen) return
+    chatPanelRef.current?.querySelector('input')?.focus()
+    return () => chatOpenerRef.current?.focus()
+  }, [chatOpen])
 
   useEffect(() => () => {
     const pending = chatRequestRef.current
@@ -226,7 +235,7 @@ export default function Dashboard() {
       content: h.content,
     }))
 
-    const attempt = { question, context: buildContext(), history: apiHistory }
+    const attempt = { question, context: workspaceMode === 'demo' ? undefined : buildContext(), history: apiHistory }
     retryAttemptRef.current = attempt
     await sendChatAttempt(attempt)
   }
@@ -551,13 +560,14 @@ export default function Dashboard() {
 
       {/* ── Ask Amma AI button ────────────────────────────────────────── */}
       <button
+        ref={chatOpenerRef}
         onClick={() => setChatOpen(true)}
         className="fixed bottom-24 right-4 z-50 rounded-full bg-accent
                    text-white flex items-center justify-center
                    hover:bg-accent active:scale-95 transition-all
                    lg:bottom-8 lg:right-24"
         style={{ width: 52, height: 52 }}
-        aria-label="Open local assistant"
+        aria-label="Open finance assistant"
       >
         <MessageCircle size={20} />
         {chatError && (
@@ -569,22 +579,33 @@ export default function Dashboard() {
       {chatOpen && (
         <>
           <div className="fixed inset-0 bg-black/40 z-50" onClick={() => setChatOpen(false)} />
-          <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 flex flex-col" style={{ height: '80vh' }}>
+          <div className="fixed bottom-4 left-3 right-3 sm:left-auto sm:right-6 sm:w-[420px] bg-white rounded-xl border border-line shadow-lg z-50 flex flex-col" style={{ maxHeight: 'min(620px, 85dvh)' }} ref={chatPanelRef} role="dialog" aria-modal="true" aria-label="Finance assistant"
+            onKeyDown={event => {
+              if (event.key === 'Escape') { event.preventDefault(); setChatOpen(false) }
+              if (event.key !== 'Tab') return
+              const controls = [...event.currentTarget.querySelectorAll('button:not(:disabled), input:not(:disabled)')]
+              const first = controls[0], last = controls[controls.length - 1]
+              if (event.shiftKey && event.target === first) { event.preventDefault(); last?.focus() }
+              else if (!event.shiftKey && event.target === last) { event.preventDefault(); first?.focus() }
+            }}>
             <div className="flex items-center justify-between p-4 border-b border-line flex-shrink-0">
               <div className="flex items-center gap-2">
                 <Sparkles size={18} className="text-accent" />
-                <p className="text-base font-semibold text-ink">Local assistant</p>
+                <p className="text-base font-semibold text-ink">Finance assistant</p>
               </div>
-              <button onClick={() => setChatOpen(false)} className="p-1 rounded-lg hover:bg-canvas">
+              <button onClick={() => setChatOpen(false)} aria-label="Close assistant" className="p-2 rounded-lg hover:bg-canvas">
                 <X size={20} className="text-muted" />
               </button>
             </div>
 
               <>
-                <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                <p className="px-4 pt-3 text-xs text-muted">{workspaceMode === 'demo'
+                  ? 'Gemini · Original synthetic example only; browser edits are not sent. Do not enter private details.'
+                  : 'Gemini · Requires a server-authorized household session. Your PIN unlocks this device only.'}</p>
+                <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
                   {chatHistory.length === 0 && (
                     <div className="space-y-2">
-                      <p className="text-xs text-muted text-center">Ask me anything about your finances</p>
+                      <p className="text-xs text-muted text-center">{workspaceMode === 'demo' ? 'Ask about the synthetic example below.' : 'Ask about your authorized household data.'}</p>
                       {SUGGESTIONS.map((s, i) => (
                         <button
                           key={i}
@@ -600,7 +621,7 @@ export default function Dashboard() {
 
                   {chatHistory.map((msg, i) => (
                     <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-xs rounded-lg px-3.5 py-2.5 text-sm leading-relaxed ${
+                      <div className={`max-w-[90%] whitespace-pre-wrap break-words rounded-lg px-3.5 py-2.5 text-sm leading-relaxed ${
                         msg.role === 'user'
                           ? 'bg-accent text-white rounded-br-sm'
                           : 'bg-canvas text-ink rounded-bl-sm'
@@ -611,11 +632,11 @@ export default function Dashboard() {
                   ))}
 
                   {chatLoading && (
-                    <div className="flex justify-start" role="status" aria-label="Local assistant is replying">
+                    <div className="flex justify-start" role="status" aria-label="Finance assistant is replying">
                       <div className="bg-canvas rounded-lg rounded-bl-sm px-4 py-3 flex gap-1">
-                        <span className="w-1.5 h-1.5 bg-surface rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <span className="w-1.5 h-1.5 bg-surface rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <span className="w-1.5 h-1.5 bg-surface rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                        <span className="w-1.5 h-1.5 bg-accent rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-1.5 h-1.5 bg-accent rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-1.5 h-1.5 bg-accent rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                       </div>
                     </div>
                   )}
@@ -635,18 +656,19 @@ export default function Dashboard() {
                 <div className="p-4 border-t border-line flex gap-2 flex-shrink-0">
                   <input
                     type="text"
+                    maxLength={4000}
                     value={chatInput}
                     onChange={e => setChatInput(e.target.value)}
                     onKeyDown={e => {
-                      if (e.key === 'Enter' && !e.shiftKey && !chatLoading) {
+                      if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent?.isComposing && !chatLoading) {
                         e.preventDefault()
                         handleSend()
                       }
                     }}
                     placeholder="Ask about your finances..."
-                    aria-label="Message local assistant"
+                    aria-label="Message finance assistant"
                     disabled={chatLoading}
-                    className="flex-1 rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50"
+                    className="min-w-0 flex-1 rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50"
                   />
                   <button
                     onClick={() => handleSend()}

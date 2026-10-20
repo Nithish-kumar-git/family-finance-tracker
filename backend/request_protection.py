@@ -66,6 +66,8 @@ class RequestProtectionMiddleware:
         if route is None:
             return []
         path = getattr(route, 'path', '')
+        if path == '/api/demo/ai/chat':
+            return ['ai']  # Shared provider budget; no household authentication or DB.
         if path == '/health':
             return ['health']
         if not is_protected_response({'route': route}):

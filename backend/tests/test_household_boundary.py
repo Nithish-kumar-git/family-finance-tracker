@@ -68,7 +68,7 @@ class HouseholdBoundaryTests(unittest.TestCase):
     def protected_requests(self):
         from fastapi.routing import APIRoute
         for route in self.app.routes:
-            if not isinstance(route, APIRoute) or not route.path.startswith('/api/') or route.path == '/api/reset':
+            if not isinstance(route, APIRoute) or not route.path.startswith('/api/') or route.path in {'/api/reset', '/api/demo/ai/chat'}:
                 continue
             path = re.sub(r'\{[^}]+\}', 'synthetic-guessed-record', route.path)
             for method in route.methods:

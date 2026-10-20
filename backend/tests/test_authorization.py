@@ -51,7 +51,7 @@ class AuthorizationTests(unittest.TestCase):
     def test_every_financial_and_ai_route_requires_identity_before_database(self):
         from fastapi.routing import APIRoute
         for route in self.app.routes:
-            if not isinstance(route, APIRoute) or not route.path.startswith('/api/') or route.path == '/api/reset':
+            if not isinstance(route, APIRoute) or not route.path.startswith('/api/') or route.path in {'/api/reset', '/api/demo/ai/chat'}:
                 continue
             for method in route.methods:
                 with self.subTest(path=route.path, method=method):

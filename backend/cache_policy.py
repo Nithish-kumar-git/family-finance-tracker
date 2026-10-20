@@ -15,7 +15,9 @@ def _requires_family_member(dependant):
 def is_protected_response(scope):
     # Inspect the matched route, including nested dependencies. Do not apply an
     # API-prefix or Authorization-header rule to unrelated public resources.
-    return _requires_family_member(getattr(scope.get('route'), 'dependant', None))
+    route = scope.get('route')
+    return (getattr(route, 'path', '') == '/api/demo/ai/chat'
+            or _requires_family_member(getattr(route, 'dependant', None)))
 
 
 class ProtectedResponseCacheMiddleware:
