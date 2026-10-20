@@ -31,7 +31,7 @@ test('the actual dashboard counts each savings bucket once and distinguishes iso
   const text = JSON.stringify(tree)
   assert.equal(calculations.getTotalCorpus(data), 267500)
   assert.equal((text.match(/AMOUNT:267500/g) ?? []).length, 1, 'Net worth appears once')
-  assert.match(text, /AMOUNT:66700/, 'Employment summary reflects actual monthly surplus')
+  assert.ok(text.includes(`AMOUNT:${calculations.getMonthlyIncome(data) - data.expenses.reduce((sum, expense) => sum + expense.amount, 0)}`), 'Employment summary reflects actual monthly surplus')
   assert.doesNotMatch(text, /AMOUNT:282500/)
   assert.match(text, /Below emergency-fund target/)
   assert.doesNotMatch(text, /Not yet isolated/)

@@ -19,7 +19,7 @@ async function loadApp() {
   await module.link(name => {
     let exports
     if (name === 'react-router-dom') exports = { ...router,
-      BrowserRouter: ({ children }) => React.createElement(router.MemoryRouter, { initialEntries: [renderState.path] }, children) }
+      BrowserRouter: ({ children, basename }) => React.createElement(router.MemoryRouter, { basename, initialEntries: ['/personal' + renderState.path] }, children) }
     else if (name.includes('FamilySession')) exports = { default: ({ children }) => children,
       useFamilySession: () => ({ member: renderState.member, loading: renderState.loading }) }
     else if (name.includes('useStore')) exports = { default: selector => selector(store) }
@@ -47,7 +47,7 @@ test('patched router renders every existing authorized route using the actual Ap
   for (const name of ['Dashboard','Expenses','Assets','Milestones','Report','Employment','Settings','Budgets']) {
     const html = await renderApp('/' + name.toLowerCase(), { profileId: 'nithish' })
     assert.match(html, new RegExp(`data-page="${name}"`))
-    assert.match(html, /href="\/expenses"/, 'Existing navigation links remain valid')
+    assert.match(html, /href="\/personal\/expenses"/, 'Existing navigation links remain valid')
   }
   assert.match(await renderApp('/', null), /data-page="Auth"/)
 })

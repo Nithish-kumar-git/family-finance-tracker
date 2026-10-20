@@ -1,3 +1,4 @@
+import { workspacePath } from '../utils/workspace.js'
 import { useState, useEffect } from 'react'
 import useStore, { saveLocalChanges } from '../store/useStore'
 import { useAssets } from '../hooks/useAssets'
@@ -431,7 +432,7 @@ export default function Assets() {
   const calculatedValue = parsedWeight * parsedPrice
 
   // ── Render ─────────────────────────────────────────────────────────────────
-  if (loadError) return <div role="alert" className="surface"><h2>Assets unavailable</h2><p className="text-muted mt-2">{loadError}</p><a className="text-accent underline" href="/settings">Open recovery</a></div>
+  if (loadError) return <div role="alert" className="surface"><h2>Assets unavailable</h2><p className="text-muted mt-2">{loadError}</p><a className="text-accent underline" href={workspacePath('/settings')}>Open recovery</a></div>
 
   return (
     <>
@@ -453,7 +454,7 @@ export default function Assets() {
       )}
 
       {/* ── Tab bar ── */}
-      <a href="/settings" className="block mb-4 text-sm text-accent underline">Add or edit any asset type in Settings → Edit household & financial records</a>
+      <a href={workspacePath('/settings')} className="block mb-4 text-sm text-accent underline">Add or edit any asset type in Settings → Edit household & financial records</a>
       <div className="sticky top-14 z-10 -mx-4 px-4 bg-canvas pt-2 pb-2 lg:mx-0 lg:rounded-lg lg:mb-4">
         <div className="flex items-center bg-white rounded-full p-1 ">
           {TABS.map((tab) => (

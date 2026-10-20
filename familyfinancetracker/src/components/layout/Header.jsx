@@ -1,3 +1,4 @@
+import { workspaceMode } from '../../utils/workspace.js'
 import { useFamilySession } from '../FamilySession.jsx'
 import { useLocation, useNavigate } from 'react-router-dom'
 import useStore from '../../store/useStore.js'
@@ -36,7 +37,7 @@ export default function Header() {
         {/* Install button + user avatar */}
         <div className="flex items-center gap-2">
           <PWAInstallButton />
-          <button
+          {workspaceMode === 'demo' ? <span className="text-xs font-medium text-accent">Interactive demo</span> : <button
             onClick={async () => { await session.signOut(); navigate('/') }}
             className="relative w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
             style={{ backgroundColor: color }}
@@ -46,7 +47,7 @@ export default function Header() {
             {isOffline && (
               <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border border-white" />
             )}
-          </button>
+          </button>}
         </div>
       </div>
     </header>

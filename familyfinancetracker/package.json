@@ -7,7 +7,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "test": "node --jitless --experimental-vm-modules --test tests/*.test.mjs",
+    "test": "node --experimental-vm-modules --test --test-concurrency=1 tests/*.test.mjs",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"

@@ -1,3 +1,5 @@
+import { workspaceMode } from '../utils/workspace.js'
+import DemoTools from '../components/DemoTools.jsx'
 import { authorizedFetch } from '../utils/authorizedFetch.js'
 // Settings page — income, sign-in, emergency fund, delete ops, reset, app info
 
@@ -303,11 +305,14 @@ export default function Settings() {
       </div>
       <hr className="border-line mb-8" />
 
+      <DemoTools />
+      {workspaceMode === 'personal' && <>
       <div className="mb-8">
         <SectionHeader icon={User} title="Family sign-in" />
         <p className="text-sm text-muted">Choose a profile and enter its browser PIN. PINs do not authorize cloud access. Existing personal records on this device are retained; the recruiter demo uses separate synthetic records.</p>
       </div>
       <RecoveryPanel />
+      </>}
       <WorkspaceEditor />
       <hr className="border-line mb-8" />
 
@@ -466,6 +471,7 @@ export default function Settings() {
       </div>
       <hr className="border-line mb-8" />
 
+      {workspaceMode === 'personal' && <>
       {/* ── Section E-1: Data Recovery ────────────────────────────────────── */}
       <div className="mb-8">
         <div className="rounded-lg border border-line border-l-4 border-l-accent bg-accent-soft p-4">
@@ -515,6 +521,7 @@ export default function Settings() {
       </div>
       <hr className="border-line mb-8" />
 
+      </>}
       {/* ── Section F: App Info ────────────────────────────────────────────── */}
       <div className="mb-8">
         <SectionHeader icon={Activity} title="App Info" />
@@ -528,7 +535,7 @@ export default function Settings() {
             <span className="text-sm text-muted">Built by</span>
             <span className="text-sm font-medium text-ink">
               Nithish —{' '}
-              <a href="#" className="text-accent underline">GitHub</a>
+              <a href="https://github.com/Nithish-kumar-git/family-finance-tracker" className="text-accent underline">GitHub</a>
             </span>
           </div>
           <div className="flex items-center justify-between px-4 py-3">

@@ -11,7 +11,7 @@ export default defineConfig({
       manifest: {
         name: 'FamilyFinanceTracker',
         short_name: 'FFTracker',
-        description: 'AI-powered family finance tracker for Chennai family',
+        description: 'Interactive personal-finance portfolio demo with isolated synthetic records',
         start_url: '/',
         display: 'standalone',
         background_color: '#ffffff',

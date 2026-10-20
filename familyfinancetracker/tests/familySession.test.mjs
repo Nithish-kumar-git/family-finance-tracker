@@ -46,10 +46,11 @@ async function componentHarness(file, dependencies, globals = {}) {
   }
 }
 
-async function sessionHarness({ restored = null, unlock = async () => {} } = {}) {
+async function sessionHarness({ restored = null, unlock = async () => {}, demo = false } = {}) {
   const writes = [], users = [{ id: 'mother', name: 'Synthetic parent' }]
   let locked = 0
   const h = await componentHarness('../src/components/FamilySession.jsx', {
+    '../utils/workspace.js': { workspaceMode: demo ? 'demo' : 'personal' },
     '../utils/localLogin.js': { unlockedProfile: () => restored, unlockProfile: unlock, lockWorkspace: () => { locked++ } },
     '../store/useStore.js': { default: { getState: () => ({ users, setCurrentUser: id => writes.push(id) }) } },
   })
@@ -96,6 +97,7 @@ test('original profile/PIN screen replaces email login and opens the existing da
     '../store/useStore.js': { default: selector => selector({ users: [{ id: 'mother', name: 'Synthetic parent' }] }) },
     '../utils/localLogin.js': { hasPin: () => true },
     '../utils/workspace.js': { workspaceMode: 'personal', switchWorkspace() {} },
+    '../components/DemoTools.jsx': { default: () => null },
     '../components/FamilySession.jsx': { useFamilySession: () => ({ member, signIn: async () => { calls++; member = { profileId: 'mother' } } }) },
   })
   const nodes = tree => { const all = []; const visit = n => { if (Array.isArray(n)) n.forEach(visit); else if (n?.props) { all.push(n); visit(n.props.children) } }; visit(tree); return all }
@@ -104,4 +106,21 @@ test('original profile/PIN screen replaces email login and opens the existing da
   nodes(h.render()).find(n => n.props['aria-label'] === 'Enter PIN').props.onChange({ target: { value: '1739' } })
   h.render(); await flush()
   const result = h.render(); assert.equal(result.type, Navigate); assert.equal(result.props.to, '/dashboard'); assert.equal(calls, 1)
+})
+
+test('public demo opens automatically without a profile chooser or private credential', async () => {
+  let unlocks = 0
+  const h = await sessionHarness({ demo: true, unlock: async () => { unlocks++ } })
+  h.render(); await flush()
+  assert.equal(h.render().props.value.member.demo, true)
+  assert.equal(h.render().props.value.member.profileId, 'mother')
+  assert.deepEqual(h.writes, ['mother'])
+  assert.equal(unlocks, 1)
+})
+test('failed demo initialization never activates a personal session', async () => {
+  const h = await sessionHarness({ demo: true, unlock: async () => { throw Error('Synthetic storage unavailable') } })
+  h.render(); await flush()
+  assert.equal(h.render().props.value.member, null)
+  assert.equal(h.render().props.value.loading, false)
+  assert.deepEqual(h.writes, [])
 })

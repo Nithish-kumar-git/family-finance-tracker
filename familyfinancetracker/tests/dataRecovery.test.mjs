@@ -115,6 +115,8 @@ test('actual Settings recovery control and actual Button are disabled with no ha
     '../store/useStore': { default: selector => selector(fakeStore), saveLocalChanges: unexpectedStateChange },
     '../components/WorkspaceEditor.jsx': { default: stub },
     '../components/RecoveryPanel.jsx': { default: stub },
+    '../components/DemoTools.jsx': { default: stub },
+    '../utils/workspace.js': { workspaceMode: 'personal' },
     '../utils/formatters': { formatCurrency: () => 'Synthetic amount' },
     '../components/ui/Button': { default: button.namespace.default },
     '../components/ui/Card': { default: stub },

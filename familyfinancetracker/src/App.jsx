@@ -80,7 +80,7 @@ function ProtectedLayout({ children }) {
 
         {/* User */}
         <div className="px-4 py-4 border-t border-line">
-          <div className="flex items-center gap-2.5">
+          {workspaceMode === 'demo' ? <div><p className="text-sm font-medium">Explore freely</p><p className="text-xs text-muted mt-1">Synthetic records · Browser only</p></div> : <div className="flex items-center gap-2.5">
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
               style={{ backgroundColor: user?.color ?? '#245C46' }}
@@ -91,7 +91,7 @@ function ProtectedLayout({ children }) {
               <p className="text-sm font-semibold text-ink">{user?.name ?? 'User'}</p>
               <p className="text-xs text-muted">Active</p>
             </div>
-          </div>
+          </div>}
         </div>
       </aside>
 
@@ -99,8 +99,8 @@ function ProtectedLayout({ children }) {
       <div className="lg:ml-56 flex flex-col min-h-screen lg:border-l lg:border-line bg-canvas">
         <Header />
         <div className="bg-accent-soft border-b border-line px-4 py-2 text-xs text-accent flex flex-wrap gap-2 justify-between">
-          <span>{workspaceMode === 'demo' ? 'RECRUITER DEMO · Synthetic data · Separate browser storage' : 'PERSONAL · This device only · Cloud sync disconnected'}</span>
-          <button className="underline font-semibold" onClick={() => switchWorkspace(workspaceMode === 'demo' ? 'personal' : 'demo')}>{workspaceMode === 'demo' ? 'Personal workspace' : 'Recruiter demo'}</button>
+          <span>{workspaceMode === 'demo' ? 'INTERACTIVE DEMO · Synthetic data · Edits stay in this browser' : 'PERSONAL · This device only · Cloud sync disconnected'}</span>
+          {workspaceMode === 'personal' && <button className="underline font-semibold" onClick={() => switchWorkspace('demo')}>Return to public demo</button>}
         </div>
         {persistenceError && <p role="alert" className="bg-red-50 p-3 text-sm text-red-800">{persistenceError}</p>}
 
@@ -155,9 +155,9 @@ function ProtectedLayout({ children }) {
 
 function AuthenticatedApp() {
   const session = useFamilySession()
-  if (session.loading) return <p role="status" className="p-8 text-center">Verifying family access…</p>
+  if (session.loading) return <p role="status" className="p-8 text-center">{workspaceMode === 'demo' ? 'Opening the interactive demo…' : 'Verifying family access…'}</p>
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={workspaceMode === 'personal' ? '/personal' : undefined}>
       <Routes>
         {/* Public route */}
         <Route path="/" element={<Auth />} />

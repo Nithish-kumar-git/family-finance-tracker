@@ -1,255 +1,128 @@
-<div align="center">
+# Family Finance Tracker
 
-# FamilyFinanceTracker
+An interactive personal-finance dashboard for exploring expenses, budgets, assets, goals and monthly reports.
 
-**AI-powered family finance PWA — built for real, used daily**
+**[Open the live demo →](https://scintillating-donut-a597ff.netlify.app/)**
 
-[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org) [![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com) [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=white)](https://react.dev) [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com) [![Gemini AI](https://img.shields.io/badge/Gemini-2.5_Flash-4285F4?style=flat-square&logo=google&logoColor=white)](https://ai.google.dev) [![Netlify](https://img.shields.io/badge/Netlify-Live-00C7B7?style=flat-square&logo=netlify&logoColor=white)](https://scintillating-donut-a597ff.netlify.app)
+The public site opens directly into a synthetic household. No account, PIN or email is required. Edit records freely: demo changes stay in your browser and never reach the private household database.
 
-[**→ Live Demo**](https://scintillating-donut-a597ff.netlify.app) · [API Health](https://family-finance-tracker-pearl.vercel.app/health)
+## Explore the demo
 
-> *"A full-stack finance tracker built for real family use, with AI-powered expense parsing,*
-> *financial insights, and a natural language chatbot. Live and used daily by my family in Chennai."*
+- **Dashboard:** recorded net worth, monthly income, expenses, savings and upcoming goals.
+- **Expenses:** categorized entries, recurring transactions, monthly history, filtering and deletion acknowledgements.
+- **Budgets:** editable category limits, spending progress and overspend indicators.
+- **Assets:** fixed deposits, mutual funds, insurance, savings groups and gold.
+- **Goals and employment:** editable milestones, application tracking and budget-based income projections.
+- **Reports:** monthly cash flow, asset breakdown, alerts, local snapshots and report export.
+- **Settings:** editable synthetic household details, income, browser backups and a demo-only reset.
 
-</div>
+All balances, names, transactions and notes in the public demo are fictional. The local assistant provides a clearly labelled deterministic summary; the public demo does not call an AI provider.
 
----
+## Screenshot
 
-## What makes this different
+![Live synthetic demo dashboard](docs/screenshots/demo-dashboard.png)
 
-Most portfolio projects are tutorials with fake data. This one is different:
+## Stack and architecture
 
-- **Real users** — three family members in Chennai use this daily to track ₹64 lakh in savings, upcoming FD maturities, LIC premium deadlines, and a job search
-- **Real AI** — Google Gemini parses actual UPI bank notifications, generates monthly financial insights in Tamil-household-friendly English, and answers natural language questions about live financial data
-- **Real architecture** — offline-first PWA with localStorage fallback, so the app works during Vercel cold starts and no data is lost on network failure
+| Layer | Implementation |
+| --- | --- |
+| Frontend | React 18, Vite, React Router, Zustand |
+| UI | Tailwind CSS, shared design tokens, Lucide icons, Recharts |
+| Browser persistence | Separate demo and personal localStorage namespaces; session-scoped unlock state |
+| API source | Python, FastAPI, Pydantic and SQLAlchemy |
+| Database | PostgreSQL hosted on Supabase, accessed directly by the backend |
+| Hosting | Existing Netlify frontend and Vercel backend projects |
+| PWA | Service-worker app shell; API requests configured as network-only |
 
----
+```text
+Public demo → React → isolated synthetic browser repository
+                         └─ fft_demo_data_v2 (this browser only)
 
-## Screenshots
+Owner entry → /personal/ → original profile/PIN browser workspace
+                         └─ fft_data (preserved; cloud sync disconnected)
 
-### Login Screen
-![Login](docs/screenshots/auth.png)
-*Clean dark login — three family members, PIN authentication*
-
-### Dashboard
-![Dashboard](docs/screenshots/dashboard.png)
-*Dark hero with live financial summary — corpus, income, expenses in one view*
-
-### Expense Tracker
-![Expenses](docs/screenshots/expenses.png)
-*AI-powered expense entry — paste a UPI notification to auto-fill the form*
-
-### Monthly Report
-![Report](docs/screenshots/report.png)
-*One-click report generation with Gemini AI insights and Claude analysis export*
-
-### Milestones & Goals
-![Milestones](docs/screenshots/milestones.png)
-*Urgent deadline tracking — 8 urgent actions, upcoming FD maturities and LIC premiums*
-
-### Ask Amma AI
-![Ask Amma AI](docs/screenshots/chatbot.png)
-*Natural language finance chatbot — answers questions using live family financial data*
-
----
-
-## AI Features (the portfolio centrepiece)
-
-### 1. Smart UPI / SMS Transaction Parser
-
-Paste any Indian bank SMS or UPI notification. Gemini extracts the amount, merchant name, and expense category automatically — filling the add-expense form in under a second.
-
-```
-Input: "SBI UPI: Rs.1,200 paid to BIGBASKET via UPI Ref 12345"
-
-Output: {
-  amount: 1200,
-  category: "groceries",
-  description: "BigBasket",
-  confidence: 0.97
-}
+Protected FastAPI API → server-verified authorization → SQLAlchemy → PostgreSQL
 ```
 
-### 2. Ask Amma AI — Finance Chatbot
+The URL selects the workspace. Public links always enter the demo; `/personal/` deliberately opens the separate owner entry. A stale session marker cannot change that boundary. Demo initialization and reset never read personal records, PINs or recovery archives. Earlier demo storage is retained rather than silently migrated into either workspace.
 
-A floating chat interface on the Dashboard. Family members ask questions in plain English. The AI receives the complete live financial context (income, expenses, corpus, upcoming milestones, employment status) with every message.
+### Personal persistence: current limitation
 
-```
-"What happens if Nithish gets a ₹35,000 job?"
+The owner’s existing browser PIN flow is preserved, but it is **not server authentication**. The guarded backend currently validates allowlisted Supabase identities, while the browser PIN workspace supplies no such identity. Personal changes therefore remain device-local; cross-device database synchronization is **not connected**. No email-link login is presented in the app.
 
-→ "At ₹35,000/month, your monthly deficit drops from ₹48,196 to ₹13,196. 
-   Abeerami's post-marriage contribution of ₹15,000 would bring you to a 
-   surplus of ₹1,804/month — effectively ending the deficit."
-```
+Before using this release for new historical household entries, a separate approved server-authentication integration is needed. That integration must load existing database records, acknowledge server writes before updating caches, and preserve drafts on failure. Do not assume a browser save is a database save. This release does not reset, seed, migrate or change permissions on the production database.
 
-### 3. Monthly Financial Insights
+## Engineering details
 
-One-click generation of 5 plain-English observations about the month's finances. Prompted specifically for a non-finance-background Chennai household — no jargon, exact rupee amounts, actionable observations.
+- Pure financial calculations are shared with regression tests. Reports include legacy expense categories instead of silently dropping them.
+- Month validation and failed-write/delete handling protect the request contracts.
+- The backend includes authentication/household authorization, disabled destructive reset, AI input limits, protected-response `no-store`, CORS error handling, request-body limits and per-process rate limiting.
+- Per-process throttling is not a global Vercel rate-limit guarantee. Hosted infrastructure enforcement must be verified separately.
+- Browser recovery preserves original source bytes and keeps differing record versions for explicit review. It is unavailable to the demo.
+- The Gemini integration remains in backend source, with sanitized provider errors. It is disconnected from the public demo.
 
----
+## Run locally
 
-## Full Feature List
+Requires Node.js 22+ and npm; Node.js 24 is recommended for running the tests on Windows. From the repository root:
 
-**Core tracking**
-- Multi-user PIN auth (3 family members, each with a 4-digit PIN)
-- Expense logging with 10 categories, recurring expense support, AI auto-fill
-- Budget management with real-time per-category progress bars and overspend alerts
-- Monthly report generator — produces structured JSON + one-click Claude AI analysis export
-
-**Asset tracker**
-- Fixed Deposits — maturity countdowns, purpose tagging, auto-renew warnings
-- Mutual Funds — current value vs invested amount, gain/loss, Switch-to-Direct alerts
-- LIC policies — premium due reminders, paid-up eligibility tracking, Mark Paid workflow
-- Chit Funds — monthly contribution tracking, completion timeline
-- Physical Gold — weight × live price calculation, last-updated timestamp
-
-**Milestones**
-- 16 pre-loaded family action items across 2026–2028
-- Urgent/dangerous deadline flagging with pulsing indicators
-- Timeline view for upcoming items, category filters
-
-**Employment**
-- Job application pipeline (Applied → Interview → Offer → Accepted)
-- Weekly progress tracking vs 25 applications/week target
-- Live impact calculator: "At ₹X salary, family deficit becomes ₹Y"
-
-**PWA**
-- Installable on Android (Chrome) and iOS (Safari) from the browser
-- Offline-first: localStorage fallback activates silently on network failure
-- Service worker caches app shell for instant loads
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 18, Vite, Tailwind CSS v3, Recharts, Lucide React, date-fns |
-| State | Zustand with localStorage persistence |
-| Backend | Python 3.11, FastAPI, SQLAlchemy ORM, pandas, Uvicorn |
-| Database | Supabase (PostgreSQL, free tier) |
-| AI | Google Gemini API — gemini-2.5-flash-lite |
-| Deployment | Netlify (frontend auto-deploy) + Vercel serverless (backend) |
-| PWA | vite-plugin-pwa with Workbox service worker |
-
----
-
-## Architecture
-
-```
-[Android / iOS / Desktop Browser]
-         │
-         │ PWA — runs without browser chrome
-         ▼
-[React 18 + Vite + Tailwind] ←── localStorage (offline fallback)
-         │
-         │ api.js — fetch with automatic offline fallback
-         │ On network error: serves cached data, sets isOffline flag
-         ▼
-[FastAPI on Vercel Serverless]
-         │
-         │ SQLAlchemy ORM + pandas
-         │ google-genai SDK
-         │ Monthly aggregation
-         │ 3 AI endpoints
-         ▼                    ▼
-[Supabase PostgreSQL]   [Gemini 2.5 Flash Lite]
-```
-
-**Offline behaviour:** When `api.js` receives a network error, it sets `isOffline: true` in Zustand, shows a red dot in the header, and returns Zustand store data (persisted to localStorage). The user sees no error. Writes queue locally and sync when connectivity returns.
-
----
-
-## Project Structure
-
-```
-family-finance-tracker/
-├── backend/                    Python FastAPI backend
-│   ├── main.py                 App entry, CORS, router registration
-│   ├── models.py               SQLAlchemy ORM (13 tables)
-│   ├── schemas.py              Pydantic request/response schemas
-│   ├── seed.py                 One-time table creation + family data
-│   ├── services/
-│   │   ├── ai_service.py       Gemini API — all 3 AI features
-│   │   └── analytics_service.py pandas aggregation
-│   └── routers/                7 route modules
-│
-└── familyfinancetracker/       React 18 PWA
-    └── src/
-        ├── pages/              9 pages
-        ├── hooks/              useExpenses, useAssets, useReport, usePWAInstall
-        ├── components/         layout/, ui/, charts/
-        ├── store/              Zustand + localStorage persistence
-        └── utils/              api.js (offline fallback), formatters, calculations
-```
-
----
-
-## Local Development
-
-**Prerequisites:** Python 3.11+, Node.js 18+, Supabase account
-
-```bash
-# Clone
-git clone https://github.com/Nithish-kumar-git/family-finance-tracker.git
-cd family-finance-tracker
-
-# Backend
-cd backend
-cp .env.example .env     # Fill in SUPABASE_DATABASE_URL and GEMINI_API_KEY
-pip install -r requirements.txt
-python seed.py           # creates tables + inserts family data
-uvicorn main:app --reload --port 8000
-
-# Frontend (new terminal)
+```sh
 cd familyfinancetracker
-npm install
-echo "VITE_API_URL=http://localhost:8000" > .env.local
-npm run dev              # → http://localhost:5173
+npm ci
+npm run dev
 ```
 
-Login: Amma (PIN 1111) · Nithish (PIN 2222) · Abeerami (PIN 3333)
+Open the URL Vite prints. `/` opens the interactive demo; `/personal/` opens the owner PIN workspace. The demo needs no database, Supabase credentials or AI key.
 
----
+### Optional backend development
 
-## Environment Variables
+Use a **local or isolated development PostgreSQL database**, never production. From the repository root:
 
-**backend/.env**
-```
-SUPABASE_DATABASE_URL=postgresql://postgres:[password]@db.[ref].supabase.co:5432/postgres
-GEMINI_API_KEY=AIza...
-FRONTEND_URL=https://scintillating-donut-a597ff.netlify.app
-```
-
-**familyfinancetracker/.env.local**
-```
-VITE_API_URL=https://family-finance-tracker-pearl.vercel.app
+```sh
+python -m venv .venv
+# Activate .venv using your shell's normal activation command.
+python -m pip install -r backend/requirements.txt
+cd backend
+uvicorn main:app --reload
 ```
 
----
+Configure secrets privately using your local environment. Never commit `.env` files or paste connection strings into issues.
 
-## Resume Highlights
+| Variable name | Purpose |
+| --- | --- |
+| `SUPABASE_DATABASE_URL` | Backend SQLAlchemy PostgreSQL connection |
+| `SUPABASE_URL` | Backend identity-verification project URL |
+| `SUPABASE_PUBLISHABLE_KEY` | Backend Supabase Auth verification key |
+| `FAMILY_EMAIL_PROFILES` | Server-controlled approved identity-to-profile mapping |
+| `FRONTEND_URL` | Explicit backend CORS origin allowlist |
+| `GEMINI_API_KEY` | Optional backend Gemini provider credential |
+| `VITE_API_URL` | Backend URL used by API helpers; public demo transport remains local |
 
-- **Built full-stack PWA** — Python FastAPI backend deployed as Vercel serverless functions, React 18 frontend on Netlify, PostgreSQL on Supabase; entirely free infrastructure
-- **Integrated Google Gemini API** (gemini-2.5-flash-lite) to auto-categorise raw UPI/SMS bank notifications into 10 expense categories; zero-error offline design via localStorage fallback
-- **Built production AI chatbot** (Ask Amma AI) with live financial context injection; app actively used by a family of three in Chennai
-- **Used pandas + SQLAlchemy ORM** for monthly expense aggregation, budget variance analysis, and 6-month trend generation from Supabase PostgreSQL
-- **Offline-first PWA architecture** — automatic localStorage fallback in React ensures zero data loss during Vercel cold starts or network failure
+The public demo does not need `VITE_SUPABASE_URL` or `VITE_SUPABASE_PUBLISHABLE_KEY`. Existing hosting variables are preserved; their presence does not enable private synchronization.
 
----
+Do not run historical seed/restore scripts against a household database. The repository does not have a verified complete PostgreSQL schema baseline for bootstrapping a fresh production installation.
 
-## Deployment
+## Tests and production build
 
-Full deployment guide: [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
+```sh
+cd familyfinancetracker
+npm test
+npm run build
+```
 
-Live: [https://scintillating-donut-a597ff.netlify.app](https://scintillating-donut-a597ff.netlify.app)
+The frontend suite uses synthetic records, mocked transports and blocked external calls. Windows Node.js 22.20 can crash in the experimental VM-module test harness; the installed Node.js 24 runtime completes the suite. It covers PIN behavior, workspace isolation, acknowledgement failures, recovery preservation, financial calculations and router behavior.
 
----
+Backend regression suites are Python `unittest` tests using SQL-free guards or synthetic SQLite:
 
-<div align="center">
+```sh
+python -m unittest discover -s backend/tests -p "test_*.py"
+```
 
-Built by <a href="https://github.com/Nithish-kumar-git">Nithish</a> · Chennai, 2026 · MIT License
+Local tests do not prove hosted PostgreSQL behavior or authenticated cross-device workflows. The production build currently emits a bundle-size warning; code splitting is a future performance improvement, not a claim of failed functionality.
 
-</div>
+## Repository and release links
 
----
+- [Public demo](https://scintillating-donut-a597ff.netlify.app/)
+- [Source and release branch](https://github.com/Nithish-kumar-git/family-finance-tracker/tree/codex/finance-reliability-20261016)
+- [Backend health](https://family-finance-tracker-pearl.vercel.app/health) — separate from the public demo’s browser persistence
+
+The public frontend and backend are independently deployed. A frontend publication does not imply that the matching backend revision was deployed or that personal database synchronization works.

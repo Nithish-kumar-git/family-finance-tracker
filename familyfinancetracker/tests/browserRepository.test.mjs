@@ -14,7 +14,7 @@ test('the actual application transport routes production-looking URLs locally wi
   const h = await unlocked()
   const response = await h.transport(url('/api/expenses'))
   assert.equal(response.local, true)
-  assert.equal((await response.json()).expenses.length, 2)
+  assert.equal((await response.json()).expenses.length, h.workspace.syntheticData().expenses.length)
   const pending = h.transport(url('/api/expenses'), { method: 'POST', body: JSON.stringify({ id: 'local-decimal', amount: 17.25, date: '2026-12-01', userId: 'mother', category: 'other' }) })
   assert.equal((await pending).status, 201)
   assert.equal(h.store.getState().expenses.find(e => e.id === 'local-decimal').amount, 17.25)

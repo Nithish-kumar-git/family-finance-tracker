@@ -37,7 +37,7 @@ test('recruiter demo requires no private credential and never loads or overwrite
   assert.equal(storage.getItem('fft_data'), original)
   assert.equal(storage.getItem('fft_currentUser'), 'mother')
   assert.equal(storage.getItem('fft_nithish_status'), 'private-status')
-  assert.ok(storage.getItem('fft_demo_data_v1'))
+  assert.ok(storage.getItem('fft_demo_data_v2'))
 })
 
 test('corrupt personal data is preserved rather than silently replaced by an empty workspace', async () => {

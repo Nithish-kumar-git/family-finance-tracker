@@ -1,3 +1,4 @@
+import DemoTools from '../components/DemoTools.jsx'
 import { useState, useRef, useEffect } from 'react'
 import { Navigate } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
@@ -23,6 +24,7 @@ export default function Auth() {
   useEffect(() => { input.current?.focus() }, [selected])
   useEffect(() => { if (selected && pin.length === 4 && !setup && workspaceMode !== 'demo') unlock(selected, pin) }, [selected, pin, setup])
   if (session.member) return <Navigate to="/dashboard" replace />
+  if (workspaceMode === 'demo') return <div className="min-h-screen bg-canvas flex items-center justify-center"><div className="surface max-w-md"><h1>Demo storage unavailable</h1><p className="text-muted my-4">Allow browser storage or use Settings to reset only the synthetic demo. Personal records have not been accessed.</p><DemoTools /></div></div>
   return <div className="min-h-screen bg-canvas">
     <div className="max-w-md mx-auto px-6 py-10 flex flex-col justify-center min-h-screen">
       <div className="w-16 h-16 rounded-lg bg-accent flex items-center justify-center mx-auto mb-6"><span className="text-2xl font-bold text-white">₹</span></div>

@@ -161,3 +161,13 @@ useStore.subscribe(state => {
 })
 
 export default useStore
+
+// Explicitly disposable synthetic data only. Neither private storage nor its PIN is inspected.
+export function resetDemoWorkspace() {
+  if (workspaceMode !== 'demo') throw Error('Demo reset is unavailable in personal mode.')
+  const next = { ...INITIAL_DATA, ...syntheticData(), currentUser: useStore.getState().currentUser,
+    storageReadError: false, persistenceError: '', recoveryConflicts: [], recoveryStatus: null }
+  writeWorkspace(next)
+  useStore.setState(next)
+  try { localStorage.removeItem(workspaceKey('fft_nithish_status')) } catch { /* Financial records already saved. */ }
+}
