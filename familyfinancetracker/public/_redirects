@@ -8,3 +8,15 @@
 /employment  /index.html  200
 /settings  /index.html  200
 /budgets  /index.html  200
+
+# Deliberate owner entry and deep links; never rewrite arbitrary API requests.
+/personal  /index.html  200
+/personal/  /index.html  200
+/personal/dashboard  /index.html  200
+/personal/expenses  /index.html  200
+/personal/assets  /index.html  200
+/personal/budgets  /index.html  200
+/personal/milestones  /index.html  200
+/personal/employment  /index.html  200
+/personal/report  /index.html  200
+/personal/settings  /index.html  200

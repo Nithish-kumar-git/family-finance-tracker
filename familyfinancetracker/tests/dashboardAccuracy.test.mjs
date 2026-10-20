@@ -38,7 +38,7 @@ test('the actual dashboard counts each savings bucket once and distinguishes iso
 })
 
 test('Netlify revalidates the app shell and does not cache service-worker update files', () => {
-  const headers = readFileSync(new URL('../public/_headers', import.meta.url), 'utf8')
+  const headers = readFileSync(new URL('../public/_headers', import.meta.url), 'utf8').replaceAll('\r\n', '\n')
   assert.match(headers, /\/sw\.js\n\s+Cache-Control: no-store, must-revalidate/)
   assert.match(headers, /\/index\.html\n\s+Cache-Control: no-cache, must-revalidate/)
 })

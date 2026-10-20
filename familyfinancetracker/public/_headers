@@ -6,3 +6,7 @@
   Cache-Control: no-store, must-revalidate
 /registerSW.js
   Cache-Control: no-store, must-revalidate
+/personal
+  Cache-Control: no-store, must-revalidate
+/personal/*
+  Cache-Control: no-store, must-revalidate

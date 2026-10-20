@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { browserHarness, memoryStorage } from './browserHarness.mjs'
@@ -55,4 +56,14 @@ test('demo reset restores only synthetic collections; no private data or PIN key
 test('personal mode cannot invoke the demo reset', async () => {
   const h = await browserHarness()
   assert.throws(() => h.resetDemoWorkspace(), /unavailable in personal/)
+})
+
+test('Netlify explicitly serves owner deep links and keeps API paths outside SPA rewrites', () => {
+  const redirects = readFileSync(new URL('../public/_redirects', import.meta.url), 'utf8')
+  const rules = redirects.split(/\r?\n/).filter(line => line.trim() && !line.trim().startsWith('#')).map(line => line.trim().split(/\s+/))
+  for (const path of ['/personal', '/personal/', ...['dashboard', 'expenses', 'assets', 'budgets', 'milestones', 'employment', 'report', 'settings'].map(page => '/personal/' + page)]) {
+    assert.ok(rules.some(rule => rule[0] === path && rule[1] === '/index.html' && rule[2] === '200'), path)
+  }
+  assert.equal(rules.some(rule => rule[0] === '/*' || rule[0].startsWith('/api')), false)
+  assert.match(readFileSync(new URL('../public/_headers', import.meta.url), 'utf8'), /\/personal\/\*\r?\n\s+Cache-Control: no-store/)
 })
