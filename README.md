@@ -18,11 +18,33 @@ The public site opens directly into a synthetic household. No account, PIN or em
 
 All balances, names, transactions and notes in the public demo are fictional. The finance assistant calls Gemini through FastAPI using a server-owned synthetic example. Browser financial records and edits are never uploaded by demo chat. Do not enter private details into demo questions.
 
-## Screenshot
+## Current screenshots
 
-![Live synthetic demo dashboard](docs/screenshots/demo-dashboard.png)
+Captured from the deployed synthetic demo on **21 October 2026**. These are actual application screenshots, with no private household records or generated mockups.
 
-![Finance assistant with synthetic-only context disclosure](docs/screenshots/demo-assistant.png)
+### Dashboard
+
+Income, recorded assets, expenses and savings for the fictional household.
+
+![Synthetic household dashboard](docs/screenshots/demo-dashboard.jpg)
+
+### Expense history
+
+Monthly records and member filters. Financial edits persist in this browser, not the production database.
+
+![Synthetic expense history and filters](docs/screenshots/demo-expenses.jpg)
+
+### Budgets
+
+Category spending, editable limits and near-limit alerts.
+
+![Synthetic category budgets and spending](docs/screenshots/demo-budgets.jpg)
+
+### Gemini assistant
+
+A genuine provider response identifies the example's ₹46,420 monthly surplus and ₹14,000 household spending. The assistant uses the server-owned example; browser edits are excluded.
+
+![Gemini response using only the synthetic example](docs/screenshots/demo-assistant.jpg)
 
 ## Stack and architecture
 
@@ -37,14 +59,14 @@ All balances, names, transactions and notes in the public demo are fictional. Th
 | PWA | Service-worker app shell; API requests configured as network-only |
 
 ```text
-Public demo → React → isolated synthetic browser repository
-                  └─ POST /api/demo/ai/chat → fixed synthetic context → Gemini
-                         └─ fft_demo_data_v2 (this browser only)
+Public demo → React
+              ├─ Financial edits → browser repository → fft_demo_data_v2
+              └─ Chat → FastAPI /api/demo/ai/chat → fixed synthetic context → Gemini
 
-Owner entry → /personal/ → original profile/PIN browser workspace
-                         └─ fft_data (preserved; cloud sync disconnected)
+Owner /personal/ → profile/PIN → browser repository → fft_data
+                               (device-local; cloud sync disconnected)
 
-Protected FastAPI API → server-verified authorization → SQLAlchemy → PostgreSQL
+Separate protected API → verified household identity → SQLAlchemy → PostgreSQL
 ```
 
 The URL selects the workspace. Public links always enter the demo; `/personal/` deliberately opens the separate owner entry. A stale session marker cannot change that boundary. Demo initialization and reset never read personal records, PINs or recovery archives. Earlier demo storage is retained rather than silently migrated into either workspace.
@@ -91,7 +113,7 @@ cd backend
 uvicorn main:app --reload
 ```
 
-Configure secrets privately using your local environment. Never commit `.env` files or paste connection strings into issues.
+Configure secrets privately using your local environment. Never commit `.env` files or paste connection strings into issues. Existing backend environment files may refer to a household database: verify the target privately before starting the backend. For local chat, set frontend `VITE_API_URL` to the local backend origin and include the Vite development origin in backend `FRONTEND_URL` before starting the servers. Do not point local financial tests at production.
 
 | Variable name | Purpose |
 | --- | --- |
@@ -125,10 +147,22 @@ python -m unittest discover -s backend/tests -p "test_*.py"
 
 Local tests do not prove hosted PostgreSQL behavior or authenticated cross-device workflows. The production build currently emits a bundle-size warning; code splitting is a future performance improvement, not a claim of failed functionality.
 
+## Hosting and release status
+
+Netlify uses `familyfinancetracker` as its base, `npm run build` and `dist` output. Its production branch is `main`; automatic publishing is paused. Vercel hosts the separate FastAPI project using its existing Git integration and `backend/vercel.json`. No hosting settings were changed for this documentation release.
+
+On 21 October 2026, both platforms confirmed deployed application revision `f794d8a666f00c3e5b768dcdbbee528d8bbef834`. Live checks confirmed direct demo entry, expense history, budgets, a real Gemini answer, backend health reporting connected, and HTTP 401 for missing-token `/api/auth/me`. These checks do not establish personal cloud synchronization or production database role privileges.
+
+Application source and tests are unchanged by this portfolio documentation release. The last complete verification at that application revision was **95 backend tests and 189 frontend tests passing, zero failures or skips**, plus a successful production build with the bundle-size warning. The full suites were not rerun just for screenshots and documentation.
+
+A newer documentation-only commit does not need a manual app redeployment. Existing Git integration may create builds automatically when branches move; compare runtime source and actual platform metadata. The handoff records point-in-time deployment identifiers and safe resumption instructions.
+
 ## Repository and release links
 
 - [Public demo](https://scintillating-donut-a597ff.netlify.app/)
-- [Source and release branch](https://github.com/Nithish-kumar-git/family-finance-tracker/tree/codex/finance-reliability-20261016)
+- [Source on the default branch](https://github.com/Nithish-kumar-git/family-finance-tracker)
+- [Project handoff and resumption guide](docs/FAMILY_FINANCE_TRACKER_HANDOFF.md)
+- [Implementation history](https://github.com/Nithish-kumar-git/family-finance-tracker/tree/codex/finance-reliability-20261016)
 - [Backend health](https://family-finance-tracker-pearl.vercel.app/health) — separate from the public demo’s browser persistence
 
 The public frontend and backend are independently deployed. A frontend publication does not imply that the matching backend revision was deployed or that personal database synchronization works.
