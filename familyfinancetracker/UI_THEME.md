@@ -1,6 +1,8 @@
-# Family Finance Tracker — Ink & Ivory Theme Overhaul
+# Finora — historical Ink & Ivory theme overhaul
 
-This document summarizes the complete UI overhaul implementing the "Ink & Ivory" design direction across the Family Finance Tracker web application.
+> Historical UI implementation record. The current Finora identity uses the navy/mint F monogram documented in the [project handoff](../docs/FAMILY_FINANCE_TRACKER_HANDOFF.md). The design details below describe the earlier theme phase, not a replacement branding specification.
+
+This document summarizes the complete UI overhaul implementing the "Ink & Ivory" design direction across the Finora web application (then named Family Finance Tracker).
 
 ## Design Direction
 **Name:** Ink & Ivory

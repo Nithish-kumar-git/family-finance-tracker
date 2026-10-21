@@ -14,7 +14,7 @@ Personal finance tracking and analytics: explore expenses, budgets, assets, goal
 
 **[Open the live demo →](https://scintillating-donut-a597ff.netlify.app/)**
 
-**Branding status:** Finora is implemented and verified locally. The live frontend still shows its previous identity until an authorized manual Netlify publication; automatic publishing remains paused.
+**Live branding:** Finora is published on the existing Netlify site and verified in the browser, including its F monogram and favicon. Automatic publishing remains paused.
 
 The public site opens directly into a synthetic household. No account, PIN or email is required. Edit records freely: demo changes stay in your browser and never reach the private household database.
 
@@ -30,9 +30,9 @@ The public site opens directly into a synthetic household. No account, PIN or em
 
 All balances, names, transactions and notes in the public demo are fictional. The finance assistant calls Gemini through FastAPI using a server-owned synthetic example. Browser financial records and edits are never uploaded by demo chat. Do not enter private details into demo questions.
 
-## Production screenshots — before Finora publication
+## Finora production screenshots
 
-These four genuine captures show the published synthetic demo on **21 October 2026**, before the Finora frontend publication. The earlier product identity remains visible. The local Finora title, wordmark and loaded icon were checked in the browser, but its screenshot API could not return an image; the existing captures are preserved rather than fabricated or presented as the new deployed brand.
+These four genuine captures show **Finora running in production on 21 October 2026**, at frontend revision `5d60cc3`. They use only the fictional demo household. The Finora wordmark and F monogram are visible throughout.
 
 ### Dashboard
 
@@ -54,7 +54,7 @@ Category spending, editable limits and near-limit alerts.
 
 ### Gemini assistant — verified production response
 
-The previous product identity remains visible in this production capture. A genuine provider response identifies the example's ₹46,420 monthly surplus and ₹14,000 household spending. The assistant uses the server-owned example; browser edits are excluded.
+A genuine Gemini response explains the example’s ₹46,420 monthly surplus: ₹70,000 income minus ₹23,580 expenses. The assistant uses the server-owned example; browser edits are excluded.
 
 ![Gemini response using only the synthetic example](docs/screenshots/demo-assistant.jpg)
 
@@ -163,11 +163,11 @@ Local tests do not prove hosted PostgreSQL behavior or authenticated cross-devic
 
 Netlify uses `familyfinancetracker` as its base, `npm run build` and `dist` output. Its production branch is `main`; automatic publishing is paused. Vercel hosts the separate FastAPI project using its existing Git integration and `backend/vercel.json`. No hosting settings were changed for this documentation release.
 
-On 21 October 2026, both platforms confirmed deployed application revision `f794d8a666f00c3e5b768dcdbbee528d8bbef834`. Live checks confirmed direct demo entry, expense history, budgets, a real Gemini answer, backend health reporting connected, and HTTP 401 for missing-token `/api/auth/me`. These checks do not establish personal cloud synchronization or production database role privileges.
+At the 21 October 2026 documentation refresh, both hosting platforms confirmed production revision `5d60cc33219576260e3ccc4742428f68e6f1b456`. Finora’s title, monogram, favicon, direct demo entry, expense history, budgets and genuine Gemini response were verified live. Earlier live checks recorded backend health reporting connected and HTTP 401 for missing-token `/api/auth/me`; they were not repeated for this screenshot refresh. None of these checks establishes personal cloud synchronization or production database role privileges.
 
-The preceding portfolio documentation release did not change application source or tests. This Finora pass changes only presentation assets, visible brand text and metadata; authentication, API behavior, financial logic and storage keys are unchanged. The last complete verification at that application revision was **95 backend tests and 189 frontend tests passing, zero failures or skips**, plus a successful production build with the bundle-size warning. Those full suites were not repeated for branding. The current focused route/session/demo checks passed **17 tests, zero failures or skips**; the current production build result is recorded in the handoff.
+The Finora branding release changed presentation assets, visible brand text and metadata; authentication, API behavior, financial logic and storage keys were unchanged. The last complete verification at functional checkpoint `f794d8a` was **95 backend tests and 189 frontend tests passing, zero failures or skips**, plus a successful production build with the bundle-size warning. Branding verification at `5d60cc3` passed **17 focused route/session/demo tests, zero failures or skips**, and the production build. This subsequent documentation/screenshot refresh changes no runtime code; those suites and the build were not rerun.
 
-Finora frontend publication requires a reviewed build of the new branding commit, then a manual production deployment to the existing Netlify site; keep automatic publishing paused. No backend code change or manual backend deployment is needed. A documentation-only commit alone would not need app redeployment. Existing Git integration may create builds automatically when branches move; compare runtime source and actual platform metadata. The handoff records point-in-time deployment identifiers and safe resumption instructions.
+Finora’s manual frontend publication is complete; Netlify automatic publishing remains paused. This documentation-only refresh needs no manual frontend or backend deployment. Existing Vercel Git integration may create builds automatically when `main` moves; compare runtime source and actual platform metadata. The handoff records point-in-time deployment identifiers and safe resumption instructions.
 
 ## Repository and release links
 

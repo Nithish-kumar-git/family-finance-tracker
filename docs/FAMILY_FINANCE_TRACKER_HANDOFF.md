@@ -4,7 +4,7 @@ Updated **21 October 2026**, Asia/Calcutta. **Finora** is the coined product nam
 
 ## 1. Purpose, status and evidence labels
 
-An interactive finance portfolio covering expenses, budgets, assets, milestones, employment, reports and Gemini chat. The public entry is a synthetic demo; Finora branding is verified locally and awaits manual frontend publication; the personal workspace preserves profile/PIN interaction and is device-local.
+An interactive finance portfolio covering expenses, budgets, assets, milestones, employment, reports and Gemini chat. The public entry is a synthetic demo with Finora branding published and verified live; the personal workspace preserves profile/PIN interaction and is device-local.
 
 - **Verified live:** observed on 21 October in the hosted app or authenticated GitHub/hosting metadata.
 - **Verified source:** confirmed in committed code, not necessarily exercised against production.
@@ -21,9 +21,9 @@ An interactive finance portfolio covering expenses, budgets, assets, milestones,
 - Repository: https://github.com/Nithish-kumar-git/family-finance-tracker
 - Local directory: `C:\Users\itsni\Desktop\family-finance-tracker`.
 - Default and current working branch: `main`. The previous `codex/finance-reliability-20261016` branch is preserved.
-- HEAD/remote main at branding preparation: `8187c5bd40b7518652c6a46144c6279cee01c581`. Functional application checkpoint: `f794d8a666f00c3e5b768dcdbbee528d8bbef834`.
+- HEAD/remote main at this documentation refresh: `5d60cc33219576260e3ccc4742428f68e6f1b456` (published Finora branding). Functional application checkpoint: `f794d8a666f00c3e5b768dcdbbee528d8bbef834`. The preserved implementation branch remains at `8187c5b`.
 - The earlier portfolio pass fast-forwarded `main` to `8187c5b`; GitHub confirmed PR #1 merged/closed: https://github.com/Nithish-kumar-git/family-finance-tracker/pull/1.
-- Current task: commit focused branding/docs on the existing default branch and push normally. No force-push, history rewrite, repository rename or hosting-settings change. The local main branch was advanced with a normal fast-forward fetch before switching; pre-existing work was retained.
+- Current task: refresh genuine Finora production screenshots and current documentation, then commit/push only those files on the existing default branch. No runtime change, manual deployment, force-push, history rewrite, repository rename or hosting-settings change. Pre-existing work is retained.
 
 The documentation commit cannot contain its own hash. Obtain its exact SHA with `git log -1 --format=%H -- docs/FAMILY_FINANCE_TRACKER_HANDOFF.md`; obtain the current remote default-branch SHA with `git ls-remote origin refs/heads/main`. Verify actual refs when resuming; the values above are preparation checkpoints.
 
@@ -42,14 +42,16 @@ No hosting settings were changed for this Finora release. Keep Netlify publishin
 
 ## 4. Exact deployed revision evidence
 
-**Verified hosting metadata before Finora branding publication, 21 October:**
+**Verified hosting metadata at the Finora documentation refresh, 21 October:**
 
 | Service | Application commit | Deployment ID | Status |
 | --- | --- | --- | --- |
-| Netlify production | `f794d8a666f00c3e5b768dcdbbee528d8bbef834` | `6ad72d8c8b9c9117694ecbfc` | ready, published, auto-publishing locked/paused |
-| Vercel production | `8187c5bd40b7518652c6a46144c6279cee01c581` | `dpl_BsNoMQoej4jC8RZenjJKVpDrtNbD` | READY, Git-triggered main build; backend source identical to `f794d8a` |
+| Netlify production | `5d60cc33219576260e3ccc4742428f68e6f1b456` | `6ad8221b2fc74aafb1111c3d` | ready, manually published, auto-publishing locked/paused |
+| Vercel production | `5d60cc33219576260e3ccc4742428f68e6f1b456` | `dpl_D6YFVFihFKuDN6DKhsuVPUqmRAdB` | READY, Git-triggered main build; backend source identical to `f794d8a` |
 
-Vercel's immutable checkpoint URL: `https://family-finance-tracker-fsmjxn3pu-nithish-kumar-gits-projects.vercel.app`. Immutable/preview URLs can have deployment protection. These are point-in-time observations; later Git-triggered builds may have new IDs/SHAs with unchanged application source. Read platform metadata before claiming the current hosted revision. Finora branding is not yet published to Netlify. Required action: build the final branding SHA and manually publish its `dist` artifact to the existing site, verify the published SHA, and retain its paused automatic publishing. No manual backend deployment is required; main pushes can still trigger the existing Vercel Git integration.
+Vercel's immutable checkpoint URL: `https://family-finance-tracker-ozhmbguc5-nithish-kumar-gits-projects.vercel.app`. Immutable/preview URLs can have deployment protection. These are point-in-time observations; later Git-triggered builds may have new IDs/SHAs with unchanged application source. Read platform metadata before claiming the current hosted revision.
+
+Finora’s frontend publication is complete and its live branding was checked. Netlify automatic publishing remains paused. This documentation/screenshot-only commit needs no manual app deployment; main pushes can still trigger the existing Vercel Git integration.
 
 ## 5. Architecture and main source locations
 
@@ -219,9 +221,10 @@ No dependency was installed/upgraded for this branding release. The private npm 
 | Recorded full backend run at `f794d8a`, 20 October | 95 passed, zero failures/skips | Mocked providers, SQL-free guards or synthetic SQLite; not hosted PostgreSQL CRUD |
 | Recorded full frontend run at `f794d8a`, 20 October | 189 passed, zero failures/skips | Node 24, synthetic state/mocked transports |
 | Recorded production build at `f794d8a` | Passed | Approx. 847 kB main JS; bundle-size warning remains |
-| Current Finora pass | 17 focused tests passed, zero failures/skips | Actual router/session/demo tests; full suites not repeated |
-| Current Finora production build | Passed; main JS approx. 847 kB, existing bundle warning | Same installed dependencies; 11 PWA precache entries including the Finora icon |
-| Current live browser pass | Root, expense history, budgets, fresh Gemini answer | Synthetic data only, no personal financial writes |
+| Recorded Finora branding pass at `5d60cc3` | 17 focused tests passed, zero failures/skips | Actual router/session/demo tests; full suites not repeated |
+| Recorded Finora production build at `5d60cc3` | Passed; main JS approx. 847 kB, existing bundle warning | Same installed dependencies; 11 PWA precache entries including the Finora icon |
+| Finora publication and screenshot refresh | Live brand, dashboard, expense history, budgets, genuine Gemini answer | Synthetic data only, no personal financial writes; four refreshed captures |
+| Documentation-only refresh | Markdown/image references, screenshot format and diff/preservation checks | Runtime unchanged; no test-suite or build rerun |
 
 Commands: from root, `python -m unittest discover -s backend/tests -p "test_*.py"`; from `familyfinancetracker/`, `npm test` and `npm run build`.
 
@@ -243,35 +246,37 @@ The recorded Vite build used `--configLoader native` and a temporary output fold
 | `647da62571e9306a83f71245e52583f38afd8ac0` | Direct demo-first public entry |
 | `3f4076677bba17ce0afe2498a179a963e6ac5fd8` | Explicit private deep-link rewrites |
 | `f794d8a666f00c3e5b768dcdbbee528d8bbef834` | Real isolated Gemini demo, guarded personal AI transport, chat UI/tests |
+| `8187c5bd40b7518652c6a46144c6279cee01c581` | Portfolio documentation and project handoff |
+| `5d60cc33219576260e3ccc4742428f68e6f1b456` | Finora name, tagline, F monogram, favicon/PWA icons and branding docs; published to existing Netlify site |
 
 Older email-login commits remain in normal history; they do not describe the current UI. Preserve history and avoid restoring that obsolete flow unnecessarily.
 
 ## 17. README and screenshot provenance
 
-`README.md` is the public overview; this file is the maintenance handoff. Preserved repository-relative images, all genuine production captures before the Finora frontend publication:
+`README.md` is the public overview; this file is the maintenance handoff. These four repository-relative images were refreshed from the live Finora production frontend at `5d60cc3` on 21 October 2026:
 
 | Path | Genuine captured content |
 | --- | --- |
-| `docs/screenshots/demo-dashboard.jpg` | Deployed pre-Finora synthetic dashboard |
-| `docs/screenshots/demo-expenses.jpg` | Deployed pre-Finora fictional October history and filters |
-| `docs/screenshots/demo-budgets.jpg` | Deployed pre-Finora example category limits/progress |
-| `docs/screenshots/demo-assistant.jpg` | Real deployed Gemini answer before Finora branding; previous identity explicitly disclosed |
+| `docs/screenshots/demo-dashboard.jpg` | Finora wordmark/F monogram and synthetic household dashboard |
+| `docs/screenshots/demo-expenses.jpg` | Finora fictional October history and member filters |
+| `docs/screenshots/demo-budgets.jpg` | Finora category limits, progress and near-limit alert |
+| `docs/screenshots/demo-assistant.jpg` | Finora with a genuine Gemini response explaining the ₹46,420 surplus |
 
-Captured from the production application on 21 October using the browser screenshot API, before Finora branding. All four files are retained unchanged. In this branding pass the local browser accessible page and DOM confirmed the Finora title/wordmark and a successfully loaded monogram/favicon reference, but both screenshot capture APIs returned “Unable to capture screenshot”. New branded captures could not be obtained reliably; do not call these images new Finora screenshots. The local preview is not a production CORS origin: do not alter CORS or fabricate a provider reply to refresh the assistant image. JPEGs use the screenshot encoder's compression, remain legible at native size and are individually below 150 KiB. No mockups, devtools, credentials or private rows appear. Older unlinked images remain historical artifacts, not current-release evidence; preserve unrelated useful documents.
+Captured through the browser screenshot API, not generated mockups. The assistant capture preserves the real response observed during publication verification; no extra provider request was needed for the refresh. The other three captures show full pages. JPEGs use the screenshot encoder’s compression, remain legible at native size and are individually below 150 KiB. No devtools, credentials or private household records appear. Previous unlinked images remain historical artifacts; repository/project paths and technical identifiers retain their existing names.
 
 ## 18. Live checks actually completed
 
-**Verified live in the portfolio pass on 21 October, before the Finora frontend publication:**
+**Finora publication and documentation refresh, 21 October:**
 
-- The exact root URL enters `/dashboard` without login or query parameters.
-- Visible synthetic banner/names; income ₹70,000, expenses ₹23,580, savings ₹46,420, recorded assets ₹2,67,500.
-- Expense History shows eight fictional records with month/member controls. Budgets shows the category limits/progress and near-limit alert.
-- A typed question submitted with Enter returned Gemini's answer: “Your monthly surplus is ₹46,420. The largest expense category this month is household at ₹14,000.” This came through the deployed public provider path.
-- Missing-token `/api/auth/me` returned 401 with `Cache-Control: no-store`.
-- `/health` returned `status: ok`, `database: connected`; this is only its SELECT 1 connectivity check.
-- Authenticated hosting metadata confirmed the deployments in section 4. GitHub description, homepage and topics were already accurate and preserved.
+- Root enters `/dashboard` without login or query parameters. Live title is `Finora · Personal Finance Demo`; wordmark/F monogram, SVG favicon and PWA manifest identify Finora.
+- Synthetic banner/names; income ₹70,000, expenses ₹23,580, savings ₹46,420, recorded assets ₹2,67,500.
+- Expense History shows eight fictional records with month/member controls. Budgets shows category limits/progress and the near-limit alert. Both were reopened for the branded screenshots without editing records.
+- A real Gemini response during publication verification explained the monthly surplus as ₹70,000 income minus ₹23,580 expenses. It remains visible in the refreshed assistant screenshot and came through the deployed public provider path.
+- Authenticated hosting metadata confirmed section 4’s production revisions and preserved paused Netlify publishing. GitHub description, homepage and topics were already Finora-aligned; no metadata change was needed.
 
-No OTP emails, authenticated hosted financial writes, migrations/reset scripts or private-row queries were used for this pass.
+**Recorded earlier live checks, not repeated for this documentation refresh:** missing-token `/api/auth/me` returned 401 with `Cache-Control: no-store`; `/health` returned `status: ok`, `database: connected` (only its SELECT 1 connectivity check).
+
+No OTP emails, authenticated hosted financial writes, migrations/reset scripts or private-row queries were used for this documentation refresh.
 
 ## 19. Local-only, deployed-but-unverified and unknown behavior
 
@@ -281,7 +286,7 @@ No OTP emails, authenticated hosted financial writes, migrations/reset scripts o
 
 **Unverified:** effective production DB role/grants, present catalog/RLS state, independent Data API containment confirmation, distributed Vercel rate rules, complete isolated PostgreSQL bootstrap. Existing Preview may share production configuration: never run authenticated writes without proven isolation.
 
-Finora title/wordmark and loaded icon/favicon reference are verified in the local browser DOM; SVG and built manifest metadata are checked locally, not claimed deployed. Visual screenshot verification is blocked by the capture API failure. No live provider or database test was repeated merely for branding.
+Finora’s title, wordmark, monogram, favicon and manifest were verified after production publication; the four refreshed screenshots now show the deployed brand. This does not verify personal cloud workflows or resolve the database-role questions above. No database test or additional provider request was made for the documentation refresh.
 
 ## 20. Current limitations and security considerations
 

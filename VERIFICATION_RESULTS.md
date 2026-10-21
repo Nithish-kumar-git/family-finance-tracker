@@ -1,4 +1,6 @@
-# Family Finance Tracker verification — 16 October 2026
+# Finora — historical verification, 16 October 2026
+
+> Recorded under the former Family Finance Tracker name. The results below describe that historical source, not the current release. See [README](README.md) and the [project handoff](docs/FAMILY_FINANCE_TRACKER_HANDOFF.md) for current behavior and later test evidence.
 
 ## Reproduced defects and fixes
 

@@ -1,7 +1,7 @@
 # RAG project handoff
 
 Prepared: October 16, 2026. Scope: the isolated, synthetic-only local RAG demo
-inside the existing Family Finance Tracker repository.
+inside the existing Finora repository (formerly Family Finance Tracker). The repository name and local environment paths remain unchanged; see the [finance project handoff](FAMILY_FINANCE_TRACKER_HANDOFF.md) for the current product identity.
 
 ## 1. Status and how to interpret this record
 

@@ -1,4 +1,6 @@
-# FamilyFinanceTracker — Deployment Guide
+# Finora — historical deployment guide
+
+> Historical setup reference. For the current Finora release and existing hosting configuration, use [README](README.md) and the [project handoff](docs/FAMILY_FINANCE_TRACKER_HANDOFF.md). Netlify automatic publishing remains paused. Do not run historical setup, seed or production commands as a current release procedure.
 
 ## Who this is for
 This guide is written for Nithish. No prior DevOps experience required.
@@ -59,7 +61,7 @@ Run these commands from the repo root (`family-finance-tracker/`):
 ```bash
 git init
 git add .
-git commit -m "feat: initial commit — FamilyFinanceTracker"
+git commit -m "feat: initial commit — Finora"
 ```
 
 Create a new repo on github.com:
@@ -217,7 +219,7 @@ Now that you have your Netlify URL, update the backend CORS config:
 ## Step 9 — Install as a PWA on Android (1 minute)
 
 1. Open your Netlify URL in **Chrome on Android**
-2. A banner will appear at the bottom: **"Add FamilyFinanceTracker to Home screen"**
+2. A banner will appear at the bottom: **"Add Finora to Home screen"**
 3. Tap **Install**
 4. The app will appear on your home screen and run like a native app
 5. It will cache pages locally so it works even with slow/no internet
