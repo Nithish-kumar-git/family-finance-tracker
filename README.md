@@ -32,7 +32,7 @@ All balances, names, transactions and notes in the public demo are fictional. Th
 
 ## Finora production screenshots
 
-These four genuine captures show **Finora running in production on 21 October 2026**, at frontend revision `5d60cc3`. They use only the fictional demo household. The Finora wordmark and F monogram are visible throughout.
+These four genuine captures were recorded from **Finora running in production on 21 October 2026**. They use only the fictional demo household. The Finora wordmark and F monogram are visible throughout. The current Netlify frontend commit is not independently exposed by the read-only checks used for this closeout, so no deployed frontend SHA is asserted here.
 
 ### Dashboard
 
@@ -163,7 +163,7 @@ Local tests do not prove hosted PostgreSQL behavior or authenticated cross-devic
 
 Netlify uses `familyfinancetracker` as its base, `npm run build` and `dist` output. Its production branch is `main`; automatic publishing is paused. Vercel hosts the separate FastAPI project using its existing Git integration and `backend/vercel.json`. No hosting settings were changed for this documentation release.
 
-At the 21 October 2026 documentation refresh, both hosting platforms confirmed production revision `5d60cc33219576260e3ccc4742428f68e6f1b456`. Finora’s title, monogram, favicon, direct demo entry, expense history, budgets and genuine Gemini response were verified live. Earlier live checks recorded backend health reporting connected and HTTP 401 for missing-token `/api/auth/me`; they were not repeated for this screenshot refresh. None of these checks establishes personal cloud synchronization or production database role privileges.
+At this closeout, the Netlify frontend and Vercel `/health` URL both returned HTTP 200. Vercel identifies the production backend deployment as `READY` at repository commit `46d9d162949b7c029ae9ceba41ce8c00df2f7e2c`. The Netlify frontend SHA was not independently verifiable, so the earlier screenshot/branding evidence remains historical rather than a new commit-level deployment claim. None of these checks establishes personal cloud synchronization or production database role privileges.
 
 The Finora branding release changed presentation assets, visible brand text and metadata; authentication, API behavior, financial logic and storage keys were unchanged. The last complete verification at functional checkpoint `f794d8a` was **95 backend tests and 189 frontend tests passing, zero failures or skips**, plus a successful production build with the bundle-size warning. Branding verification at `5d60cc3` passed **17 focused route/session/demo tests, zero failures or skips**, and the production build. This subsequent documentation/screenshot refresh changes no runtime code; those suites and the build were not rerun.
 

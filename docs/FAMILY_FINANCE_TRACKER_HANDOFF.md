@@ -2,6 +2,43 @@
 
 Updated **21 October 2026**, Asia/Calcutta. **Finora** is the coined product name; tagline: **Your finances, clearly understood.** No dictionary meaning or legal availability is asserted. The navy `#12263A` / mint `#74D4BD` F monogram is shared by sidebar, personal entry, favicon and PWA icons. Existing layout, controls, authentication, storage keys, financial logic and project/repository names are preserved. Scope: the existing finance portfolio demo and separate personal browser workspace. This record supersedes historical finance instructions that describe an email-login frontend or working personal cloud synchronization. Preserve the separate RAG handoff.
 
+## 21 October 2026 Git and deployment closeout
+
+| Item | Verified value |
+| --- | --- |
+| Repository | <https://github.com/Nithish-kumar-git/family-finance-tracker> |
+| Authoritative checkout for this closeout | `C:\Users\itsni\OneDrive\Documents\ChatGPT\project collections\family-finance-tracker` |
+| Default / active branch | `main` / `main` |
+| Documentation base commit | `46d9d162949b7c029ae9ceba41ce8c00df2f7e2c` |
+| Base synchronization | Local `main` matched `origin/main`; zero ahead and zero behind |
+| Base working tree | Clean; no modified or untracked user work |
+| Netlify frontend | HTTP 200 at <https://scintillating-donut-a597ff.netlify.app/>; deployed SHA not independently verifiable in this closeout |
+| Vercel backend | `READY` at `46d9d162949b7c029ae9ceba41ce8c00df2f7e2c`; `/health` returned HTTP 200 |
+
+The documentation commit containing this section cannot embed its own hash. After
+commit, obtain it with `git log -1 --format=%H -- docs/FAMILY_FINANCE_TRACKER_HANDOFF.md`
+and compare the remote using `git ls-remote origin refs/heads/main`.
+
+Current setup and checks remain: Node.js 22+ (`npm ci`, `npm run dev`, `npm test`,
+`npm run build`) under `familyfinancetracker/`; Python with
+`backend/requirements.txt`, `uvicorn main:app --reload`, and
+`python -m unittest discover -s backend/tests -p "test_*.py"`. No suite or build was
+rerun for this documentation-only closeout. The detailed recorded counts below are
+historical application-checkpoint evidence, not fresh results.
+
+Environment-variable names remain `SUPABASE_DATABASE_URL`, `SUPABASE_URL`,
+`SUPABASE_PUBLISHABLE_KEY`, `FAMILY_EMAIL_PROFILES`, `FRONTEND_URL`,
+`GEMINI_API_KEY` and `VITE_API_URL`; never publish values.
+
+The unresolved boundary is unchanged: the browser PIN workspace has no genuine
+server identity, so personal changes remain device-local; effective production
+database role/grants and alternate Data API containment remain unverified. The
+exact next action is an approved server-authentication and acknowledged-sync design,
+followed by isolated approved/outsider/database-role verification. Production
+database access, credentials, permissions, hosting settings, manual deployment,
+history rewrite and force-push require explicit approval. The synthetic demo and
+documentation may be frozen; genuine personal cloud use remains **incomplete**.
+
 ## 1. Purpose, status and evidence labels
 
 An interactive finance portfolio covering expenses, budgets, assets, milestones, employment, reports and Gemini chat. The public entry is a synthetic demo with Finora branding published and verified live; the personal workspace preserves profile/PIN interaction and is device-local.
@@ -14,9 +51,9 @@ An interactive finance portfolio covering expenses, budgets, assets, milestones,
 
 **Status:** the synthetic portfolio demo is live and demonstrated. Personal cloud financial management is incomplete; this is not a security certification.
 
-## 2. Repository, branches and protected working tree
+## 2. Repository, branches and protected working tree — historical preparation record
 
-**Verified Git/GitHub at preparation:**
+**Verified at the earlier branding preparation; use the closeout snapshot above for current Git state:**
 
 - Repository: https://github.com/Nithish-kumar-git/family-finance-tracker
 - Local directory: `C:\Users\itsni\Desktop\family-finance-tracker`.
@@ -40,7 +77,7 @@ Preserve and exclude from this release: modifications to `security/PREVIEW_TEST_
 
 No hosting settings were changed for this Finora release. Keep Netlify publishing paused unless authorized otherwise. Vercel Git integration may build automatically when refs move; inspect generated deployment metadata rather than assuming nothing deployed. Documentation-only work does not require manual app redeployment.
 
-## 4. Exact deployed revision evidence
+## 4. Earlier deployed revision evidence
 
 **Verified hosting metadata at the Finora documentation refresh, 21 October:**
 
