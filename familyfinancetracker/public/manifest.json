@@ -1,11 +1,11 @@
 {
-  "name": "FamilyFinanceTracker",
-  "short_name": "FFTracker",
-  "description": "AI-powered family finance tracker for Chennai family",
+  "name": "Finora",
+  "short_name": "Finora",
+  "description": "Finora — personal finance tracking and analytics with synthetic demo data",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#7C3AED",
+  "theme_color": "#12263A",
   "orientation": "portrait",
   "icons": [
     {

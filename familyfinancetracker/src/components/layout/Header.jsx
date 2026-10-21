@@ -13,7 +13,7 @@ const ROUTE_TITLES = {
   '/report':     'Report',
   '/employment': 'Job Tracker',
   '/settings':   'Settings',
-  '/':           'FamilyFinanceTracker',
+  '/':           'Finora',
 }
 
 export default function Header() {
@@ -25,7 +25,7 @@ export default function Header() {
   const isOffline = useStore(s => s.isOffline)
 
   const user = users.find(u => u.id === currentUser)
-  const title = ROUTE_TITLES[location.pathname] ?? 'FamilyFinanceTracker'
+  const title = ROUTE_TITLES[location.pathname] ?? 'Finora'
   const initial = user ? user.name[0].toUpperCase() : '?'
   const color = user?.color ?? '#94A3B8'
 

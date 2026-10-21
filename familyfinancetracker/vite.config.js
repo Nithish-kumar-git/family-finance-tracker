@@ -7,15 +7,15 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icons/icon-192.svg', 'icons/icon-512.svg'],
+      includeAssets: ['icons/finora.svg', 'icons/icon-192.svg', 'icons/icon-512.svg'],
       manifest: {
-        name: 'FamilyFinanceTracker',
-        short_name: 'FFTracker',
-        description: 'Interactive personal-finance portfolio demo with isolated synthetic records',
+        name: 'Finora',
+        short_name: 'Finora',
+        description: 'Finora — personal finance tracking and analytics with isolated synthetic demo records',
         start_url: '/',
         display: 'standalone',
         background_color: '#ffffff',
-        theme_color: '#245C46',
+        theme_color: '#12263A',
         orientation: 'portrait',
         icons: [
           {

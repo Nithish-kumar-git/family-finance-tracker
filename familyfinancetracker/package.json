@@ -1,5 +1,6 @@
 {
   "name": "familyfinancetracker",
+  "description": "Finora — personal finance tracking and analytics with an isolated portfolio demo",
   "private": true,
   "version": "1.0.0",
   "type": "module",

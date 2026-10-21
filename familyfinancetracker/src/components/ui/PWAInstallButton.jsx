@@ -15,7 +15,7 @@ export function PWAInstallButton() {
     <button
       onClick={triggerInstall}
       className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-accent border border-line rounded-lg bg-accent-soft hover:bg-accent-soft transition-colors"
-      aria-label="Install FamilyFinanceTracker app"
+      aria-label="Install Finora app"
     >
       <Download size={13} />
       <span>Install</span>

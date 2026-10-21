@@ -1,8 +1,20 @@
-# Family Finance Tracker
+# Finora
 
-An interactive personal-finance dashboard for exploring expenses, budgets, assets, goals and monthly reports.
+**Your finances, clearly understood.**
+
+<img src="familyfinancetracker/public/icons/finora.svg" width="64" height="64" alt="Finora F monogram" />
+
+[![Live demo](https://img.shields.io/badge/Live_demo-Open-12263A)](https://scintillating-donut-a597ff.netlify.app/)
+[![React 18](https://img.shields.io/badge/React-18-12263A?logo=react&logoColor=74D4BD)](https://react.dev/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-API-12263A?logo=fastapi&logoColor=74D4BD)](https://fastapi.tiangolo.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-12263A?logo=postgresql&logoColor=74D4BD)](https://www.postgresql.org/)
+[![Gemini](https://img.shields.io/badge/Gemini-AI-12263A?logo=googlegemini&logoColor=74D4BD)](https://ai.google.dev/)
+
+Personal finance tracking and analytics: explore expenses, budgets, assets, goals, monthly reports and a Gemini assistant through an isolated synthetic portfolio demo. Finora is the new coined product name for the existing Family Finance Tracker project; the repository, hosting projects and URLs remain unchanged.
 
 **[Open the live demo →](https://scintillating-donut-a597ff.netlify.app/)**
+
+**Branding status:** Finora is implemented and verified locally. The live frontend still shows its previous identity until an authorized manual Netlify publication; automatic publishing remains paused.
 
 The public site opens directly into a synthetic household. No account, PIN or email is required. Edit records freely: demo changes stay in your browser and never reach the private household database.
 
@@ -18,9 +30,9 @@ The public site opens directly into a synthetic household. No account, PIN or em
 
 All balances, names, transactions and notes in the public demo are fictional. The finance assistant calls Gemini through FastAPI using a server-owned synthetic example. Browser financial records and edits are never uploaded by demo chat. Do not enter private details into demo questions.
 
-## Current screenshots
+## Production screenshots — before Finora publication
 
-Captured from the deployed synthetic demo on **21 October 2026**. These are actual application screenshots, with no private household records or generated mockups.
+These four genuine captures show the published synthetic demo on **21 October 2026**, before the Finora frontend publication. The earlier product identity remains visible. The local Finora title, wordmark and loaded icon were checked in the browser, but its screenshot API could not return an image; the existing captures are preserved rather than fabricated or presented as the new deployed brand.
 
 ### Dashboard
 
@@ -40,9 +52,9 @@ Category spending, editable limits and near-limit alerts.
 
 ![Synthetic category budgets and spending](docs/screenshots/demo-budgets.jpg)
 
-### Gemini assistant
+### Gemini assistant — verified production response
 
-A genuine provider response identifies the example's ₹46,420 monthly surplus and ₹14,000 household spending. The assistant uses the server-owned example; browser edits are excluded.
+The previous product identity remains visible in this production capture. A genuine provider response identifies the example's ₹46,420 monthly surplus and ₹14,000 household spending. The assistant uses the server-owned example; browser edits are excluded.
 
 ![Gemini response using only the synthetic example](docs/screenshots/demo-assistant.jpg)
 
@@ -153,9 +165,9 @@ Netlify uses `familyfinancetracker` as its base, `npm run build` and `dist` outp
 
 On 21 October 2026, both platforms confirmed deployed application revision `f794d8a666f00c3e5b768dcdbbee528d8bbef834`. Live checks confirmed direct demo entry, expense history, budgets, a real Gemini answer, backend health reporting connected, and HTTP 401 for missing-token `/api/auth/me`. These checks do not establish personal cloud synchronization or production database role privileges.
 
-Application source and tests are unchanged by this portfolio documentation release. The last complete verification at that application revision was **95 backend tests and 189 frontend tests passing, zero failures or skips**, plus a successful production build with the bundle-size warning. The full suites were not rerun just for screenshots and documentation.
+The preceding portfolio documentation release did not change application source or tests. This Finora pass changes only presentation assets, visible brand text and metadata; authentication, API behavior, financial logic and storage keys are unchanged. The last complete verification at that application revision was **95 backend tests and 189 frontend tests passing, zero failures or skips**, plus a successful production build with the bundle-size warning. Those full suites were not repeated for branding. The current focused route/session/demo checks passed **17 tests, zero failures or skips**; the current production build result is recorded in the handoff.
 
-A newer documentation-only commit does not need a manual app redeployment. Existing Git integration may create builds automatically when branches move; compare runtime source and actual platform metadata. The handoff records point-in-time deployment identifiers and safe resumption instructions.
+Finora frontend publication requires a reviewed build of the new branding commit, then a manual production deployment to the existing Netlify site; keep automatic publishing paused. No backend code change or manual backend deployment is needed. A documentation-only commit alone would not need app redeployment. Existing Git integration may create builds automatically when branches move; compare runtime source and actual platform metadata. The handoff records point-in-time deployment identifiers and safe resumption instructions.
 
 ## Repository and release links
 

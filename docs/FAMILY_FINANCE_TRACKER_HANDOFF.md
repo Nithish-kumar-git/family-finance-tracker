@@ -1,14 +1,14 @@
-# Family Finance Tracker — project handoff
+# Finora — project handoff
 
-Prepared **21 October 2026**, Asia/Calcutta. Scope: the existing finance portfolio demo and separate personal browser workspace. This record supersedes historical finance instructions that describe an email-login frontend or working personal cloud synchronization. Preserve the separate RAG handoff.
+Updated **21 October 2026**, Asia/Calcutta. **Finora** is the coined product name; tagline: **Your finances, clearly understood.** No dictionary meaning or legal availability is asserted. The navy `#12263A` / mint `#74D4BD` F monogram is shared by sidebar, personal entry, favicon and PWA icons. Existing layout, controls, authentication, storage keys, financial logic and project/repository names are preserved. Scope: the existing finance portfolio demo and separate personal browser workspace. This record supersedes historical finance instructions that describe an email-login frontend or working personal cloud synchronization. Preserve the separate RAG handoff.
 
 ## 1. Purpose, status and evidence labels
 
-An interactive finance portfolio covering expenses, budgets, assets, milestones, employment, reports and Gemini chat. The public entry is a synthetic demo; the personal workspace preserves profile/PIN interaction and is device-local.
+An interactive finance portfolio covering expenses, budgets, assets, milestones, employment, reports and Gemini chat. The public entry is a synthetic demo; Finora branding is verified locally and awaits manual frontend publication; the personal workspace preserves profile/PIN interaction and is device-local.
 
 - **Verified live:** observed on 21 October in the hosted app or authenticated GitHub/hosting metadata.
 - **Verified source:** confirmed in committed code, not necessarily exercised against production.
-- **Recorded local test:** actually run on 20 October at `f794d8a`; unchanged source, not a new test run today.
+- **Recorded local test:** actually run on 20 October at `f794d8a`; functional behavior is unchanged, but the current branding pass has separate focused verification below. Not a new full-suite run today.
 - **Deployed, not end-to-end verified:** hosted code whose complete workflow was not safely exercised.
 - **Owner-reported / unverified:** earlier owner evidence or unresolved environment facts, not independent verification.
 
@@ -20,10 +20,10 @@ An interactive finance portfolio covering expenses, budgets, assets, milestones,
 
 - Repository: https://github.com/Nithish-kumar-git/family-finance-tracker
 - Local directory: `C:\Users\itsni\Desktop\family-finance-tracker`.
-- Default branch: `main`; working branch: `codex/finance-reliability-20261016`.
-- HEAD and remote release-branch application checkpoint: `f794d8a666f00c3e5b768dcdbbee528d8bbef834`.
-- Before documentation publication, remote `main` was `30ea07f41eea80c3932a6304d8677ad9d0aaebe7`, an ancestor of the released application. PR #1 was open: https://github.com/Nithish-kumar-git/family-finance-tracker/pull/1.
-- Authorized publication: commit docs/screenshots on the working branch and fast-forward `main` through the already deployed application history. No force-push, shared-history rewrite or docs-only publication on obsolete runtime source.
+- Default and current working branch: `main`. The previous `codex/finance-reliability-20261016` branch is preserved.
+- HEAD/remote main at branding preparation: `8187c5bd40b7518652c6a46144c6279cee01c581`. Functional application checkpoint: `f794d8a666f00c3e5b768dcdbbee528d8bbef834`.
+- The earlier portfolio pass fast-forwarded `main` to `8187c5b`; GitHub confirmed PR #1 merged/closed: https://github.com/Nithish-kumar-git/family-finance-tracker/pull/1.
+- Current task: commit focused branding/docs on the existing default branch and push normally. No force-push, history rewrite, repository rename or hosting-settings change. The local main branch was advanced with a normal fast-forward fetch before switching; pre-existing work was retained.
 
 The documentation commit cannot contain its own hash. Obtain its exact SHA with `git log -1 --format=%H -- docs/FAMILY_FINANCE_TRACKER_HANDOFF.md`; obtain the current remote default-branch SHA with `git ls-remote origin refs/heads/main`. Verify actual refs when resuming; the values above are preparation checkpoints.
 
@@ -38,18 +38,18 @@ Preserve and exclude from this release: modifications to `security/PREVIEW_TEST_
 
 **Verified source:** `backend/vercel.json` routes backend paths to `main.py` using `@vercel/python`. The filtered connector did not independently expose the dashboard root-directory value; preserve it. The frontend has explicit SPA rewrites in `familyfinancetracker/public/_redirects`, including owner deep links, without a blanket API rewrite.
 
-No hosting settings were changed for this documentation release. Keep Netlify publishing paused unless authorized otherwise. Vercel Git integration may build automatically when refs move; inspect generated deployment metadata rather than assuming nothing deployed. Documentation-only work does not require manual app redeployment.
+No hosting settings were changed for this Finora release. Keep Netlify publishing paused unless authorized otherwise. Vercel Git integration may build automatically when refs move; inspect generated deployment metadata rather than assuming nothing deployed. Documentation-only work does not require manual app redeployment.
 
 ## 4. Exact deployed revision evidence
 
-**Verified hosting metadata before documentation publication, 21 October:**
+**Verified hosting metadata before Finora branding publication, 21 October:**
 
 | Service | Application commit | Deployment ID | Status |
 | --- | --- | --- | --- |
 | Netlify production | `f794d8a666f00c3e5b768dcdbbee528d8bbef834` | `6ad72d8c8b9c9117694ecbfc` | ready, published, auto-publishing locked/paused |
-| Vercel production | `f794d8a666f00c3e5b768dcdbbee528d8bbef834` | `dpl_2CTrJPgPW5scypq2n1oujReQM5ky` | READY, production alias assigned |
+| Vercel production | `8187c5bd40b7518652c6a46144c6279cee01c581` | `dpl_BsNoMQoej4jC8RZenjJKVpDrtNbD` | READY, Git-triggered main build; backend source identical to `f794d8a` |
 
-Vercel's immutable checkpoint URL: `https://family-finance-tracker-c7o5g161f-nithish-kumar-gits-projects.vercel.app`. Immutable/preview URLs can have deployment protection. These are point-in-time observations; later Git-triggered builds may have new IDs/SHAs with unchanged application source. Read platform metadata before claiming the current hosted revision.
+Vercel's immutable checkpoint URL: `https://family-finance-tracker-fsmjxn3pu-nithish-kumar-gits-projects.vercel.app`. Immutable/preview URLs can have deployment protection. These are point-in-time observations; later Git-triggered builds may have new IDs/SHAs with unchanged application source. Read platform metadata before claiming the current hosted revision. Finora branding is not yet published to Netlify. Required action: build the final branding SHA and manually publish its `dist` artifact to the existing site, verify the published SHA, and retain its paused automatic publishing. No manual backend deployment is required; main pushes can still trigger the existing Vercel Git integration.
 
 ## 5. Architecture and main source locations
 
@@ -74,6 +74,7 @@ Separate protected API → server-verified household identity → SQLAlchemy →
 | `src/utils/workspace.js`, `src/store/useStore.js` | Workspace selection, synthetic fixture and persistence |
 | `src/utils/browserRepository.js`, `src/utils/authorizedFetch.js`, `src/utils/api.js` | Browser financial contracts and server transport boundary |
 | `src/utils/recordRecovery.js`, `src/components/RecoveryPanel.jsx` | Original-byte preservation and explicit recovery |
+| `public/icons/finora.svg`, `public/icons/icon-192.svg`, `public/icons/icon-512.svg` | Shared original geometric Finora mark, navy/mint; no added dependencies |
 | `src/components/WorkspaceEditor.jsx`, `src/components/DemoTools.jsx` | Editable details, demo reset and discreet owner access |
 | `src/pages/Dashboard.jsx`, `src/utils/ammaChat.js` | Chat UI, context selection, timeout/cancellation/retry |
 | `backend/main.py`, `backend/auth.py`, `backend/database.py` | Middleware, routes, authorization and SQLAlchemy |
@@ -209,7 +210,7 @@ cd backend
 uvicorn main:app --reload
 ```
 
-No dependency was installed/upgraded for this documentation release. The Vercel root is not the React application; `/health` is the actual supported health endpoint.
+No dependency was installed/upgraded for this branding release. The private npm package name remains unchanged for compatibility; only its description was updated. No license/status badges are invented: no tracked license file or CI workflow was found; README badges link the live demo and confirmed technologies only. The Vercel root is not the React application; `/health` is the actual supported health endpoint.
 
 ## 15. Tests/build: actual evidence and commands
 
@@ -218,7 +219,8 @@ No dependency was installed/upgraded for this documentation release. The Vercel 
 | Recorded full backend run at `f794d8a`, 20 October | 95 passed, zero failures/skips | Mocked providers, SQL-free guards or synthetic SQLite; not hosted PostgreSQL CRUD |
 | Recorded full frontend run at `f794d8a`, 20 October | 189 passed, zero failures/skips | Node 24, synthetic state/mocked transports |
 | Recorded production build at `f794d8a` | Passed | Approx. 847 kB main JS; bundle-size warning remains |
-| Current documentation pass | Markdown/image, preservation and runtime-equivalence checks | No repeated full suites/build: source and tests unchanged |
+| Current Finora pass | 17 focused tests passed, zero failures/skips | Actual router/session/demo tests; full suites not repeated |
+| Current Finora production build | Passed; main JS approx. 847 kB, existing bundle warning | Same installed dependencies; 11 PWA precache entries including the Finora icon |
 | Current live browser pass | Root, expense history, budgets, fresh Gemini answer | Synthetic data only, no personal financial writes |
 
 Commands: from root, `python -m unittest discover -s backend/tests -p "test_*.py"`; from `familyfinancetracker/`, `npm test` and `npm run build`.
@@ -246,20 +248,20 @@ Older email-login commits remain in normal history; they do not describe the cur
 
 ## 17. README and screenshot provenance
 
-`README.md` is the public overview; this file is the maintenance handoff. Current repository-relative images:
+`README.md` is the public overview; this file is the maintenance handoff. Preserved repository-relative images, all genuine production captures before the Finora frontend publication:
 
 | Path | Genuine captured content |
 | --- | --- |
-| `docs/screenshots/demo-dashboard.jpg` | Full deployed synthetic dashboard |
-| `docs/screenshots/demo-expenses.jpg` | History tab with eight fictional October rows and filters |
-| `docs/screenshots/demo-budgets.jpg` | Example category limits/progress |
-| `docs/screenshots/demo-assistant.jpg` | Fresh real Gemini answer, not the old local summary |
+| `docs/screenshots/demo-dashboard.jpg` | Deployed pre-Finora synthetic dashboard |
+| `docs/screenshots/demo-expenses.jpg` | Deployed pre-Finora fictional October history and filters |
+| `docs/screenshots/demo-budgets.jpg` | Deployed pre-Finora example category limits/progress |
+| `docs/screenshots/demo-assistant.jpg` | Real deployed Gemini answer before Finora branding; previous identity explicitly disclosed |
 
-Captured from the existing production demo on 21 October using the browser screenshot API. JPEGs use the screenshot encoder's compression, remain legible at native size and are individually below 150 KiB. No mockups, devtools, credentials or private rows appear. Older unlinked images remain historical artifacts, not current-release evidence; preserve unrelated useful documents.
+Captured from the production application on 21 October using the browser screenshot API, before Finora branding. All four files are retained unchanged. In this branding pass the local browser accessible page and DOM confirmed the Finora title/wordmark and a successfully loaded monogram/favicon reference, but both screenshot capture APIs returned “Unable to capture screenshot”. New branded captures could not be obtained reliably; do not call these images new Finora screenshots. The local preview is not a production CORS origin: do not alter CORS or fabricate a provider reply to refresh the assistant image. JPEGs use the screenshot encoder's compression, remain legible at native size and are individually below 150 KiB. No mockups, devtools, credentials or private rows appear. Older unlinked images remain historical artifacts, not current-release evidence; preserve unrelated useful documents.
 
 ## 18. Live checks actually completed
 
-**Verified live on 21 October:**
+**Verified live in the portfolio pass on 21 October, before the Finora frontend publication:**
 
 - The exact root URL enters `/dashboard` without login or query parameters.
 - Visible synthetic banner/names; income ₹70,000, expenses ₹23,580, savings ₹46,420, recorded assets ₹2,67,500.
@@ -278,6 +280,8 @@ No OTP emails, authenticated hosted financial writes, migrations/reset scripts o
 **Deployed, not end-to-end verified:** authenticated PostgreSQL CRUD using a genuine approved identity; approved-versus-outsider hosted account workflows; personal cross-device loading/saving. The frontend currently cannot establish that identity.
 
 **Unverified:** effective production DB role/grants, present catalog/RLS state, independent Data API containment confirmation, distributed Vercel rate rules, complete isolated PostgreSQL bootstrap. Existing Preview may share production configuration: never run authenticated writes without proven isolation.
+
+Finora title/wordmark and loaded icon/favicon reference are verified in the local browser DOM; SVG and built manifest metadata are checked locally, not claimed deployed. Visual screenshot verification is blocked by the capture API failure. No live provider or database test was repeated merely for branding.
 
 ## 20. Current limitations and security considerations
 
@@ -304,7 +308,7 @@ Before re-entry intended for cross-device use: finish approved server-auth sessi
 
 ## 23. Exact instructions for the next coding session
 
-1. Read this file and `README.md`; inspect actual branch/HEAD/status and remote default branch. This is historical evidence, not authorization for production mutations.
+1. Read this file and `README.md`; preserve Finora naming and inspect actual branch/HEAD/status and remote default branch. This is historical evidence, not authorization for production mutations.
 2. Preserve every modified/untracked file, independent portfolio, browser record and production record. Never reset/clean/force-push. Stage named task files only.
 3. Identify demo versus personal scope. Keep URL/storage isolation and fixed synthetic chat context intact. No email login or mandatory recruiter login unless a new explicit request changes the product requirements.
 4. For docs-only tasks, validate Markdown/images, runtime equivalence and preservation; reuse applicable test evidence. For a concrete code defect, reproduce with synthetic fixtures and blocked SQL/providers, test/build as relevant, then verify exact hosting revisions within the new task's authority.

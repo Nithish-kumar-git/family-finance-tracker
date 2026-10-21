@@ -40,12 +40,10 @@ function ProtectedLayout({ children }) {
       <aside className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 lg:w-56 lg:bg-white lg:border-r lg:border-line lg:z-40">
         {/* Logo */}
         <div className="flex items-center gap-3 px-5 h-16 border-b border-line">
-          <div className="w-9 h-9 rounded-lg bg-accent flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-bold text-base">₹</span>
-          </div>
+          <img src="/icons/finora.svg" alt="" aria-hidden="true" className="w-9 h-9 flex-shrink-0" />
           <div>
-            <p className="text-sm font-bold text-ink leading-tight">FFTracker</p>
-            <p className="text-xs text-muted">Family Finance</p>
+            <p className="text-sm font-bold text-[#12263A] leading-tight">Finora</p>
+            <p className="text-xs text-muted">Personal finance</p>
           </div>
         </div>
 

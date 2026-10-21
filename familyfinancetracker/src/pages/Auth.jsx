@@ -27,9 +27,9 @@ export default function Auth() {
   if (workspaceMode === 'demo') return <div className="min-h-screen bg-canvas flex items-center justify-center"><div className="surface max-w-md"><h1>Demo storage unavailable</h1><p className="text-muted my-4">Allow browser storage or use Settings to reset only the synthetic demo. Personal records have not been accessed.</p><DemoTools /></div></div>
   return <div className="min-h-screen bg-canvas">
     <div className="max-w-md mx-auto px-6 py-10 flex flex-col justify-center min-h-screen">
-      <div className="w-16 h-16 rounded-lg bg-accent flex items-center justify-center mx-auto mb-6"><span className="text-2xl font-bold text-white">₹</span></div>
-      <h1 className="text-2xl font-bold text-ink text-center">FamilyFinanceTracker</h1>
-      <p className="text-sm text-muted text-center mt-1 mb-6">Family finances, in one place.</p>
+      <img src="/icons/finora.svg" alt="" aria-hidden="true" className="w-16 h-16 mx-auto mb-6" />
+      <h1 className="text-2xl font-bold text-[#12263A] text-center">Finora</h1>
+      <p className="text-sm text-muted text-center mt-1 mb-6">Your finances, clearly understood.</p>
       <div className="rounded-lg border border-line p-3 mb-5 text-xs leading-relaxed text-muted">
         {workspaceMode === 'demo' ? 'Recruiter demo · synthetic data only. Edits stay in a separate demo workspace on this browser.' : 'Personal workspace · saved on this device only. Your PIN is a browser convenience lock, not server authentication. Private cloud records remain protected and disconnected.'}
       </div>
