@@ -1,6 +1,35 @@
 # Finora — project handoff
 
-Updated **21 October 2026**, Asia/Calcutta. **Finora** is the coined product name; tagline: **Your finances, clearly understood.** No dictionary meaning or legal availability is asserted. The navy `#12263A` / mint `#74D4BD` F monogram is shared by sidebar, personal entry, favicon and PWA icons. Existing layout, controls, authentication, storage keys, financial logic and project/repository names are preserved. Scope: the existing finance portfolio demo and separate personal browser workspace. This record supersedes historical finance instructions that describe an email-login frontend or working personal cloud synchronization. Preserve the separate RAG handoff.
+Updated **22 October 2026**, Asia/Calcutta. **Finora** is the coined product name; tagline: **Your finances, clearly understood.** No dictionary meaning or legal availability is asserted. The navy `#12263A` / mint `#74D4BD` F monogram is shared by sidebar, personal entry, favicon and PWA icons. Existing layout, controls, authentication, storage keys, financial logic and project/repository names are preserved. Scope: the existing finance portfolio demo and separate personal browser workspace. This record supersedes historical finance instructions that describe an email-login frontend or working personal cloud synchronization. Preserve the separate RAG handoff.
+
+## 22 October 2026 database-access-boundary verification
+
+This was a read-only configuration and metadata review. No household rows were
+queried, no SQL was run against the hosted database, and no permission, RLS,
+credential, provider setting, application code or deployment was changed.
+
+| Question | Result and evidence |
+| --- | --- |
+| Git baseline | Current remote `main` was `c8f5221046a1e69c3be0654dd1c85fdde4facad1` at review start. The known Desktop checkout remained on `46d9d162949b7c029ae9ceba41ce8c00df2f7e2c`, one commit behind, with its two modified security documents and untracked work preserved. This documentation update was prepared from a separate clean clone of current remote `main`. |
+| Supabase project | Read-only provider metadata reported the project `ACTIVE_HEALTHY`, PostgreSQL 17.6, region `ap-south-1`. The available metadata did not expose the Data API enable/disable setting. **Data API status is UNVERIFIED**; the earlier owner-reported disablement is not promoted to verified fact. |
+| Hosted backend configuration | Vercel metadata confirmed encrypted production/preview variables named `SUPABASE_DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` and `FAMILY_EMAIL_PROFILES`. Values remained secret and were not retrieved. |
+| Database access path | Committed `backend/database.py` passes `SUPABASE_DATABASE_URL` directly to SQLAlchemy. No application `SET ROLE` or role-assumption step was found. Supabase Auth verification is a separate HTTP call in `backend/auth.py`. This establishes a direct PostgreSQL backend path, but not whether its login is privileged or restricted. |
+| Effective PostgreSQL role | **UNVERIFIED.** Secret-name metadata, `/health`, a provider-management connection and table ownership do not identify the role used by the deployed SQLAlchemy connection. |
+| Historical grants/RLS finding | The earlier record says 13 application tables had RLS disabled, no policies and broad `anon`/`authenticated` grants. That catalog state was not re-queried here. Without a verified current catalog and Data API toggle, this review does **not** establish an externally reachable exploit or data disclosure. If the Data API is enabled, those grants would be a serious exposure path; if disabled, they are not reachable through that API, but disablement would not constrain the separate direct PostgreSQL backend path. |
+| Demo/personal boundary | Source still keeps public demo data in its own browser namespace and gives public AI only a fixed synthetic server context. The demo AI router imports no database model/session. The personal PIN workspace remains device-local and supplies no Supabase access token, so personal database synchronization and personal AI remain disconnected. |
+
+**Permission decision:** do not apply `security/lockdown_data_api.sql` yet. A
+permission change may be warranted if the historical grants still exist, but its
+safety depends on the exact backend role retaining independent table privileges
+and an intentional RLS bypass or policy path. Applying the proposal without that
+evidence could break the backend while still leaving other privileged paths.
+
+**Smallest next action:** in one explicitly approved read-only maintenance window,
+first record the Data API toggle from the Supabase project API settings, then run
+`SELECT current_user, session_user` through the exact deployed backend connection
+(not a dashboard/editor connection). Query no application tables. With that role
+known, inspect only its grants/RLS attributes and the current table privilege/RLS
+catalog before approving, revising or rejecting the proposed lockdown.
 
 ## 21 October 2026 Git and deployment closeout
 
